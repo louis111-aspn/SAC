@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>숫자가 아닌 의미를 전달하라 — IBCS와 SAC 리포트 디자인 원칙</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f0f3f8;
+  --navy:#003366;
+  --navy-light:#e6edf5;
+  --gray:#333333;
+  --gray-light:#7a8699;
+  --white:#ffffff;
+  --warn:#b8860b;
+  --warn-bg:#fdf6e3;
+  --correct:#1e7a46;
+  --correct-bg:#e7f5ee;
+  --wrong:#b3261e;
+  --wrong-bg:#fbe9e7;
+  --font-heading:'DM Serif Display', 'Noto Sans KR', serif;
+  --font-body:'Noto Sans KR', sans-serif;
+  --font-mono:'JetBrains Mono','Noto Sans KR', monospace;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{
+  font-family:var(--font-body);
+  background:var(--bg);
+  color:var(--gray);
+  font-size:15px;
+  line-height:1.7;
+  padding-bottom:80px;
+}
+.wrap{max-width:920px; margin:0 auto; padding:0 24px;}
+
+/* ===== HEADER ===== */
+header.hero{
+  background:var(--navy);
+  color:#fff;
+  padding:64px 0 48px;
+  text-align:center;
+}
+header.hero .eyebrow{
+  font-family:var(--font-mono);
+  letter-spacing:2px;
+  font-size:13px;
+  opacity:.7;
+  text-transform:uppercase;
+}
+header.hero h1{
+  font-family:var(--font-heading);
+  font-size:42px;
+  margin:14px 0 10px;
+  line-height:1.3;
+}
+header.hero p{
+  font-size:16px;
+  opacity:.85;
+  max-width:640px;
+  margin:0 auto;
+}
+
+/* ===== STICKY NAV ===== */
+nav.tabs{
+  position:sticky; top:0; z-index:50;
+  background:#fff;
+  border-bottom:1px solid #d8dee8;
+  overflow-x:auto;
+  white-space:nowrap;
+  box-shadow:0 2px 6px rgba(0,0,0,.04);
+}
+nav.tabs .wrap{display:flex; gap:4px; padding:0 24px;}
+nav.tabs button{
+  font-family:var(--font-body);
+  font-weight:700;
+  font-size:13px;
+  border:none;
+  background:transparent;
+  color:var(--gray-light);
+  padding:14px 16px;
+  cursor:pointer;
+  border-bottom:3px solid transparent;
+  transition:.15s;
+  white-space:nowrap;
+}
+nav.tabs button:hover{color:var(--navy);}
+nav.tabs button.active{color:var(--navy); border-bottom-color:var(--navy);}
+
+/* ===== SECTIONS ===== */
+section.module{padding:56px 0; border-bottom:1px solid #e0e6ef;}
+section.module:last-of-type{border-bottom:none;}
+.module-tag{
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--navy);
+  font-weight:700;
+  letter-spacing:1px;
+  text-transform:uppercase;
+}
+h2.section-title{
+  font-family:var(--font-heading);
+  font-size:30px;
+  color:var(--navy);
+  margin:6px 0 6px;
+}
+.section-sub{color:var(--gray-light); font-size:15px; margin-bottom:28px;}
+
+h3{
+  font-size:18px;
+  font-weight:700;
+  color:var(--navy);
+  margin:32px 0 14px;
+  padding-left:12px;
+  border-left:4px solid var(--navy);
+}
+h3:first-of-type{margin-top:0;}
+p{margin-bottom:12px;}
+ul,ol{margin:0 0 14px 20px;}
+li{margin-bottom:6px;}
+
+/* ===== CARD ===== */
+.card{
+  background:#fff;
+  border:1px solid #dde4ee;
+  border-radius:8px;
+  padding:20px 22px;
+  margin-bottom:16px;
+}
+.card-title{font-weight:700; color:var(--navy); font-size:15px; margin-bottom:8px;}
+.card-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+@media(max-width:640px){.card-grid{grid-template-columns:1fr;}}
+
+/* ===== CALLOUT ===== */
+.callout{
+  border-radius:8px;
+  padding:16px 20px;
+  margin:16px 0;
+  font-size:14px;
+  border-left:4px solid;
+}
+.callout-title{font-weight:700; margin-bottom:6px; display:flex; align-items:center; gap:8px;}
+.callout.navy{background:var(--navy-light); border-color:var(--navy); color:var(--navy);}
+.callout.warn{background:var(--warn-bg); border-color:var(--warn); color:#7a5d00;}
+.callout.correct{background:var(--correct-bg); border-color:var(--correct); color:var(--correct);}
+.callout.wrong{background:var(--wrong-bg); border-color:var(--wrong); color:var(--wrong);}
+.callout p{margin:0; color:inherit;}
+
+/* ===== BADGE ===== */
+.badge{
+  display:inline-block;
+  font-family:var(--font-mono);
+  font-size:12px;
+  font-weight:700;
+  padding:3px 10px;
+  border-radius:4px;
+  margin-right:6px;
+  margin-bottom:6px;
+}
+.badge.navy{background:var(--navy); color:#fff;}
+.badge.outline{background:transparent; border:1px solid var(--navy); color:var(--navy);}
+
+/* ===== SUCCESS LETTERS ===== */
+.success-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:8px; margin:20px 0;}
+@media(max-width:760px){.success-grid{grid-template-columns:repeat(4,1fr);}}
+.success-letter{
+  background:#fff;
+  border:1px solid #dde4ee;
+  border-top:4px solid var(--navy);
+  border-radius:6px;
+  padding:12px 10px;
+  text-align:center;
+  cursor:pointer;
+  transition:.15s;
+}
+.success-letter:hover{box-shadow:0 4px 10px rgba(0,51,102,.12); transform:translateY(-2px);}
+.success-letter .ltr{
+  font-family:var(--font-heading);
+  font-size:30px;
+  color:var(--navy);
+  line-height:1;
+}
+.success-letter .word{font-weight:700; font-size:12px; margin-top:4px; color:var(--gray);}
+.success-detail{
+  display:none;
+  background:var(--navy-light);
+  border-radius:8px;
+  padding:16px 20px;
+  margin-top:14px;
+  font-size:14px;
+  border-left:4px solid var(--navy);
+}
+.success-detail.show{display:block;}
+
+/* ===== SPEECH COMPARE ===== */
+.speech-compare{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:16px 0;}
+@media(max-width:640px){.speech-compare{grid-template-columns:1fr;}}
+.speech-bubble{
+  border-radius:10px;
+  padding:18px 20px;
+  font-size:14px;
+  position:relative;
+}
+.speech-bubble.before{background:var(--wrong-bg); border:1px solid #f0c4be;}
+.speech-bubble.after{background:var(--correct-bg); border:1px solid #b9e0c9;}
+.speech-bubble .label{
+  font-family:var(--font-mono);
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  margin-bottom:8px;
+  display:block;
+}
+.speech-bubble.before .label{color:var(--wrong);}
+.speech-bubble.after .label{color:var(--correct);}
+.speech-bubble .num{
+  font-family:var(--font-mono);
+  font-size:22px;
+  font-weight:700;
+  display:block;
+  margin:6px 0;
+}
+.speech-bubble.before .num{color:var(--wrong);}
+.speech-bubble.after .num{color:var(--correct);}
+
+/* ===== DRILL TOGGLE ===== */
+.drill{border:1px solid #dde4ee; border-radius:8px; margin-bottom:10px; overflow:hidden; background:#fff;}
+.drill-head{
+  padding:14px 18px;
+  font-weight:700;
+  cursor:pointer;
+  display:flex; justify-content:space-between; align-items:center;
+  color:var(--navy);
+}
+.drill-head:after{content:'+'; font-size:20px; font-family:var(--font-mono); transition:.2s;}
+.drill.open .drill-head:after{content:'–';}
+.drill-body{
+  display:none;
+  padding:0 18px 16px;
+  font-size:14px;
+  color:var(--gray);
+  border-top:1px solid #eef1f6;
+  padding-top:14px;
+}
+.drill.open .drill-body{display:block;}
+
+/* ===== TABLE ===== */
+table.data-table{
+  width:100%;
+  border-collapse:collapse;
+  margin:16px 0;
+  font-size:14px;
+  background:#fff;
+}
+table.data-table th{
+  background:var(--navy);
+  color:#fff;
+  text-align:left;
+  padding:10px 14px;
+  font-weight:700;
+}
+table.data-table td{
+  padding:10px 14px;
+  border-bottom:1px solid #e6ebf2;
+}
+table.data-table tr:nth-child(even) td{background:#f7f9fc;}
+
+/* ===== AXIS GRID (color comparison) ===== */
+.color-demo{display:flex; gap:10px; flex-wrap:wrap; margin:14px 0;}
+.color-chip{
+  flex:1; min-width:120px;
+  border-radius:6px;
+  padding:14px;
+  text-align:center;
+  font-size:13px;
+  font-weight:700;
+  color:#fff;
+}
+.color-chip.actual{background:#1a1a1a;}
+.color-chip.plan{background:#9a9a9a;}
+.color-chip.forecast{background:#cfcfcf; color:#333; border:2px dashed #888;}
+.color-chip.rainbow{background:linear-gradient(90deg,#e74c3c,#f1c40f,#2ecc71,#3498db,#9b59b6); color:#fff;}
+
+/* ===== CHART BARS (simple svg-free) ===== */
+.bar-chart{display:flex; align-items:flex-end; gap:14px; height:180px; margin:20px 0; padding:0 8px;}
+.bar-item{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%;}
+.bar{width:100%; max-width:48px; border-radius:3px 3px 0 0; position:relative;}
+.bar .val{
+  position:absolute; top:-22px; left:50%; transform:translateX(-50%);
+  font-family:var(--font-mono); font-size:12px; font-weight:700; color:var(--navy); white-space:nowrap;
+}
+.bar.actual{background:#1a1a1a;}
+.bar.plan{background:#b0b0b0;}
+.bar-item .lbl{margin-top:8px; font-size:12px; color:var(--gray-light); font-weight:700;}
+
+/* ===== QUIZ ===== */
+.quiz{background:#fff; border:1px solid #dde4ee; border-radius:8px; padding:20px; margin:18px 0;}
+.quiz-q{font-weight:700; margin-bottom:12px;}
+.quiz-opt{
+  display:block; width:100%; text-align:left;
+  background:var(--bg); border:1px solid #dde4ee; border-radius:6px;
+  padding:10px 14px; margin-bottom:8px; cursor:pointer; font-size:14px;
+  font-family:var(--font-body); color:var(--gray);
+  transition:.15s;
+}
+.quiz-opt:hover{border-color:var(--navy);}
+.quiz-opt.correct-ans{background:var(--correct-bg); border-color:var(--correct); color:var(--correct); font-weight:700;}
+.quiz-opt.wrong-ans{background:var(--wrong-bg); border-color:var(--wrong); color:var(--wrong); font-weight:700;}
+.quiz-feedback{margin-top:10px; font-size:13px; font-weight:700; display:none;}
+.quiz-feedback.show{display:block;}
+
+/* ===== CHECKLIST ===== */
+.checklist{background:#fff; border:1px solid #dde4ee; border-radius:8px; padding:20px; margin:18px 0;}
+.checklist .progress-track{height:8px; background:#e6ebf2; border-radius:4px; margin-bottom:18px; overflow:hidden;}
+.checklist .progress-fill{height:100%; width:0%; background:var(--navy); transition:.3s;}
+.check-item{display:flex; align-items:flex-start; gap:10px; padding:8px 0; border-bottom:1px solid #f0f3f8; cursor:pointer; font-size:14px;}
+.check-item:last-child{border-bottom:none;}
+.check-item input{margin-top:3px; width:16px; height:16px; accent-color:var(--navy); cursor:pointer;}
+.check-item.checked label{text-decoration:line-through; color:var(--gray-light);}
+.check-item label{cursor:pointer; flex:1;}
+
+/* ===== ANTIPATTERN TILES ===== */
+.anti-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:18px 0;}
+@media(max-width:640px){.anti-grid{grid-template-columns:1fr;}}
+.anti-tile{
+  background:var(--wrong-bg); border:1px solid #f0c4be; border-radius:8px;
+  padding:16px; text-align:center;
+}
+.anti-tile .big{font-family:var(--font-heading); font-size:32px; color:var(--wrong);}
+.anti-tile .small{font-size:13px; color:#7a3a35; margin-top:4px;}
+
+/* ===== FOOTER ===== */
+footer{
+  text-align:center; padding:40px 24px; color:var(--gray-light); font-size:13px;
+}
+
+/* ===== UTILS ===== */
+.flow{display:flex; align-items:center; gap:0; margin:18px 0; flex-wrap:wrap;}
+.flow-step{
+  background:var(--navy); color:#fff; font-weight:700; font-size:14px;
+  padding:12px 22px; border-radius:6px; text-align:center;
+}
+.flow-arrow{
+  font-family:var(--font-mono); font-size:18px; color:var(--navy-light);
+  color:var(--gray-light); padding:0 12px; font-weight:700;
+}
+.flow-step.outline{background:#fff; color:var(--navy); border:2px solid var(--navy);}
+
+.discuss-box{
+  background:#fff; border:2px dashed var(--navy); border-radius:8px;
+  padding:18px 20px; margin:18px 0; text-align:center;
+}
+.discuss-box .q-label{
+  font-family:var(--font-mono); font-size:11px; letter-spacing:2px;
+  color:var(--navy); font-weight:700; text-transform:uppercase; margin-bottom:8px;
+}
+.discuss-box .q-text{font-size:17px; font-weight:700; color:var(--navy);}
+
+@media(max-width:640px){
+  header.hero h1{font-size:30px;}
+  h2.section-title{font-size:24px;}
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">ASPN BAC · SAP Analytics Cloud 교육 모듈</div>
+    <h1>숫자가 아닌 의미를 전달하라</h1>
+    <p>IBCS(International Business Communication Standards)와 SAC 리포트 디자인 원칙 — 왜 SAC는 지금의 디자인 철학을 갖게 되었는가</p>
+  </div>
+</header>
+
+<nav class="tabs">
+  <div class="wrap">
+    <button class="active" data-target="m1">1. 왜 어려운가</button>
+    <button data-target="m2">2. IBCS란</button>
+    <button data-target="m3">3. 시각화 원칙</button>
+    <button data-target="m4">4. SAC 철학</button>
+    <button data-target="m5">5. SAC 구현</button>
+    <button data-target="m6">6. 프로젝트 적용</button>
+  </div>
+</nav>
+
+<div class="wrap">
+
+<!-- ================= MODULE 1 ================= -->
+<section class="module" id="m1">
+  <div class="module-tag">Module 1</div>
+  <h2 class="section-title">왜 보고서는 읽기 어려운가</h2>
+  <p class="section-sub">경영진이 실제로 보고서에서 찾는 정보와, 우리가 만드는 보고서 사이의 간극을 이해합니다.</p>
+
+  <h3>1-1. 경영진은 숫자를 보지 않는다</h3>
+  <p>경영진이 보고서를 펼칠 때 실제로 찾는 것은 절대값 그 자체가 아닙니다. 다음 네 가지를 빠르게 캐치하고자 합니다.</p>
+
+  <div class="card-grid">
+    <div class="card"><div class="card-title">변화 (Change)</div>전기 대비, 계획 대비 무엇이 달라졌는가</div>
+    <div class="card"><div class="card-title">예외 (Exception)</div>정상 범위를 벗어난 항목은 무엇인가</div>
+    <div class="card"><div class="card-title">위험 (Risk)</div>향후 계획 달성에 위협이 되는 요소는 무엇인가</div>
+    <div class="card"><div class="card-title">원인 (Cause)</div>왜 이런 결과가 나왔는가</div>
+  </div>
+
+  <div class="callout warn">
+    <div class="callout-title">⚠ 숫자 나열형 보고서의 한계</div>
+    <p>100페이지 경영보고서, ERP 출력물, 전통 BI 리포트는 데이터를 빠짐없이 담고 있지만, 위 4가지 질문에 즉시 답하지 못하는 경우가 많습니다. 정보의 양과 의사결정 속도는 반비례 관계에 놓이기 쉽습니다.</p>
+  </div>
+
+  <h3>1-2. 좋은 보고서의 조건</h3>
+  <div class="flow">
+    <div class="flow-step">빠르게 읽힌다</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">오해가 없다</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">행동을 유도한다</div>
+  </div>
+
+  <div class="discuss-box">
+    <div class="q-label">Discussion</div>
+    <div class="q-text">"매출 100억"이 중요한가, "계획 대비 -15%"가 중요한가?</div>
+  </div>
+
+  <div class="quiz" data-quiz="m1q1">
+    <div class="quiz-q">Q. 위 두 표현 중, 경영진의 의사결정에 더 즉각적인 행동을 유발하는 표현은?</div>
+    <button class="quiz-opt" data-correct="false">매출 100억 — 절대값이 더 직관적이다</button>
+    <button class="quiz-opt" data-correct="true">계획 대비 -15% — 기준선과의 차이가 행동을 촉발한다</button>
+    <div class="quiz-feedback"></div>
+  </div>
+</section>
+
+<!-- ================= MODULE 2 ================= -->
+<section class="module" id="m2">
+  <div class="module-tag">Module 2</div>
+  <h2 class="section-title">IBCS란 무엇인가</h2>
+  <p class="section-sub">국가·기업마다 서로 다른 보고 방식을 하나의 언어로 통일하려는 국제 표준입니다.</p>
+
+  <h3>2-1. IBCS의 탄생 배경</h3>
+  <p>International Business Communication Standards Association은 다음과 같은 문제를 해결하기 위해 만들어졌습니다.</p>
+  <ul>
+    <li>국가마다 다른 보고 방식</li>
+    <li>회사마다 다른 색상 체계</li>
+    <li>동일한 수치를 표현하는 서로 다른 방식</li>
+  </ul>
+
+  <div class="callout wrong">
+    <div class="callout-title">✕ 결과</div>
+    <p>표준화되지 않은 보고서는 <strong>해석 오류</strong>와 <strong>의사결정 지연</strong>으로 이어집니다. 동일한 데이터라도 색상, 정렬, 단위 표기 방식이 다르면 읽는 사람마다 다른 결론에 도달할 수 있습니다.</p>
+  </div>
+
+  <h3>2-2. IBCS 핵심 목표</h3>
+  <div class="callout navy" style="text-align:center; font-size:18px; font-weight:700; font-family:var(--font-heading);">
+    "모든 보고서를 동일한 언어로 표현하자"
+  </div>
+
+  <h3>2-3. SUCCESS 원칙 — 카드를 클릭해 상세 내용을 확인하세요</h3>
+  <div class="success-grid">
+    <div class="success-letter" data-detail="s1"><div class="ltr">S</div><div class="word">Say</div></div>
+    <div class="success-letter" data-detail="s2"><div class="ltr">U</div><div class="word">Unify</div></div>
+    <div class="success-letter" data-detail="s3"><div class="ltr">C</div><div class="word">Condense</div></div>
+    <div class="success-letter" data-detail="s4"><div class="ltr">C</div><div class="word">Check</div></div>
+    <div class="success-letter" data-detail="s5"><div class="ltr">E</div><div class="word">Express</div></div>
+    <div class="success-letter" data-detail="s6"><div class="ltr">S</div><div class="word">Simplify</div></div>
+    <div class="success-letter" data-detail="s7"><div class="ltr">S</div><div class="word">Structure</div></div>
+  </div>
+
+  <div class="success-detail" id="detail-s1"><strong>Say — 메시지를 먼저 정의</strong><br>차트나 표를 그리기 전에, 이 페이지가 전달하고자 하는 핵심 메시지(결론)를 한 문장으로 먼저 정의합니다. 슬라이드 제목은 이 메시지를 그대로 담은 완전한 문장이어야 합니다.</div>
+  <div class="success-detail" id="detail-s2"><strong>Unify — 표현 방식 통일</strong><br>색상, 단위, 정렬, 축의 스케일 등 시각적 문법을 전사적으로 동일하게 적용합니다. 동일한 의미는 항상 동일한 형태로 표현되어야 합니다.</div>
+  <div class="success-detail" id="detail-s3"><strong>Condense — 정보 압축</strong><br>한 페이지에 너무 많은 정보를 담지 않습니다. 핵심 KPI와 그 변화량을 중심으로 정보를 압축해 한눈에 파악할 수 있도록 합니다.</div>
+  <div class="success-detail" id="detail-s4"><strong>Check — 시각화 품질 검증</strong><br>완성된 보고서가 처음 보는 사람에게도 오해 없이 전달되는지 검증합니다. 색상, 차트 종류, 축 스케일이 메시지를 왜곡하지 않는지 확인합니다.</div>
+  <div class="success-detail" id="detail-s5"><strong>Express — 핵심 강조</strong><br>가장 중요한 데이터 포인트(예외, 위험 요소)를 색상이나 강조 표시를 통해 시각적으로 부각합니다. 강조는 의미가 있을 때만 사용합니다.</div>
+  <div class="success-detail" id="detail-s6"><strong>Simplify — 불필요 요소 제거</strong><br>그림자, 입체 효과, 불필요한 그리드라인, 장식용 아이콘 등 정보 전달에 기여하지 않는 모든 요소를 제거합니다.</div>
+  <div class="success-detail" id="detail-s7"><strong>Structure — 논리적 구성</strong><br>페이지 내 요소들을 KPI → 원인분석 → 액션 순서로 논리적으로 배치하여, 읽는 사람의 시선 흐름이 자연스럽게 결론으로 이어지도록 합니다.</div>
+</section>
+
+<!-- ================= MODULE 3 ================= -->
+<section class="module" id="m3">
+  <div class="module-tag">Module 3</div>
+  <h2 class="section-title">IBCS가 권장하는 시각화 원칙</h2>
+  <p class="section-sub">색상, 차트 종류, 그리고 Variance(차이) 중심 사고 — 시각화의 세 가지 핵심 규칙입니다.</p>
+
+  <h3>3-1. 색상은 장식이 아니다</h3>
+  <p>색상은 데이터의 <strong>종류(시나리오)</strong>를 구분하는 의미 체계로만 사용되어야 합니다.</p>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-title">✅ 권장</div>
+      <div class="color-demo">
+        <div class="color-chip actual">Actual = 검정</div>
+        <div class="color-chip plan">Plan = 회색</div>
+        <div class="color-chip forecast">Forecast = 점선</div>
+      </div>
+      <p style="margin-top:10px; font-size:13px;">시나리오별로 고정된 색상/패턴을 일관되게 사용 → 어떤 페이지를 보아도 동일하게 해석 가능</p>
+    </div>
+    <div class="card">
+      <div class="card-title">❌ 비권장</div>
+      <div class="color-demo">
+        <div class="color-chip rainbow">무지개 차트</div>
+      </div>
+      <p style="margin-top:10px; font-size:13px;">의미 없는 컬러 사용은 시선을 분산시키고, 어떤 색이 무엇을 의미하는지 매번 범례를 확인해야 하는 인지 부하를 유발합니다.</p>
+    </div>
+  </div>
+
+  <h3>3-2. 차트 선택 기준</h3>
+  <table class="data-table">
+    <tr><th>차트 유형</th><th>사용 시점</th></tr>
+    <tr><td>Bar / Column</td><td>항목 간 절대값 비교</td></tr>
+    <tr><td>Waterfall</td><td>구성요소가 합산되어 총계로 이어지는 흐름 설명</td></tr>
+    <tr><td>Variance</td><td>계획·전기 대비 차이를 직접적으로 강조</td></tr>
+  </table>
+
+  <h3>3-3. 왜 파이차트를 싫어하는가</h3>
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-title">Pie Chart</div>
+      <p style="font-size:13px;">조각 간의 크기 차이를 정확히 비교하기 어렵고, 항목이 많아질수록 가독성이 급격히 떨어집니다. 변화량(Variance)을 표현할 수 없습니다.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Bar Chart</div>
+      <div class="bar-chart" style="height:100px;">
+        <div class="bar-item"><div class="bar actual" style="height:100%;"><span class="val">42%</span></div><div class="lbl">A</div></div>
+        <div class="bar-item"><div class="bar actual" style="height:62%;"><span class="val">26%</span></div><div class="lbl">B</div></div>
+        <div class="bar-item"><div class="bar actual" style="height:38%;"><span class="val">16%</span></div><div class="lbl">C</div></div>
+        <div class="bar-item"><div class="bar actual" style="height:24%;"><span class="val">10%</span></div><div class="lbl">D</div></div>
+        <div class="bar-item"><div class="bar actual" style="height:14%;"><span class="val">6%</span></div><div class="lbl">E</div></div>
+      </div>
+      <p style="font-size:13px;">정렬된 막대는 항목 간 순위와 크기 차이를 한눈에 비교할 수 있게 합니다.</p>
+    </div>
+  </div>
+
+  <h3>3-4. Variance 중심 사고</h3>
+  <p>경영진이 실제로 보는 것은 절대값이 아니라 <strong>변화량</strong>입니다. Actual vs Plan을 함께 표시할 때, Variance를 명시적인 열/막대로 추가하면 메시지가 즉시 전달됩니다.</p>
+
+  <div class="bar-chart">
+    <div class="bar-item"><div class="bar actual" style="height:100%; background:#1a1a1a;"><span class="val">Actual 850</span></div><div class="lbl">Actual</div></div>
+    <div class="bar-item"><div class="bar plan" style="height:88%; background:#b0b0b0;"><span class="val">Plan 750</span></div><div class="lbl">Plan</div></div>
+    <div class="bar-item"><div class="bar" style="height:12%; background:var(--correct);"><span class="val" style="color:var(--correct);">+100 (+13%)</span></div><div class="lbl">Variance</div></div>
+  </div>
+
+  <div class="speech-compare">
+    <div class="speech-bubble before">
+      <span class="label">메시지 없음</span>
+      매출: 850백만원
+      <span class="num">850M</span>
+      "이게 좋은 건지 나쁜 건지 모르겠다"
+    </div>
+    <div class="speech-bubble after">
+      <span class="label">메시지 명확</span>
+      계획 대비 +13% 초과 달성
+      <span class="num">+100M</span>
+      "주요 제품군 출시 효과로 인한 초과 달성"
+    </div>
+  </div>
+</section>
+
+<!-- ================= MODULE 4 ================= -->
+<section class="module" id="m4">
+  <div class="module-tag">Module 4</div>
+  <h2 class="section-title">SAC 디자인 철학 이해하기</h2>
+  <p class="section-sub">SAP Analytics Cloud의 최신 기능들이 IBCS 원칙과 어떻게 맞닿아 있는지 살펴봅니다.</p>
+
+  <h3>4-1. SAC가 추구하는 리포트 방향</h3>
+  <p>SAP는 Analytics를 다음 세 단계의 연속된 흐름으로 정의합니다.</p>
+  <div class="flow">
+    <div class="flow-step outline">Monitor</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step outline">Analyze</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step outline">Decide</div>
+  </div>
+  <p style="font-size:13px; color:var(--gray-light);">단순히 데이터를 시각화하는 것을 넘어, 모니터링 → 원인 분석 → 의사결정으로 이어지는 사용자 여정을 설계하는 것이 SAC의 목표입니다.</p>
+
+  <h3>4-2. SAC 기능과 IBCS 매핑</h3>
+  <table class="data-table">
+    <tr><th>IBCS 원칙</th><th>SAC 기능</th></tr>
+    <tr><td>Say</td><td>Dynamic Text</td></tr>
+    <tr><td>Unify</td><td>Corporate Styling (Theme Designer)</td></tr>
+    <tr><td>Condense</td><td>KPI Tile</td></tr>
+    <tr><td>Express</td><td>Semantic Color (Threshold/Status)</td></tr>
+    <tr><td>Simplify</td><td>Optimized Story Experience (불필요 위젯 제거)</td></tr>
+    <tr><td>Check</td><td>Story Validation / Responsive Layout</td></tr>
+    <tr><td>Structure</td><td>Page Layout (Grid / Canvas)</td></tr>
+  </table>
+
+  <h3>4-3. SAC 표준 콘텐츠 분석</h3>
+  <p>SAP Best Practice Dashboard의 일반적인 구성요소는 다음과 같습니다.</p>
+  <div class="card-grid">
+    <div class="card"><div class="card-title">KPI Header</div>핵심 지표를 페이지 상단에 압축 배치 — <em>Condense</em></div>
+    <div class="card"><div class="card-title">Variance Area</div>계획·전기 대비 차이를 별도 영역으로 노출 — <em>Express</em></div>
+    <div class="card"><div class="card-title">Trend Analysis</div>시계열 추이를 통해 패턴과 예외를 파악 — <em>Analyze</em></div>
+  </div>
+
+  <div class="drill">
+    <div class="drill-head">분석: IBCS 원칙이 어디에 적용되었는가?</div>
+    <div class="drill-body">
+      <p>SAP Best Practice Dashboard에서 KPI Header는 한눈에 핵심 수치를 압축 전달(Condense)하고, Semantic Color로 정상/주의/위험 상태를 즉시 식별(Express)할 수 있게 합니다. Variance Area는 계획 대비 차이를 별도 강조하여 Variance 중심 사고를 구현하며, 전체 페이지 구조는 KPI → Variance → Trend → 원인분석 순서로 배치되어 Structure 원칙을 따릅니다. 이는 IBCS의 SUCCESS 원칙이 별도의 이론 교육 없이도 SAC 표준 콘텐츠 안에 이미 내재화되어 있음을 보여줍니다.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= MODULE 5 ================= -->
+<section class="module" id="m5">
+  <div class="module-tag">Module 5</div>
+  <h2 class="section-title">SAC에서 IBCS 구현하기</h2>
+  <p class="section-sub">실제 SAC Story 설계 단계에서 IBCS 원칙을 적용하는 구체적인 방법을 다룹니다.</p>
+
+  <h3>5-1. KPI 페이지 설계</h3>
+  <p>KPI 페이지는 다음 3개 영역으로 구성하는 것을 권장합니다.</p>
+  <div class="flow">
+    <div class="flow-step">KPI</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">Variance</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">Trend</div>
+  </div>
+
+  <h3>5-2. 표(Table) 디자인</h3>
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-title">권장 사항</div>
+      <ul style="margin-bottom:0;">
+        <li>Variance 열을 항상 추가</li>
+        <li>조건부 서식(배경색)은 최소한으로 사용</li>
+        <li>단위(원, 천원, %)는 페이지 전체에서 통일</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">예시 테이블</div>
+      <table class="data-table" style="margin:0;">
+        <tr><th>항목</th><th>Plan</th><th>Actual</th><th>Variance</th></tr>
+        <tr><td>매출</td><td>750</td><td>850</td><td style="color:var(--correct); font-weight:700;">+100 (+13%)</td></tr>
+        <tr><td>매출원가</td><td>450</td><td>510</td><td style="color:var(--wrong); font-weight:700;">-60 (-13%)</td></tr>
+        <tr><td>영업이익</td><td>300</td><td>340</td><td style="color:var(--correct); font-weight:700;">+40 (+13%)</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <h3>5-3. 차트 디자인 — 권장 템플릿</h3>
+  <div class="card-grid">
+    <div class="card"><div class="card-title">Actual vs Plan</div>Bar chart로 동일 축 위에 직접 비교, Variance 라벨 병기</div>
+    <div class="card"><div class="card-title">Trend</div>월별 추이를 Line/Column으로 표시, 이상치 강조</div>
+    <div class="card"><div class="card-title">Waterfall</div>전기 → 변동요인 → 당기로 이어지는 구성요소 분해</div>
+    <div class="card"><div class="card-title">Contribution</div>전체 대비 각 사업부/제품의 기여도 비교</div>
+  </div>
+
+  <h3>5-4. Executive Dashboard 설계 실습 — Before / After</h3>
+  <div class="card-grid">
+    <div class="card" style="border-color:#f0c4be;">
+      <div class="card-title" style="color:var(--wrong);">Before — 화려한 대시보드</div>
+      <ul style="margin-bottom:0; font-size:13px;">
+        <li>파이차트, 도넛차트, 게이지 차트 혼합</li>
+        <li>위젯마다 다른 색상 테마</li>
+        <li>KPI 20개 이상이 한 화면에 나열</li>
+        <li>Variance 정보 없음 (절대값만 표시)</li>
+      </ul>
+    </div>
+    <div class="card" style="border-color:#b9e0c9;">
+      <div class="card-title" style="color:var(--correct);">After — IBCS 기반 Dashboard</div>
+      <ul style="margin-bottom:0; font-size:13px;">
+        <li>핵심 KPI 3~5개 + Variance 명시</li>
+        <li>Actual=검정, Plan=회색, Forecast=점선으로 통일</li>
+        <li>KPI → Trend → 원인분석 순서로 배치</li>
+        <li>Semantic Color는 임계치 초과 항목에만 적용</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="quiz" data-quiz="m5q1">
+    <div class="quiz-q">Q. IBCS 기반 Dashboard 설계 시 Semantic Color(빨강/초록 등)를 적용해야 하는 대상은?</div>
+    <button class="quiz-opt" data-correct="false">모든 KPI에 균등하게 적용한다</button>
+    <button class="quiz-opt" data-correct="true">임계치를 벗어난 예외 항목에만 선택적으로 적용한다</button>
+    <div class="quiz-feedback"></div>
+  </div>
+</section>
+
+<!-- ================= MODULE 6 ================= -->
+<section class="module" id="m6">
+  <div class="module-tag">Module 6</div>
+  <h2 class="section-title">SAP 프로젝트 적용 가이드</h2>
+  <p class="section-sub">현장에서 자주 발생하는 안티패턴과, 이를 방지하기 위한 SAC 프로젝트 권장 원칙 및 배포 전 체크리스트입니다.</p>
+
+  <h3>6-1. 왜 고객사 대시보드는 복잡해지는가</h3>
+  <p>프로젝트가 진행될수록 다양한 부서의 요구사항이 누적되며, 대표적인 안티패턴은 다음과 같습니다.</p>
+  <div class="anti-grid">
+    <div class="anti-tile"><div class="big">30+</div><div class="small">KPI 개수</div></div>
+    <div class="anti-tile"><div class="big">20+</div><div class="small">색상 종류</div></div>
+    <div class="anti-tile"><div class="big">15+</div><div class="small">차트 유형</div></div>
+  </div>
+
+  <h3>6-2. SAC 프로젝트 권장 원칙</h3>
+  <div class="card-grid">
+    <div class="card"><div class="card-title">Rule 1</div>한 페이지, 한 메시지</div>
+    <div class="card"><div class="card-title">Rule 2</div>색상은 의미가 있을 때만 사용</div>
+    <div class="card"><div class="card-title">Rule 3</div>Variance를 우선 노출</div>
+    <div class="card"><div class="card-title">Rule 4</div>KPI → 원인분석 순서로 구성</div>
+  </div>
+
+  <h3>6-3. SAC 컨설턴트 체크리스트 — 대시보드 배포 전 확인사항</h3>
+  <div class="checklist" id="checklist1">
+    <div class="progress-track"><div class="progress-fill" id="checklist1-fill"></div></div>
+    <div class="check-item"><input type="checkbox" id="c1-1"><label for="c1-1">핵심 메시지가 페이지 상단에서 즉시 보이는가</label></div>
+    <div class="check-item"><input type="checkbox" id="c1-2"><label for="c1-2">색상 규칙(Actual/Plan/Forecast)이 전체 페이지에서 일관적인가</label></div>
+    <div class="check-item"><input type="checkbox" id="c1-3"><label for="c1-3">Plan 대비 차이(Variance)가 명시적으로 표시되는가</label></div>
+    <div class="check-item"><input type="checkbox" id="c1-4"><label for="c1-4">다음에 취해야 할 액션이 명확하게 드러나는가</label></div>
+  </div>
+
+  <div class="callout correct">
+    <div class="callout-title">✓ 핵심 정리</div>
+    <p>이 교육의 목표는 IBCS 이론 자체를 가르치는 것이 아니라, <strong>"왜 SAC Best Practice가 저렇게 생겼는가"</strong>를 이해하는 것입니다. SAP 프로젝트 경험이 있는 컨설턴트라면, 이론보다 표준 콘텐츠의 설계 의도를 이해하는 것이 실무 적용에 훨씬 높은 가치를 가집니다.</p>
+  </div>
+</section>
+
+</div>
+
+<footer>ASPN BAC · Business Advisory Consulting — Internal Education Portal</footer>
+
+<script>
+// Tab navigation
+const tabs = document.querySelectorAll('nav.tabs button');
+const sections = document.querySelectorAll('section.module');
+tabs.forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.getElementById(tab.dataset.target).scrollIntoView({behavior:'smooth', block:'start'});
+  });
+});
+const observer = new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      tabs.forEach(t=>t.classList.remove('active'));
+      const active = document.querySelector(`nav.tabs button[data-target="${entry.target.id}"]`);
+      if(active) active.classList.add('active');
+    }
+  });
+}, {rootMargin:'-100px 0px -70% 0px'});
+sections.forEach(s=>observer.observe(s));
+
+// SUCCESS letter toggles
+document.querySelectorAll('.success-letter').forEach(card=>{
+  card.addEventListener('click', ()=>{
+    const id = 'detail-' + card.dataset.detail;
+    const detail = document.getElementById(id);
+    const isOpen = detail.classList.contains('show');
+    document.querySelectorAll('.success-detail').forEach(d=>d.classList.remove('show'));
+    if(!isOpen) detail.classList.add('show');
+  });
+});
+
+// Drill toggles
+document.querySelectorAll('.drill-head').forEach(head=>{
+  head.addEventListener('click', ()=>{
+    head.parentElement.classList.toggle('open');
+  });
+});
+
+// Quiz logic
+document.querySelectorAll('.quiz').forEach(quiz=>{
+  const opts = quiz.querySelectorAll('.quiz-opt');
+  const feedback = quiz.querySelector('.quiz-feedback');
+  opts.forEach(opt=>{
+    opt.addEventListener('click', ()=>{
+      if(quiz.dataset.answered) return;
+      quiz.dataset.answered = 'true';
+      const correct = opt.dataset.correct === 'true';
+      opts.forEach(o=>{
+        if(o.dataset.correct === 'true') o.classList.add('correct-ans');
+        else if(o===opt) o.classList.add('wrong-ans');
+      });
+      feedback.textContent = correct ? '정답입니다!' : '오답입니다. 정답은 초록색으로 표시된 항목입니다.';
+      feedback.style.color = correct ? 'var(--correct)' : 'var(--wrong)';
+      feedback.classList.add('show');
+    });
+  });
+});
+
+// Checklist progress
+document.querySelectorAll('.checklist').forEach(cl=>{
+  const items = cl.querySelectorAll('.check-item input');
+  const fill = cl.querySelector('.progress-fill');
+  function update(){
+    let checked = 0;
+    items.forEach(i=>{ if(i.checked) checked++; });
+    fill.style.width = (checked/items.length*100) + '%';
+    items.forEach(i=>{
+      i.closest('.check-item').classList.toggle('checked', i.checked);
+    });
+  }
+  items.forEach(i=> i.addEventListener('change', update));
+  update();
+});
+</script>
+
+</body>
+</html>
