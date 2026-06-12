@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAC Story 설계 원칙 — Episode 6: 체크리스트 및 흔한 실수 Top 5</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f0f3f8;
+    --navy:#003366;
+    --navy-10:#e6edf5;
+    --navy-20:#cdd9ea;
+    --warn:#b54708;
+    --warn-bg:#fdf1e8;
+    --correct:#1a6b3c;
+    --correct-bg:#e9f6ee;
+    --wrong:#b3261e;
+    --wrong-bg:#fcebe9;
+    --gray-line:#d7dde6;
+    --text:#1c2733;
+    --subtext:#5b6b7d;
+    font-size:15px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg); color:var(--text); font-family:'Noto Sans KR', sans-serif;
+    line-height:1.7; -webkit-font-smoothing:antialiased;
+    word-break:keep-all; overflow-wrap:break-word;
+  }
+  h1,h2,h3,.serif{font-family:'DM Serif Display', 'Noto Sans KR', serif;}
+  .mono{font-family:'JetBrains Mono','Noto Sans KR',monospace;}
+
+  header.top{ background:var(--navy); color:#fff; padding:28px 5vw 22px; }
+  header.top .eyebrow{ font-size:13px; letter-spacing:.12em; text-transform:uppercase; opacity:.7; margin-bottom:6px; }
+  header.top h1{ font-size:42px; margin:0 0 8px; font-weight:400; }
+  header.top p{ font-size:16px; opacity:.85; max-width:760px; margin:0; }
+
+  nav.tabs{
+    position:sticky; top:0; z-index:50; background:#fff; border-bottom:1px solid var(--gray-line);
+    display:flex; overflow-x:auto; box-shadow:0 2px 6px rgba(0,51,102,.06);
+  }
+  nav.tabs a{
+    flex:0 0 auto; padding:14px 22px; font-size:14px; font-weight:500; color:var(--subtext);
+    text-decoration:none; border-bottom:3px solid transparent; white-space:nowrap; transition:.15s;
+  }
+  nav.tabs a:hover{ color:var(--navy); background:var(--navy-10); }
+  nav.tabs a.active{ color:var(--navy); border-bottom-color:var(--navy); font-weight:700; }
+
+  main{ max-width:980px; margin:0 auto; padding:0 5vw 90px; }
+  section{ padding-top:56px; }
+  section:first-of-type{ padding-top:40px; }
+
+  .section-badge{
+    display:inline-block; background:var(--navy); color:#fff; font-size:13px; font-weight:700;
+    padding:4px 12px; border-radius:3px; letter-spacing:.04em; margin-bottom:14px;
+  }
+  h2.section-title{ font-size:30px; margin:0 0 6px; color:var(--navy); font-weight:400; }
+  .section-sub{ color:var(--subtext); font-size:15px; margin:0 0 28px; max-width:680px; }
+
+  .card{ background:#fff; border:1px solid var(--gray-line); border-radius:8px; padding:24px 26px; margin-bottom:22px; }
+  .card h3{ font-size:18px; margin:0 0 10px; color:var(--navy); font-weight:700; font-family:'Noto Sans KR',sans-serif; }
+  .card p:last-child{margin-bottom:0;}
+
+  .callout{ border-radius:6px; padding:14px 18px; margin:16px 0; font-size:14px; display:flex; gap:12px; align-items:flex-start; }
+  .callout .tag{ flex:0 0 auto; font-size:11px; font-weight:700; letter-spacing:.06em; padding:2px 8px; border-radius:3px; margin-top:2px; text-transform:uppercase; }
+  .callout.navy{ background:var(--navy-10); border-left:4px solid var(--navy); }
+  .callout.navy .tag{ background:var(--navy); color:#fff; }
+  .callout.warn{ background:var(--warn-bg); border-left:4px solid var(--warn); }
+  .callout.warn .tag{ background:var(--warn); color:#fff; }
+  .callout.correct{ background:var(--correct-bg); border-left:4px solid var(--correct); }
+  .callout.correct .tag{ background:var(--correct); color:#fff; }
+  .callout.wrong{ background:var(--wrong-bg); border-left:4px solid var(--wrong); }
+  .callout.wrong .tag{ background:var(--wrong); color:#fff; }
+
+  /* episode summary cards */
+  .ep-summary-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:18px 0; }
+  @media (max-width:720px){ .ep-summary-grid{ grid-template-columns:1fr; } }
+  .ep-summary-card{
+    background:#fff; border:1px solid var(--gray-line); border-radius:8px; padding:18px 20px;
+    border-left:4px solid var(--navy);
+  }
+  .ep-summary-card .ep-num{ font-size:11px; font-weight:700; color:var(--navy); letter-spacing:.08em; text-transform:uppercase; margin-bottom:4px; }
+  .ep-summary-card h4{ margin:0 0 8px; font-size:15px; color:var(--text); font-weight:700; }
+  .ep-summary-card p{ margin:0; font-size:13.5px; color:var(--subtext); }
+  .ep-summary-card.full{ grid-column:1 / -1; }
+
+  /* mistake cards */
+  .mistake-card{ background:#fff; border:1px solid var(--gray-line); border-radius:8px; margin-bottom:18px; overflow:hidden; }
+  .mistake-head{
+    background:var(--navy); color:#fff; padding:12px 20px; display:flex; align-items:center; gap:12px;
+  }
+  .mistake-head .mistake-num{
+    width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,.15); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-weight:700; font-family:'JetBrains Mono',monospace; flex:0 0 auto;
+  }
+  .mistake-head .mistake-title{ font-size:16px; font-weight:700; }
+  .mistake-head .mistake-ep{ margin-left:auto; font-size:11px; opacity:.75; }
+  .mistake-body{ padding:18px 20px; }
+  .mistake-row{ display:flex; gap:14px; margin-bottom:12px; align-items:flex-start; }
+  .mistake-row:last-child{ margin-bottom:0; }
+  .mistake-row .mr-label{
+    flex:0 0 70px; font-size:12px; font-weight:700; letter-spacing:.04em; padding:3px 0;
+    text-align:center; border-radius:4px; height:fit-content;
+  }
+  .mistake-row.symptom .mr-label{ background:var(--wrong-bg); color:var(--wrong); }
+  .mistake-row.cause .mr-label{ background:var(--warn-bg); color:var(--warn); }
+  .mistake-row.fix .mr-label{ background:var(--correct-bg); color:var(--correct); }
+  .mistake-row .mr-text{ font-size:13.5px; flex:1; }
+
+  /* interactive checklist with progress */
+  .progress-wrap{ margin:18px 0 24px; }
+  .progress-bar-bg{ background:var(--navy-10); border-radius:10px; height:14px; overflow:hidden; }
+  .progress-bar-fill{ background:var(--navy); height:100%; width:0%; transition:width .3s ease; border-radius:10px 0 0 10px; }
+  .progress-label{ font-size:13px; color:var(--subtext); margin-top:6px; text-align:right; font-family:'JetBrains Mono',monospace; }
+
+  .checklist{ list-style:none; padding:0; margin:0; }
+  .checklist li{
+    display:flex; gap:12px; align-items:flex-start; padding:11px 0; border-bottom:1px solid var(--gray-line);
+    font-size:14px; cursor:pointer; user-select:none; transition:.15s;
+  }
+  .checklist li:last-child{ border-bottom:none; }
+  .checklist li:hover{ background:var(--navy-10); margin:0 -10px; padding:11px 10px; border-radius:4px; }
+  .checklist .chk{
+    flex:0 0 auto; width:20px; height:20px; border:2px solid var(--navy); border-radius:4px; margin-top:1px;
+    display:flex; align-items:center; justify-content:center; transition:.15s;
+  }
+  .checklist li.checked .chk{ background:var(--navy); }
+  .checklist li.checked .chk::after{ content:'✓'; color:#fff; font-size:13px; font-weight:700; line-height:1; }
+  .checklist li.checked .ck-text{ color:var(--subtext); text-decoration:line-through; }
+  .checklist-group-title{ font-weight:700; color:var(--navy); font-size:13px; margin:18px 0 6px; letter-spacing:.03em; }
+  .checklist-group-title:first-child{ margin-top:0; }
+
+  /* completion badge */
+  .completion-badge{
+    display:flex; align-items:center; gap:16px; background:var(--navy); color:#fff;
+    border-radius:8px; padding:20px 24px; margin:24px 0; opacity:.4; transition:opacity .4s;
+  }
+  .completion-badge.active{ opacity:1; }
+  .completion-badge .badge-icon{ font-size:28px; }
+  .completion-badge .badge-text{ font-size:14px; }
+  .completion-badge .badge-text strong{ display:block; font-size:17px; margin-bottom:2px; }
+
+  /* nav footer */
+  .ep-nav{ margin-top:60px; border-top:1px solid var(--gray-line); padding-top:24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; }
+  .ep-nav .ep-label{ font-size:12px; color:var(--subtext); letter-spacing:.05em; text-transform:uppercase; }
+  .ep-nav .ep-title{ font-size:17px; font-weight:700; color:var(--navy); }
+  .ep-nav .nav-card{ border:1px solid var(--gray-line); border-radius:8px; padding:14px 20px; background:#fff; transition:.15s; text-decoration:none; color:inherit; font-size:13.5px; }
+  .ep-nav .nav-card:hover{ border-color:var(--navy); box-shadow:0 2px 10px rgba(0,51,102,.08); }
+  .ep-nav .nav-card.prev{ color:var(--subtext); }
+
+  ul.tight{ padding-left:20px; margin:8px 0; }
+  ul.tight li{ margin-bottom:5px; }
+  .small-note{ font-size:12.5px; color:var(--subtext); }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="eyebrow">SAC Story 설계 원칙 시리즈 · Episode 6 / 6 (마지막)</div>
+  <h1>체크리스트 및 흔한 실수 Top 5</h1>
+  <p>시리즈를 마무리하며, Episode 1~5에서 다룬 원칙을 한눈에 정리하고, 실무에서 가장 자주 반복되는 실수 5가지를 "증상 → 원인 → 해결" 형식으로 점검합니다. 마지막은 인터랙티브 자가 점검 체크리스트입니다.</p>
+</header>
+
+<nav class="tabs" id="tabnav">
+  <a href="#s1" class="active">1. 시리즈 한눈에 보기</a>
+  <a href="#s2">2. 흔한 실수 Top 5</a>
+  <a href="#s3">3. 자가 점검 체크리스트</a>
+  <a href="#s4">4. 마무리</a>
+</nav>
+
+<main>
+
+<!-- ============ SECTION 1 ============ -->
+<section id="s1">
+  <div class="section-badge">01</div>
+  <h2 class="section-title">시리즈 한눈에 보기</h2>
+  <p class="section-sub">Episode 1~5에서 다룬 핵심 원칙을 한 문장씩으로 정리했습니다. 작업 중 막힐 때 이 페이지로 돌아와 해당 Episode를 다시 확인하시면 됩니다.</p>
+
+  <div class="ep-summary-grid">
+    <div class="ep-summary-card">
+      <div class="ep-num">Episode 1</div>
+      <h4>Story 설계의 기초</h4>
+      <p>화면은 "데이터 나열"이 아니라 "메시지 전달"이어야 한다. 정보 위계(헤드라인→근거→디테일), 시선 흐름(Z/F 패턴), Pre-attentive 강조(Navy 1색), Chart Junk 제거가 핵심.</p>
+    </div>
+    <div class="ep-summary-card">
+      <div class="ep-num">Episode 2</div>
+      <h4>차트 선택의 원칙</h4>
+      <p>차트 갤러리에서 시작하지 않는다. "이 위젯이 답해야 하는 질문이 비교/추세/분포/관계 중 무엇인가"를 먼저 정하고, 그에 맞는 차트 유형을 선택한다.</p>
+    </div>
+    <div class="ep-summary-card">
+      <div class="ep-num">Episode 3</div>
+      <h4>레이아웃과 위젯 구조</h4>
+      <p>Page→Section→Widget 구조를 정보 위계와 매핑한다. Responsive/Canvas는 열람 환경 기준으로 선택하고, 디테일은 Linked Analysis·드릴다운으로 처리한다.</p>
+    </div>
+    <div class="ep-summary-card">
+      <div class="ep-num">Episode 4</div>
+      <h4>필터와 변수(Variable)</h4>
+      <p>전역 필터(기간·버전·조직)와 위젯별 옵션을 구분한다. Variable에는 기본값을 설정하고, 라벨과 값이 함께 바뀌도록 구성한다.</p>
+    </div>
+    <div class="ep-summary-card full">
+      <div class="ep-num">Episode 5</div>
+      <h4>Before/After 사례 연구</h4>
+      <p>위 4가지 원칙을 하나의 시나리오에 순서대로(정보 위계 → 차트 교정 → 레이아웃 정리 → 필터 정리) 적용하면, 동일한 데이터라도 메시지 전달 속도가 크게 달라진다는 것을 확인했다. 이 순서는 새 Story를 처음 설계할 때의 작업 순서로도 그대로 사용할 수 있다.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SECTION 2 ============ -->
+<section id="s2">
+  <div class="section-badge">02</div>
+  <h2 class="section-title">흔한 실수 Top 5</h2>
+  <p class="section-sub">아래 5가지는 실제 SAC Story 작업에서 가장 자주 반복되는 실수입니다. 각 항목을 "증상(겉으로 보이는 모습) → 원인(왜 발생하는가) → 해결(어떻게 고치는가)" 순서로 정리했습니다.</p>
+
+  <div class="mistake-card">
+    <div class="mistake-head">
+      <div class="mistake-num">1</div>
+      <div class="mistake-title">모든 것을 강조한다</div>
+      <div class="mistake-ep">Episode 1</div>
+    </div>
+    <div class="mistake-body">
+      <div class="mistake-row symptom"><div class="mr-label">증상</div><div class="mr-text">모든 KPI 카드가 같은 색·테두리로 강조되어 있어, 화면을 봐도 "어디가 문제인지" 알 수 없다.</div></div>
+      <div class="mistake-row cause"><div class="mr-label">원인</div><div class="mr-text">"중요한 정보니까 강조해야 한다"는 생각이 모든 항목에 동일하게 적용되어, 결과적으로 강조가 무의미해진다.</div></div>
+      <div class="mistake-row fix"><div class="mr-label">해결</div><div class="mr-text">화면당 강조 항목은 1개(또는 소수)로 제한하고, Navy 강조 + 나머지 회색조 톤다운 규칙을 지킨다.</div></div>
+    </div>
+  </div>
+
+  <div class="mistake-card">
+    <div class="mistake-head">
+      <div class="mistake-num">2</div>
+      <div class="mistake-title">차트 갤러리에서 시작한다</div>
+      <div class="mistake-ep">Episode 2</div>
+    </div>
+    <div class="mistake-body">
+      <div class="mistake-row symptom"><div class="mr-label">증상</div><div class="mr-text">카테고리 데이터에 라인 차트를 쓰거나, 시계열 데이터에 파이 차트를 쓰는 등 분석 의도와 차트 유형이 맞지 않는다.</div></div>
+      <div class="mistake-row cause"><div class="mr-label">원인</div><div class="mr-text">"이 위젯에 어떤 질문에 대한 답을 담을 것인가"를 정하기 전에, 시각적으로 보기 좋은 차트 유형을 먼저 선택한다.</div></div>
+      <div class="mistake-row fix"><div class="mr-label">해결</div><div class="mr-text">위젯 생성 전 "비교/추세/분포/관계" 중 어디에 해당하는지 먼저 정의하고, 그에 맞는 차트 유형(Bar/Line/Histogram·Box/Scatter)을 선택한다.</div></div>
+    </div>
+  </div>
+
+  <div class="mistake-card">
+    <div class="mistake-head">
+      <div class="mistake-num">3</div>
+      <div class="mistake-title">디테일을 기본 화면에 노출한다</div>
+      <div class="mistake-ep">Episode 3</div>
+    </div>
+    <div class="mistake-body">
+      <div class="mistake-row symptom"><div class="mr-label">증상</div><div class="mr-text">전표 단위 원장 테이블이 화면 하단에 항상 펼쳐져 있어, 화면이 길고 무거우며 핵심 메시지가 묻힌다.</div></div>
+      <div class="mistake-row cause"><div class="mr-label">원인</div><div class="mr-text">"누군가는 상세 데이터를 필요로 할 수 있으니 다 보여주자"는 접근으로, 정보 위계의 3단계(디테일)가 1·2단계와 동일한 비중으로 배치된다.</div></div>
+      <div class="mistake-row fix"><div class="mr-label">해결</div><div class="mr-text">디테일 데이터는 Linked Analysis나 드릴다운으로 전환해, 기본 화면에는 "있다는 것"만 표시하고 클릭 시에만 펼쳐지도록 한다.</div></div>
+    </div>
+  </div>
+
+  <div class="mistake-card">
+    <div class="mistake-head">
+      <div class="mistake-num">4</div>
+      <div class="mistake-title">필터에 위계가 없다</div>
+      <div class="mistake-ep">Episode 4</div>
+    </div>
+    <div class="mistake-body">
+      <div class="mistake-row symptom"><div class="mr-label">증상</div><div class="mr-text">기간·버전·조직 같은 전역 조건과 Top N·정렬·단위 같은 위젯별 옵션이 화면 상단에 동일한 모양으로 7~8개 나열되어 있다.</div></div>
+      <div class="mistake-row cause"><div class="mr-label">원인</div><div class="mr-text">필터를 추가할 때마다 "일단 상단에 두면 찾기 쉽다"는 생각으로 모두 같은 위치·형태에 배치한다.</div></div>
+      <div class="mistake-row fix"><div class="mr-label">해결</div><div class="mr-text">전역 필터(화면 전체 조건) 3~5개만 상단에 남기고, 위젯별 옵션은 해당 위젯 옆 배지나 작은 컨트롤로 이동한다.</div></div>
+    </div>
+  </div>
+
+  <div class="mistake-card">
+    <div class="mistake-head">
+      <div class="mistake-num">5</div>
+      <div class="mistake-title">제목이 결론이 아니라 사실 설명이다</div>
+      <div class="mistake-ep">종합</div>
+    </div>
+    <div class="mistake-body">
+      <div class="mistake-row symptom"><div class="mr-label">증상</div><div class="mr-text">차트·Section 제목이 "사업부별 비용", "월별 추이"처럼 데이터 내용만 설명하고, 정작 "그래서 무엇이 이슈인가"는 화면에 적혀 있지 않다.</div></div>
+      <div class="mistake-row cause"><div class="mr-label">원인</div><div class="mr-text">제목을 "이 차트에 무엇이 들어있는가"에 대한 설명으로 생각하고, "이 차트가 전달하는 결론이 무엇인가"로는 생각하지 않는다.</div></div>
+      <div class="mistake-row fix"><div class="mr-label">해결</div><div class="mr-text">제목을 "B사업부 비용 12% 초과 — 외주비 원인"처럼 결론형 문장으로 바꾼다. 1~5단계 원칙이 모두 적용된 화면이라도, 제목이 사실 설명형이면 메시지 전달이 한 단계 늦어진다.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SECTION 3 ============ -->
+<section id="s3">
+  <div class="section-badge">03</div>
+  <h2 class="section-title">최종 자가 점검 체크리스트</h2>
+  <p class="section-sub">새로 만든 SAC Story를 배포하기 전, 아래 항목을 하나씩 클릭하며 점검해보세요. 진행률이 자동으로 표시됩니다.</p>
+
+  <div class="progress-wrap">
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-fill"></div></div>
+    <div class="progress-label" id="progress-label">0 / 13 완료</div>
+  </div>
+
+  <div class="card">
+    <div class="checklist-group-title">정보 위계 &amp; 강조 (Episode 1)</div>
+    <ul class="checklist">
+      <li><div class="chk"></div><div class="ck-text">화면 상단에 "이번 보고에서 가장 중요한 한 가지"가 KPI 또는 한 문장으로 표시되어 있다.</div></li>
+      <li><div class="chk"></div><div class="ck-text">강조 항목은 Navy 1색이고, 나머지 요소는 회색조로 톤다운되어 있다.</div></li>
+      <li><div class="chk"></div><div class="ck-text">3D 효과, 그라데이션, 불필요한 그리드라인 등 Chart Junk가 제거되어 있다.</div></li>
+    </ul>
+
+    <div class="checklist-group-title">차트 선택 (Episode 2)</div>
+    <ul class="checklist">
+      <li><div class="chk"></div><div class="ck-text">각 위젯의 차트 유형이 비교/추세/분포/관계 중 해당 분석 의도와 일치한다.</div></li>
+      <li><div class="chk"></div><div class="ck-text">카테고리 데이터에 라인 차트, 시계열 데이터에 파이 차트가 사용되지 않았다.</div></li>
+    </ul>
+
+    <div class="checklist-group-title">레이아웃 &amp; 구조 (Episode 3)</div>
+    <ul class="checklist">
+      <li><div class="chk"></div><div class="ck-text">각 Section이 정보 위계(헤드라인/근거/디테일) 중 어느 단계인지 명확하다.</div></li>
+      <li><div class="chk"></div><div class="ck-text">Responsive/Canvas 모드를 선택한 이유(열람 환경)가 명확하다.</div></li>
+      <li><div class="chk"></div><div class="ck-text">디테일(원장 등)이 기본 화면에 노출되지 않고 드릴다운으로 접근 가능하다.</div></li>
+    </ul>
+
+    <div class="checklist-group-title">필터 &amp; 변수 (Episode 4)</div>
+    <ul class="checklist">
+      <li><div class="chk"></div><div class="ck-text">전역 필터(기간/버전/조직)와 위젯별 옵션이 위치·형태로 구분되어 있다.</div></li>
+      <li><div class="chk"></div><div class="ck-text">Variable에 기본값이 설정되어 있고, 라벨과 값이 함께 바뀐다.</div></li>
+    </ul>
+
+    <div class="checklist-group-title">메시지 (종합)</div>
+    <ul class="checklist">
+      <li><div class="chk"></div><div class="ck-text">주요 Section/차트 제목이 사실 설명형이 아니라 결론형 문장으로 작성되어 있다.</div></li>
+      <li><div class="chk"></div><div class="ck-text">화면을 처음 보는 사람도 5초 안에 "이번 보고의 핵심"을 파악할 수 있다.</div></li>
+      <li><div class="chk"></div><div class="ck-text">이 화면을 보고 누가, 무엇을 결정해야 하는지 답할 수 있다 (Episode 1의 첫 질문).</div></li>
+    </ul>
+  </div>
+
+  <div class="completion-badge" id="completion-badge">
+    <div class="badge-icon">✓</div>
+    <div class="badge-text"><strong>모든 항목을 완료했습니다.</strong>이 Story는 SAC Story 설계 원칙 시리즈의 핵심 기준을 충족합니다.</div>
+  </div>
+</section>
+
+<!-- ============ SECTION 4 ============ -->
+<section id="s4">
+  <div class="section-badge">04</div>
+  <h2 class="section-title">마무리</h2>
+  <p class="section-sub">SAC Story 설계 원칙 시리즈를 마칩니다.</p>
+
+  <div class="card">
+    <h3>시리즈를 마치며</h3>
+    <p>6개 Episode를 통해 다룬 원칙들은 결국 하나의 질문으로 요약됩니다 — <strong>"이 화면을 보고 누가, 무엇을 결정해야 하는가?"</strong></p>
+    <p>SAC Story 설계는 기능을 배우는 것보다, 이 질문에 대한 답을 화면 구조로 표현하는 연습입니다. 새로운 Story를 만들 때마다 Episode 5에서 다룬 순서(정보 위계 → 차트 선택 → 레이아웃 → 필터)를 따라가 보면, 처음부터 "보는 사람을 위한" 화면을 만들 수 있습니다.</p>
+  </div>
+
+  <div class="callout navy">
+    <span class="tag">참고</span>
+    <div>이 시리즈는 BAC 교육 포털의 "이론 + SAC 구현" 모듈입니다. 실제 프로젝트에서 SAC Story 작업 시 막히는 부분이 있다면, Episode 1(개념)과 Episode 3·4(SAC 구현 구조)를 함께 참고하시기 바랍니다.</div>
+  </div>
+</section>
+
+<div class="ep-nav">
+  <a class="nav-card prev" href="sac-story-ep5.html">← Episode 5 — Before/After 사례 연구</a>
+  <div style="text-align:right;">
+    <div class="ep-label">시리즈 완료</div>
+    <div class="ep-title">처음으로 돌아가기</div>
+  </div>
+</div>
+<div class="ep-nav" style="margin-top:14px; justify-content:flex-end;">
+  <a class="nav-card" href="sac-story-ep1.html">Episode 1 — Story 설계의 기초로 →</a>
+</div>
+
+</main>
+
+<script>
+  const sections = document.querySelectorAll('main section');
+  const navLinks = document.querySelectorAll('nav.tabs a');
+  const navMap = {};
+  navLinks.forEach(a => navMap[a.getAttribute('href').slice(1)] = a);
+
+  function onScroll(){
+    let current = sections[0].id;
+    const offset = 90;
+    sections.forEach(sec => {
+      const rect = sec.getBoundingClientRect();
+      if(rect.top - offset <= 0) current = sec.id;
+    });
+    navLinks.forEach(a => a.classList.remove('active'));
+    if(navMap[current]) navMap[current].classList.add('active');
+  }
+  document.addEventListener('scroll', onScroll);
+  onScroll();
+
+  navLinks.forEach(a=>{
+    a.addEventListener('click', e=>{
+      e.preventDefault();
+      const target = document.getElementById(a.getAttribute('href').slice(1));
+      window.scrollTo({top: target.offsetTop - 70, behavior:'smooth'});
+    });
+  });
+
+  // interactive checklist + progress
+  const items = document.querySelectorAll('#s3 .checklist li');
+  const total = items.length;
+  const fill = document.getElementById('progress-fill');
+  const label = document.getElementById('progress-label');
+  const badge = document.getElementById('completion-badge');
+
+  function updateProgress(){
+    const checked = document.querySelectorAll('#s3 .checklist li.checked').length;
+    const pct = Math.round((checked/total)*100);
+    fill.style.width = pct + '%';
+    label.textContent = `${checked} / ${total} 완료`;
+    badge.classList.toggle('active', checked === total);
+  }
+  items.forEach(li=>{
+    li.addEventListener('click', ()=>{
+      li.classList.toggle('checked');
+      updateProgress();
+    });
+  });
+  updateProgress();
+</script>
+
+</body>
+</html>
