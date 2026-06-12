@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAC Story 설계 원칙 — Episode 5: Before/After 사례 연구</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f0f3f8;
+    --navy:#003366;
+    --navy-10:#e6edf5;
+    --navy-20:#cdd9ea;
+    --warn:#b54708;
+    --warn-bg:#fdf1e8;
+    --correct:#1a6b3c;
+    --correct-bg:#e9f6ee;
+    --wrong:#b3261e;
+    --wrong-bg:#fcebe9;
+    --gray-line:#d7dde6;
+    --text:#1c2733;
+    --subtext:#5b6b7d;
+    --gray:#9aa7b5;
+    font-size:15px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg); color:var(--text); font-family:'Noto Sans KR', sans-serif;
+    line-height:1.7; -webkit-font-smoothing:antialiased;
+    word-break:keep-all; overflow-wrap:break-word;
+  }
+  h1,h2,h3,.serif{font-family:'DM Serif Display', 'Noto Sans KR', serif;}
+  .mono{font-family:'JetBrains Mono','Noto Sans KR',monospace;}
+
+  header.top{ background:var(--navy); color:#fff; padding:28px 5vw 22px; }
+  header.top .eyebrow{ font-size:13px; letter-spacing:.12em; text-transform:uppercase; opacity:.7; margin-bottom:6px; }
+  header.top h1{ font-size:42px; margin:0 0 8px; font-weight:400; }
+  header.top p{ font-size:16px; opacity:.85; max-width:760px; margin:0; }
+
+  nav.tabs{
+    position:sticky; top:0; z-index:50; background:#fff; border-bottom:1px solid var(--gray-line);
+    display:flex; overflow-x:auto; box-shadow:0 2px 6px rgba(0,51,102,.06);
+  }
+  nav.tabs a{
+    flex:0 0 auto; padding:14px 22px; font-size:14px; font-weight:500; color:var(--subtext);
+    text-decoration:none; border-bottom:3px solid transparent; white-space:nowrap; transition:.15s;
+  }
+  nav.tabs a:hover{ color:var(--navy); background:var(--navy-10); }
+  nav.tabs a.active{ color:var(--navy); border-bottom-color:var(--navy); font-weight:700; }
+
+  main{ max-width:980px; margin:0 auto; padding:0 5vw 90px; }
+  section{ padding-top:56px; }
+  section:first-of-type{ padding-top:40px; }
+
+  .section-badge{
+    display:inline-block; background:var(--navy); color:#fff; font-size:13px; font-weight:700;
+    padding:4px 12px; border-radius:3px; letter-spacing:.04em; margin-bottom:14px;
+  }
+  h2.section-title{ font-size:30px; margin:0 0 6px; color:var(--navy); font-weight:400; }
+  .section-sub{ color:var(--subtext); font-size:15px; margin:0 0 28px; max-width:680px; }
+
+  .card{ background:#fff; border:1px solid var(--gray-line); border-radius:8px; padding:24px 26px; margin-bottom:22px; }
+  .card h3{ font-size:18px; margin:0 0 10px; color:var(--navy); font-weight:700; font-family:'Noto Sans KR',sans-serif; }
+  .card p:last-child{margin-bottom:0;}
+
+  .callout{ border-radius:6px; padding:14px 18px; margin:16px 0; font-size:14px; display:flex; gap:12px; align-items:flex-start; }
+  .callout .tag{ flex:0 0 auto; font-size:11px; font-weight:700; letter-spacing:.06em; padding:2px 8px; border-radius:3px; margin-top:2px; text-transform:uppercase; }
+  .callout.navy{ background:var(--navy-10); border-left:4px solid var(--navy); }
+  .callout.navy .tag{ background:var(--navy); color:#fff; }
+  .callout.warn{ background:var(--warn-bg); border-left:4px solid var(--warn); }
+  .callout.warn .tag{ background:var(--warn); color:#fff; }
+  .callout.correct{ background:var(--correct-bg); border-left:4px solid var(--correct); }
+  .callout.correct .tag{ background:var(--correct); color:#fff; }
+  .callout.wrong{ background:var(--wrong-bg); border-left:4px solid var(--wrong); }
+  .callout.wrong .tag{ background:var(--wrong); color:#fff; }
+
+  /* SAC mockup shell */
+  .sac-frame{
+    border:1px solid var(--gray-line); border-radius:8px; overflow:hidden;
+    background:#fff; box-shadow:0 4px 16px rgba(0,51,102,.08); margin:18px 0;
+  }
+  .sac-titlebar{
+    background:var(--navy); color:#fff; padding:8px 14px; font-size:12px; font-weight:700;
+    display:flex; align-items:center; justify-content:space-between; gap:8px; letter-spacing:.03em;
+  }
+  .sac-titlebar .dots{ display:flex; gap:4px; }
+  .sac-titlebar .dots span{ width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,.4); display:inline-block; }
+  .sac-body{ padding:16px; background:#fafbfd; }
+
+  /* filter bar */
+  .filter-bar{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; padding:10px 12px; background:#fff; border:1px solid var(--gray-line); border-radius:6px; transition:.3s; }
+  .filter-chip{ display:flex; align-items:center; gap:6px; font-size:12px; border:1px solid var(--navy-20); border-radius:14px; padding:5px 12px; background:var(--navy-10); color:var(--navy); transition:.3s; }
+  .filter-chip .fc-label{ color:var(--subtext); font-weight:400; }
+  .filter-chip.extra{ transition:opacity .3s, max-width .3s, padding .3s, margin .3s; overflow:hidden; }
+  .demo.s4 .filter-chip.extra{ opacity:0; max-width:0; padding:0; border:none; margin:0; }
+
+  /* KPI row */
+  .sac-kpi-row{ display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+  .sac-kpi{ flex:1; min-width:110px; background:#fff; border:2px solid var(--navy); border-radius:6px; padding:10px 12px; transition:.3s; }
+  .sac-kpi .kpi-label{ font-size:11px; color:var(--subtext); margin-bottom:4px; }
+  .sac-kpi .kpi-value{ font-size:20px; font-weight:700; color:var(--navy); font-family:'JetBrains Mono',monospace; transition:.3s; }
+  .sac-kpi .kpi-delta{ font-size:11px; margin-top:2px; }
+  .sac-kpi .kpi-delta.up{ color:var(--correct); }
+  .sac-kpi .kpi-delta.down{ color:var(--wrong); }
+  .demo.s1 .sac-kpi.dim{ border-color:var(--gray-line); }
+  .demo.s1 .sac-kpi.dim .kpi-value{ color:var(--gray); font-weight:400; }
+  .demo.s1 .sac-kpi.dim .kpi-delta{ color:var(--gray) !important; }
+
+  /* grid + panels */
+  .sac-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
+  @media (max-width:600px){ .sac-grid{ grid-template-columns:1fr; } }
+  .sac-panel{ background:#fff; border:1px solid var(--gray-line); border-radius:6px; padding:10px 12px; min-height:160px; }
+  .sac-panel .panel-title{ font-size:12px; font-weight:700; color:var(--text); margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; }
+  .bar-chart{ display:flex; align-items:flex-end; gap:8px; height:90px; padding:0 4px; }
+  .bar-chart .bar{ flex:1; border-radius:3px 3px 0 0; transition:height .3s; }
+  .bar-chart .bar-label{ font-size:10px; color:var(--subtext); text-align:center; margin-top:4px; }
+  .bar-wrap{ display:flex; flex-direction:column; flex:1; align-items:center; }
+
+  .chart-old, .chart-new{ display:none; }
+  .demo:not(.s2) .chart-old{ display:block; }
+  .demo.s2 .chart-new{ display:block; }
+
+  .badge{ display:inline-block; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:10px; letter-spacing:.02em; opacity:0; transition:opacity .3s; }
+  .badge.navy{ background:var(--navy-10); color:var(--navy); }
+  .demo.s4 .badge.show-s4{ opacity:1; }
+
+  /* detail table vs drilldown */
+  .detail-table-wrap{ display:block; }
+  .demo.s3 .detail-table-wrap{ display:none; }
+  .detail-drill{ display:none; }
+  .demo.s3 .detail-drill{ display:block; }
+  .drill-row{
+    display:flex; justify-content:space-between; align-items:center;
+    border:1px solid var(--gray-line); border-radius:6px; padding:10px 14px;
+    background:#fff; cursor:pointer; transition:.15s; font-size:13.5px;
+  }
+  .drill-row:hover{ border-color:var(--navy); }
+  .drill-row .drill-arrow{ color:var(--navy); font-weight:700; transition:transform .2s; }
+  .drill-row.open .drill-arrow{ transform:rotate(90deg); }
+  .drill-detail{
+    display:none; border:1px solid var(--navy-20); border-top:none; border-radius:0 0 6px 6px;
+    margin-top:-1px; padding:10px 14px; background:var(--navy-10); font-size:12.5px;
+  }
+  .drill-detail.show{ display:block; }
+  .sac-table{ width:100%; font-size:11px; border-collapse:collapse; }
+  .sac-table th, .sac-table td{ padding:5px 6px; border-bottom:1px solid var(--gray-line); text-align:right; }
+  .sac-table th:first-child, .sac-table td:first-child{ text-align:left; }
+  .sac-table th{ color:var(--subtext); font-weight:700; }
+  .drill-detail table{ width:100%; font-size:11.5px; border-collapse:collapse; margin-top:6px; }
+  .drill-detail th, .drill-detail td{ padding:4px 6px; text-align:right; border-bottom:1px solid var(--navy-20); }
+  .drill-detail th:first-child, .drill-detail td:first-child{ text-align:left; }
+
+  /* step controls */
+  .step-controls{ display:flex; gap:8px; flex-wrap:wrap; margin:18px 0 8px; }
+  .step-btn{
+    border:1.5px solid var(--navy); background:#fff; color:var(--navy); font-size:13px; font-weight:700;
+    padding:9px 16px; border-radius:20px; cursor:pointer; font-family:'Noto Sans KR',sans-serif; transition:.15s;
+  }
+  .step-btn.active, .step-btn:hover{ background:var(--navy); color:#fff; }
+  .step-desc{
+    border:1px solid var(--gray-line); border-radius:8px; padding:14px 18px; background:#fff;
+    font-size:13.5px; margin-bottom:18px; min-height:54px;
+  }
+  .step-desc .step-tag{ font-weight:700; color:var(--navy); margin-right:6px; }
+  .step-panel{ display:none; }
+  .step-panel.active{ display:block; }
+
+  /* side-by-side compare */
+  .sbs{ display:grid; grid-template-columns:1fr 1fr; gap:18px; margin:18px 0; }
+  @media (max-width:760px){ .sbs{ grid-template-columns:1fr; } }
+  .sbs-label{ font-weight:700; font-size:13px; text-align:center; margin-bottom:8px; letter-spacing:.04em; text-transform:uppercase; }
+  .sbs-label.before{ color:var(--wrong); }
+  .sbs-label.after{ color:var(--correct); }
+
+  /* checklist */
+  .checklist{ list-style:none; padding:0; margin:0; }
+  .checklist li{ display:flex; gap:10px; align-items:flex-start; padding:10px 0; border-bottom:1px solid var(--gray-line); font-size:14px; }
+  .checklist li:last-child{ border-bottom:none; }
+  .checklist .chk{ flex:0 0 auto; width:20px; height:20px; border:2px solid var(--navy); border-radius:4px; margin-top:1px; }
+  .checklist-group-title{ font-weight:700; color:var(--navy); font-size:13px; margin:14px 0 6px; letter-spacing:.03em; }
+  .checklist-group-title:first-child{ margin-top:0; }
+
+  /* quiz */
+  .quiz{ border:1px solid var(--gray-line); border-radius:8px; padding:18px 20px; background:#fff; margin:18px 0; }
+  .quiz .q-title{ font-weight:700; margin-bottom:12px; font-size:15px; }
+  .quiz .q-options{ display:flex; flex-direction:column; gap:8px; }
+  .quiz .q-option{ border:1.5px solid var(--gray-line); border-radius:6px; padding:10px 14px; cursor:pointer; font-size:14px; transition:.15s; background:#fff; }
+  .quiz .q-option:hover{ border-color:var(--navy); }
+  .quiz .q-option.correct-ans{ border-color:var(--correct); background:var(--correct-bg); }
+  .quiz .q-option.wrong-ans{ border-color:var(--wrong); background:var(--wrong-bg); }
+  .quiz .q-feedback{ margin-top:12px; padding:10px 14px; border-radius:6px; font-size:13.5px; display:none; }
+  .quiz .q-feedback.show{ display:block; }
+  .quiz .q-feedback.correct{ background:var(--correct-bg); color:var(--correct); }
+  .quiz .q-feedback.wrong{ background:var(--wrong-bg); color:var(--wrong); }
+
+  /* nav footer */
+  .ep-nav{ margin-top:60px; border-top:1px solid var(--gray-line); padding-top:24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; }
+  .ep-nav .ep-label{ font-size:12px; color:var(--subtext); letter-spacing:.05em; text-transform:uppercase; }
+  .ep-nav .ep-title{ font-size:17px; font-weight:700; color:var(--navy); }
+  .ep-nav .nav-card{ border:1px solid var(--gray-line); border-radius:8px; padding:14px 20px; background:#fff; transition:.15s; text-decoration:none; color:inherit; font-size:13.5px; }
+  .ep-nav .nav-card:hover{ border-color:var(--navy); box-shadow:0 2px 10px rgba(0,51,102,.08); }
+  .ep-nav .nav-card.prev{ color:var(--subtext); }
+
+  ul.tight{ padding-left:20px; margin:8px 0; }
+  ul.tight li{ margin-bottom:5px; }
+  .small-note{ font-size:12.5px; color:var(--subtext); }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="eyebrow">SAC Story 설계 원칙 시리즈 · Episode 5 / 6</div>
+  <h1>Before / After 사례 연구</h1>
+  <p>Episode 1~4의 원칙을 하나의 시나리오에 종합 적용합니다. "나쁜 Story"를 한 단계씩 개선하면서, 각 원칙이 화면에 어떤 변화를 만드는지 직접 확인해보세요.</p>
+</header>
+
+<nav class="tabs" id="tabnav">
+  <a href="#s1" class="active">1. 시나리오</a>
+  <a href="#s2">2. 나쁜 Story</a>
+  <a href="#s3">3. 단계별 개선</a>
+  <a href="#s4">4. Before / After</a>
+  <a href="#s5">5. 종합 체크리스트</a>
+  <a href="#s6">6. 정리 퀴즈</a>
+</nav>
+
+<main>
+
+<!-- ============ SECTION 1 ============ -->
+<section id="s1">
+  <div class="section-badge">01</div>
+  <h2 class="section-title">시나리오 — 월간 손익 분석, 임원 보고 5분 전</h2>
+  <p class="section-sub">ASPN Group(가상)의 월간 비용 분석 Story를 사례로 사용합니다. 데이터는 Episode 1~4에서 사용한 것과 동일한 시나리오입니다 — B사업부 비용이 예산 대비 12.3% 초과했고, 원인은 외주비입니다.</p>
+
+  <div class="card">
+    <h3>배경</h3>
+    <p>담당 컨설턴트가 월간 손익 분석 Story를 만들었습니다. 필요한 데이터는 모두 들어가 있고, 위젯도 충분히 배치했습니다. 하지만 발표 직전 리뷰에서 "화면을 보고 5초 안에 핵심을 알 수 있어야 한다"는 피드백을 받았습니다.</p>
+    <p>이번 Episode에서는 이 Story를 Episode 1~4의 원칙에 따라 4단계로 개선합니다. 각 단계는 이전 Episode에서 다룬 내용과 1:1로 대응됩니다.</p>
+  </div>
+
+  <table style="width:100%; border-collapse:collapse; font-size:13.5px; background:#fff; margin:18px 0;">
+    <tr style="background:var(--navy); color:#fff;">
+      <th style="padding:8px 12px; text-align:left;">Step</th>
+      <th style="padding:8px 12px; text-align:left;">적용 원칙</th>
+      <th style="padding:8px 12px; text-align:left;">참고 Episode</th>
+    </tr>
+    <tr style="border-bottom:1px solid var(--gray-line);"><td style="padding:8px 12px; font-weight:700; color:var(--navy);">Step 1</td><td style="padding:8px 12px;">정보 위계 / Pre-attentive 강조 — 핵심 KPI만 강조, 나머지 톤다운</td><td style="padding:8px 12px;">Episode 1</td></tr>
+    <tr style="border-bottom:1px solid var(--gray-line); background:#fafbfd;"><td style="padding:8px 12px; font-weight:700; color:var(--navy);">Step 2</td><td style="padding:8px 12px;">차트 선택 교정 — 추세/비교 의도에 맞는 차트 유형으로 변경</td><td style="padding:8px 12px;">Episode 2</td></tr>
+    <tr style="border-bottom:1px solid var(--gray-line);"><td style="padding:8px 12px; font-weight:700; color:var(--navy);">Step 3</td><td style="padding:8px 12px;">레이아웃 정리 — 디테일 테이블을 드릴다운으로 전환</td><td style="padding:8px 12px;">Episode 3</td></tr>
+    <tr style="background:#fafbfd;"><td style="padding:8px 12px; font-weight:700; color:var(--navy);">Step 4</td><td style="padding:8px 12px;">필터 위계 정리 — 전역 필터 3개 + 위젯별 옵션 배지</td><td style="padding:8px 12px;">Episode 4</td></tr>
+  </table>
+</section>
+
+<!-- ============ SECTION 2 ============ -->
+<section id="s2">
+  <div class="section-badge">02</div>
+  <h2 class="section-title">나쁜 Story (Before)</h2>
+  <p class="section-sub">Episode 1~4에서 다룬 문제들이 한 화면에 종합적으로 들어 있습니다. 어떤 문제가 보이는지 먼저 살펴보세요.</p>
+
+  <div class="sac-frame">
+    <div class="sac-titlebar"><span>SAC Story — 월간 손익 분석 (Before)</span><span class="dots"><span></span><span></span><span></span></span></div>
+    <div class="sac-body">
+      <div class="filter-bar">
+        <div class="filter-chip"><span class="fc-label">기간</span><span style="font-weight:700;">2026.05</span></div>
+        <div class="filter-chip"><span class="fc-label">버전</span><span style="font-weight:700;">Actual</span></div>
+        <div class="filter-chip"><span class="fc-label">조직</span><span style="font-weight:700;">전체</span></div>
+        <div class="filter-chip"><span class="fc-label">Top N</span><span style="font-weight:700;">5</span></div>
+        <div class="filter-chip"><span class="fc-label">정렬</span><span style="font-weight:700;">금액↓</span></div>
+        <div class="filter-chip"><span class="fc-label">통화</span><span style="font-weight:700;">KRW</span></div>
+        <div class="filter-chip"><span class="fc-label">단위</span><span style="font-weight:700;">백만원</span></div>
+      </div>
+      <div class="sac-kpi-row">
+        <div class="sac-kpi"><div class="kpi-label">A사업부 비용</div><div class="kpi-value">₩8.1억</div><div class="kpi-delta up">-1.2%</div></div>
+        <div class="sac-kpi"><div class="kpi-label">B사업부 비용</div><div class="kpi-value">₩12.4억</div><div class="kpi-delta down">+12.3%</div></div>
+        <div class="sac-kpi"><div class="kpi-label">C사업부 비용</div><div class="kpi-value">₩5.6억</div><div class="kpi-delta up">+0.4%</div></div>
+        <div class="sac-kpi"><div class="kpi-label">D사업부 비용</div><div class="kpi-value">₩3.2억</div><div class="kpi-delta up">-0.8%</div></div>
+      </div>
+      <div class="sac-grid">
+        <div class="sac-panel">
+          <div class="panel-title">월별 비용 비중</div>
+          <svg viewBox="0 0 200 130" width="100%" height="120">
+            <ellipse cx="75" cy="80" rx="60" ry="26" fill="#9aa7b5"/>
+            <path d="M75,55 A60,26 0 0 1 132,72 L75,80 Z" fill="#5b8fc7"/>
+            <path d="M75,55 A60,26 0 0 1 75,80 L18,80 A60,26 0 0 1 75,55 Z" fill="#003366"/>
+            <path d="M75,80 L132,72 A60,26 0 0 1 75,106 Z" fill="#3d6fa3"/>
+            <g font-size="9" fill="#5b6b7d" font-family="Noto Sans KR"><text x="145" y="40">1월 18%</text><text x="145" y="55">2월 17%</text><text x="145" y="70">3월 16%</text><text x="145" y="85">4월 17%</text><text x="145" y="100">5월 16%</text></g>
+          </svg>
+        </div>
+        <div class="sac-panel">
+          <div class="panel-title">사업부별 비용</div>
+          <svg viewBox="0 0 200 100" width="100%" height="90">
+            <line x1="15" y1="10" x2="15" y2="85" stroke="#d7dde6"/>
+            <line x1="15" y1="85" x2="195" y2="85" stroke="#d7dde6"/>
+            <polyline points="30,55 80,30 130,70 180,78" fill="none" stroke="#003366" stroke-width="3"/>
+            <circle cx="30" cy="55" r="3" fill="#003366"/><circle cx="80" cy="30" r="3" fill="#003366"/>
+            <circle cx="130" cy="70" r="3" fill="#003366"/><circle cx="180" cy="78" r="3" fill="#003366"/>
+            <g font-size="9" fill="#5b6b7d" font-family="Noto Sans KR" text-anchor="middle"><text x="30" y="98">A</text><text x="80" y="98">B</text><text x="130" y="98">C</text><text x="180" y="98">D</text></g>
+          </svg>
+        </div>
+      </div>
+      <div class="sac-panel" style="margin-top:10px;">
+        <div class="panel-title">전표 상세 (Top 5)</div>
+        <table class="sac-table">
+          <tr><th>사업부</th><th>계정</th><th>전표</th><th>금액</th></tr>
+          <tr><td>B</td><td>외주비</td><td>100023456</td><td>180,000,000</td></tr>
+          <tr><td>B</td><td>외주비</td><td>100023481</td><td>150,000,000</td></tr>
+          <tr><td>B</td><td>외주비</td><td>100023502</td><td>90,000,000</td></tr>
+          <tr><td>A</td><td>인건비</td><td>100022110</td><td>85,000,000</td></tr>
+          <tr><td>C</td><td>인건비</td><td>100022298</td><td>72,000,000</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout wrong">
+    <span class="tag">관찰</span>
+    <div>① 필터 7개가 동일한 형태로 나열되어 있음 (Episode 4) ② KPI 4개가 모두 동일한 강조 수준 — 어디가 이슈인지 알 수 없음 (Episode 1) ③ 월별 추세를 파이 차트로, 사업부 비교를 선으로 연결한 차트로 표현 — 분석 의도와 차트 유형 불일치 (Episode 2) ④ 전표 상세가 기본 화면에 항상 노출되어 화면이 무거움 (Episode 3)</div>
+  </div>
+</section>
+
+<!-- ============ SECTION 3 ============ -->
+<section id="s3">
+  <div class="section-badge">03</div>
+  <h2 class="section-title">단계별 개선 — 직접 적용해보기</h2>
+  <p class="section-sub">아래 버튼을 순서대로 눌러보세요. 각 단계가 누적 적용되며, 화면이 어떻게 바뀌는지 확인할 수 있습니다.</p>
+
+  <div class="step-controls">
+    <button class="step-btn active" data-step="0">Before (원본)</button>
+    <button class="step-btn" data-step="1">+ Step 1: 정보 위계</button>
+    <button class="step-btn" data-step="2">+ Step 2: 차트 교정</button>
+    <button class="step-btn" data-step="3">+ Step 3: 드릴다운</button>
+    <button class="step-btn" data-step="4">+ Step 4: 필터 정리</button>
+  </div>
+
+  <div class="step-desc">
+    <div class="step-panel active" data-panel="0"><span class="step-tag">Before</span>모든 KPI가 동일하게 강조되어 있고, 추세는 파이 차트, 비교는 선으로 연결되어 있습니다. 전표 상세가 항상 노출되고, 필터 7개가 한 줄에 나열되어 있습니다.</div>
+    <div class="step-panel" data-panel="1"><span class="step-tag">Step 1 — 정보 위계 (Episode 1)</span>B사업부 KPI만 Navy로 강조하고 나머지는 회색조로 톤다운했습니다. 화면을 보는 순간 "B사업부가 이슈"라는 것이 전달됩니다.</div>
+    <div class="step-panel" data-panel="2"><span class="step-tag">Step 2 — 차트 교정 (Episode 2)</span>월별 추세는 파이 차트 → 라인 차트로, 사업부 비교는 선으로 연결된 차트 → 바 차트로 변경했습니다. 각 차트가 실제 분석 의도(추세/비교)를 정확히 표현합니다.</div>
+    <div class="step-panel" data-panel="3"><span class="step-tag">Step 3 — 드릴다운 (Episode 3)</span>전표 상세 테이블을 기본 화면에서 제거하고, B사업부 KPI를 클릭하면 펼쳐지는 드릴다운으로 전환했습니다. 기본 화면이 가벼워졌습니다.</div>
+    <div class="step-panel" data-panel="4"><span class="step-tag">Step 4 — 필터 정리 (Episode 4)</span>7개 필터 중 전역 조건(기간·버전·조직) 3개만 남기고, 나머지(Top N·정렬·통화·단위)는 사업부 비교 차트 우상단의 작은 배지로 이동했습니다.</div>
+  </div>
+
+  <div class="sac-frame demo" id="demo">
+    <div class="sac-titlebar"><span>SAC Story — 월간 손익 분석</span><span class="dots"><span></span><span></span><span></span></span></div>
+    <div class="sac-body">
+      <div class="filter-bar">
+        <div class="filter-chip"><span class="fc-label">기간</span><span style="font-weight:700;">2026.05</span></div>
+        <div class="filter-chip"><span class="fc-label">버전</span><span style="font-weight:700;">Actual</span></div>
+        <div class="filter-chip"><span class="fc-label">조직</span><span style="font-weight:700;">전체</span></div>
+        <div class="filter-chip extra"><span class="fc-label">Top N</span><span style="font-weight:700;">5</span></div>
+        <div class="filter-chip extra"><span class="fc-label">정렬</span><span style="font-weight:700;">금액↓</span></div>
+        <div class="filter-chip extra"><span class="fc-label">통화</span><span style="font-weight:700;">KRW</span></div>
+        <div class="filter-chip extra"><span class="fc-label">단위</span><span style="font-weight:700;">백만원</span></div>
+      </div>
+
+      <div class="sac-kpi-row">
+        <div class="sac-kpi dim"><div class="kpi-label">A사업부 비용</div><div class="kpi-value">₩8.1억</div><div class="kpi-delta up">-1.2%</div></div>
+        <div class="sac-kpi"><div class="kpi-label">B사업부 비용</div><div class="kpi-value">₩12.4억</div><div class="kpi-delta down">+12.3%</div></div>
+        <div class="sac-kpi dim"><div class="kpi-label">C사업부 비용</div><div class="kpi-value">₩5.6억</div><div class="kpi-delta up">+0.4%</div></div>
+        <div class="sac-kpi dim"><div class="kpi-label">D사업부 비용</div><div class="kpi-value">₩3.2억</div><div class="kpi-delta up">-0.8%</div></div>
+      </div>
+
+      <div class="sac-grid">
+        <div class="sac-panel">
+          <div class="panel-title"><span>월별 비용 추이</span></div>
+          <svg class="chart-old" viewBox="0 0 200 130" width="100%" height="120">
+            <ellipse cx="75" cy="80" rx="60" ry="26" fill="#9aa7b5"/>
+            <path d="M75,55 A60,26 0 0 1 132,72 L75,80 Z" fill="#5b8fc7"/>
+            <path d="M75,55 A60,26 0 0 1 75,80 L18,80 A60,26 0 0 1 75,55 Z" fill="#003366"/>
+            <path d="M75,80 L132,72 A60,26 0 0 1 75,106 Z" fill="#3d6fa3"/>
+            <g font-size="9" fill="#5b6b7d" font-family="Noto Sans KR"><text x="145" y="40">1월 18%</text><text x="145" y="55">2월 17%</text><text x="145" y="70">3월 16%</text><text x="145" y="85">4월 17%</text><text x="145" y="100">5월 16%</text></g>
+          </svg>
+          <svg class="chart-new" viewBox="0 0 200 100" width="100%" height="100">
+            <line x1="15" y1="10" x2="15" y2="85" stroke="#d7dde6"/>
+            <line x1="15" y1="85" x2="195" y2="85" stroke="#d7dde6"/>
+            <polyline points="25,40 65,42 105,46 145,55 185,68" fill="none" stroke="#003366" stroke-width="3"/>
+            <circle cx="185" cy="68" r="4" fill="#003366"/>
+            <g font-size="9" fill="#5b6b7d" font-family="Noto Sans KR" text-anchor="middle"><text x="25" y="98">1월</text><text x="65" y="98">2월</text><text x="105" y="98">3월</text><text x="145" y="98">4월</text><text x="185" y="98">5월</text></g>
+          </svg>
+        </div>
+        <div class="sac-panel">
+          <div class="panel-title"><span>사업부별 비용</span><span class="badge navy show-s4">Top 5 · 백만원</span></div>
+          <svg class="chart-old" viewBox="0 0 200 100" width="100%" height="90">
+            <line x1="15" y1="10" x2="15" y2="85" stroke="#d7dde6"/>
+            <line x1="15" y1="85" x2="195" y2="85" stroke="#d7dde6"/>
+            <polyline points="30,55 80,30 130,70 180,78" fill="none" stroke="#003366" stroke-width="3"/>
+            <circle cx="30" cy="55" r="3" fill="#003366"/><circle cx="80" cy="30" r="3" fill="#003366"/>
+            <circle cx="130" cy="70" r="3" fill="#003366"/><circle cx="180" cy="78" r="3" fill="#003366"/>
+            <g font-size="9" fill="#5b6b7d" font-family="Noto Sans KR" text-anchor="middle"><text x="30" y="98">A</text><text x="80" y="98">B</text><text x="130" y="98">C</text><text x="180" y="98">D</text></g>
+          </svg>
+          <div class="chart-new bar-chart" style="height:90px;">
+            <div class="bar-wrap"><div class="bar" style="height:55%; background:var(--navy-20);"></div><div class="bar-label">A</div></div>
+            <div class="bar-wrap"><div class="bar" style="height:90%; background:var(--navy);"></div><div class="bar-label">B</div></div>
+            <div class="bar-wrap"><div class="bar" style="height:35%; background:var(--navy-20);"></div><div class="bar-label">C</div></div>
+            <div class="bar-wrap"><div class="bar" style="height:25%; background:var(--navy-20);"></div><div class="bar-label">D</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-table-wrap">
+        <div class="sac-panel" style="margin-top:10px;">
+          <div class="panel-title">전표 상세 (Top 5)</div>
+          <table class="sac-table">
+            <tr><th>사업부</th><th>계정</th><th>전표</th><th>금액</th></tr>
+            <tr><td>B</td><td>외주비</td><td>100023456</td><td>180,000,000</td></tr>
+            <tr><td>B</td><td>외주비</td><td>100023481</td><td>150,000,000</td></tr>
+            <tr><td>B</td><td>외주비</td><td>100023502</td><td>90,000,000</td></tr>
+            <tr><td>A</td><td>인건비</td><td>100022110</td><td>85,000,000</td></tr>
+            <tr><td>C</td><td>인건비</td><td>100022298</td><td>72,000,000</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="detail-drill" style="margin-top:10px;">
+        <div class="drill-row" id="demo-drill-row">
+          <div><strong>B사업부</strong> — 외주비 ₩4.2억 (예산 대비 +35%) — 클릭하여 전표 상세 보기</div>
+          <div class="drill-arrow">▶</div>
+        </div>
+        <div class="drill-detail" id="demo-drill-detail">
+          <table>
+            <tr><th>전표</th><th>금액</th></tr>
+            <tr><td>100023456</td><td>180,000,000</td></tr>
+            <tr><td>100023481</td><td>150,000,000</td></tr>
+            <tr><td>100023502</td><td>90,000,000</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout navy">
+    <span class="tag">참고</span>
+    <div>4단계를 모두 적용한 화면(Step 4)이 Section 4의 "After"와 동일한 화면입니다. 단계를 하나씩 되돌려보면서, 각 원칙이 빠졌을 때 화면이 어떻게 달라지는지 비교해보는 것도 좋은 학습 방법입니다.</div>
+  </div>
+</section>
+
+<!-- ============ SECTION 4 ============ -->
+<section id="s4">
+  <div class="section-badge">04</div>
+  <h2 class="section-title">Before / After 최종 비교</h2>
+  <p class="section-sub">4단계를 모두 적용하기 전과 후를 나란히 비교합니다. 동일한 데이터이지만 전달되는 메시지의 속도가 다릅니다.</p>
+
+  <div class="sbs">
+    <div>
+      <div class="sbs-label before">Before</div>
+      <div class="sac-frame" style="margin:0;">
+        <div class="sac-titlebar"><span>월간 손익 분석</span><span class="dots"><span></span><span></span><span></span></span></div>
+        <div class="sac-body">
+          <div class="filter-bar" style="flex-wrap:wrap;">
+            <div class="filter-chip"><span class="fc-label">기간</span><span style="font-weight:700;">05</span></div>
+            <div class="filter-chip"><span class="fc-label">버전</span><span style="font-weight:700;">Act</span></div>
+            <div class="filter-chip"><span class="fc-label">조직</span><span style="font-weight:700;">全</span></div>
+            <div class="filter-chip"><span class="fc-label">TopN</span><span style="font-weight:700;">5</span></div>
+            <div class="filter-chip"><span class="fc-label">정렬</span><span style="font-weight:700;">↓</span></div>
+            <div class="filter-chip"><span class="fc-label">통화</span><span style="font-weight:700;">KRW</span></div>
+            <div class="filter-chip"><span class="fc-label">단위</span><span style="font-weight:700;">백만</span></div>
+          </div>
+          <div class="sac-kpi-row">
+            <div class="sac-kpi"><div class="kpi-label">A</div><div class="kpi-value" style="font-size:15px;">8.1억</div></div>
+            <div class="sac-kpi"><div class="kpi-label">B</div><div class="kpi-value" style="font-size:15px;">12.4억</div></div>
+            <div class="sac-kpi"><div class="kpi-label">C</div><div class="kpi-value" style="font-size:15px;">5.6억</div></div>
+            <div class="sac-kpi"><div class="kpi-label">D</div><div class="kpi-value" style="font-size:15px;">3.2억</div></div>
+          </div>
+          <div class="sac-panel" style="min-height:90px;">
+            <svg viewBox="0 0 200 80" width="100%" height="70">
+              <ellipse cx="60" cy="45" rx="40" ry="20" fill="#9aa7b5"/>
+              <path d="M60,25 A40,20 0 0 1 96,38 L60,45 Z" fill="#5b8fc7"/>
+              <path d="M60,25 A40,20 0 0 1 60,45 L20,45 A40,20 0 0 1 60,25 Z" fill="#003366"/>
+            </svg>
+          </div>
+          <div class="sac-panel" style="margin-top:8px; min-height:60px;">
+            <table class="sac-table"><tr><th>전표</th><th>금액</th></tr><tr><td>100023456</td><td>180,000,000</td></tr><tr><td>100023481</td><td>150,000,000</td></tr></table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="sbs-label after">After</div>
+      <div class="sac-frame" style="margin:0;">
+        <div class="sac-titlebar"><span>월간 손익 분석</span><span class="dots"><span></span><span></span><span></span></span></div>
+        <div class="sac-body">
+          <div class="filter-bar">
+            <div class="filter-chip"><span class="fc-label">기간</span><span style="font-weight:700;">2026.05</span></div>
+            <div class="filter-chip"><span class="fc-label">버전</span><span style="font-weight:700;">Actual</span></div>
+            <div class="filter-chip"><span class="fc-label">조직</span><span style="font-weight:700;">전체</span></div>
+          </div>
+          <div class="sac-kpi-row">
+            <div class="sac-kpi" style="border-color:var(--gray-line);"><div class="kpi-label">A사업부</div><div class="kpi-value" style="font-size:15px; color:var(--gray); font-weight:400;">8.1억</div></div>
+            <div class="sac-kpi"><div class="kpi-label">B사업부</div><div class="kpi-value" style="font-size:15px;">12.4억</div><div class="kpi-delta down" style="font-size:10px;">+12.3%</div></div>
+            <div class="sac-kpi" style="border-color:var(--gray-line);"><div class="kpi-label">C사업부</div><div class="kpi-value" style="font-size:15px; color:var(--gray); font-weight:400;">5.6억</div></div>
+            <div class="sac-kpi" style="border-color:var(--gray-line);"><div class="kpi-label">D사업부</div><div class="kpi-value" style="font-size:15px; color:var(--gray); font-weight:400;">3.2억</div></div>
+          </div>
+          <div class="sac-grid">
+            <div class="sac-panel" style="min-height:90px;">
+              <div class="panel-title">월별 추이</div>
+              <svg viewBox="0 0 200 70" width="100%" height="60">
+                <polyline points="15,40 55,42 95,46 135,55 175,65" fill="none" stroke="#003366" stroke-width="3"/>
+                <circle cx="175" cy="65" r="3" fill="#003366"/>
+              </svg>
+            </div>
+            <div class="sac-panel" style="min-height:90px;">
+              <div class="panel-title">사업부별 비교 <span class="badge navy" style="opacity:1; margin-left:4px;">Top5</span></div>
+              <div class="bar-chart" style="height:55px;">
+                <div class="bar-wrap"><div class="bar" style="height:55%; background:var(--navy-20);"></div></div>
+                <div class="bar-wrap"><div class="bar" style="height:90%; background:var(--navy);"></div></div>
+                <div class="bar-wrap"><div class="bar" style="height:35%; background:var(--navy-20);"></div></div>
+                <div class="bar-wrap"><div class="bar" style="height:25%; background:var(--navy-20);"></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="drill-row" style="margin-top:8px;"><div>B사업부 — 외주비 상세 ▶</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout correct">
+    <span class="tag">결과</span>
+    <div>Before에서는 보는 사람이 7개 필터, 4개의 동일한 KPI, 파이 차트와 선 연결 차트, 전표 테이블을 모두 훑어야 "B사업부 외주비 이슈"를 파악할 수 있었습니다. After에서는 화면을 보는 순간(1~2초) B사업부와 외주비가 이슈라는 것이 전달되고, 나머지는 필요할 때 드릴다운으로 확인합니다.</div>
+  </div>
+</section>
+
+<!-- ============ SECTION 5 ============ -->
+<section id="s5">
+  <div class="section-badge">05</div>
+  <h2 class="section-title">종합 체크리스트</h2>
+  <p class="section-sub">Episode 1~4의 체크리스트를 통합했습니다. Story 완성 후 최종 점검에 활용합니다.</p>
+
+  <div class="card">
+    <div class="checklist-group-title">정보 위계 &amp; 강조 (Episode 1)</div>
+    <ul class="checklist">
+      <li><div class="chk"></div><div>핵심 메시지(헤드라인)가 화면 상단, 시선이 먼저 닿는 위치에 있는가?</div></li>
+      <li><div class="chk"></div><div>강조 항목은 Navy 1색으로, 나머지는 회색조로 톤다운되어 있는가?</div></li>
+      <li><div class="chk"></div><div>불필요한 장식(3D, 그라데이션, 과도한 그리드)이 제거되어 있는가?</div></li>
+    </ul>
+    <div class="checklist-group-title">차트 선택 (Episode 2)</div>
+    <ul class="checklist">
+      <li><div class="chk"></div><div>각 위젯의 차트 유형이 분석 의도(비교/추세/분포/관계)와 일치하는가?</div></li>
+      <li><div class="chk"></div><div>카테고리 데이터에 라인 차트, 시계열 데이터에 파이 차트가 사용되지 않았는가?</div></li>
+    </ul>
+    <div class="checklist-group-title">레이아웃 &amp; 구조 (Episode 3)</div>
+    <ul class="checklist">
+      <li><div class="chk"></div><div>Section이 정보 위계 단계와 매핑되어 있는가?</div></li>
+      <li><div class="chk"></div><div>디테일(원장 등)이 기본 화면에 노출되지 않고 드릴다운으로 처리되는가?</div></li>
+    </ul>
+    <div class="checklist-group-title">필터 &amp; 변수 (Episode 4)</div>
+    <ul class="checklist">
+      <li><div class="chk"></div><div>전역 필터(기간/버전/조직)와 위젯별 옵션이 구분되어 있는가?</div></li>
+      <li><div class="chk"></div><div>Variable에 기본값이 설정되어 있고, 라벨과 값이 함께 바뀌는가?</div></li>
+    </ul>
+  </div>
+
+  <div class="callout navy">
+    <span class="tag">활용법</span>
+    <div>이 체크리스트는 Story를 처음부터 설계할 때의 순서이기도 합니다. <strong>정보 위계 정의 → 차트 유형 선택 → 레이아웃 배치 → 필터 구성</strong>의 순서로 작업하면, 중간에 구조를 다시 뒤집는 재작업을 줄일 수 있습니다.</div>
+  </div>
+</section>
+
+<!-- ============ SECTION 6: QUIZ ============ -->
+<section id="s6">
+  <div class="section-badge">06</div>
+  <h2 class="section-title">정리 퀴즈</h2>
+  <p class="section-sub">시나리오를 기반으로 한 응용 문제입니다.</p>
+
+  <div class="quiz">
+    <div class="q-title">Q1. Before 화면에서 4개 사업부 KPI가 모두 동일하게 강조되어 있었던 것은 어떤 원칙의 위반인가?</div>
+    <div class="q-options">
+      <div class="q-option" data-correct="false">차트 선택 원칙 (Episode 2)</div>
+      <div class="q-option" data-correct="true">정보 위계 / Pre-attentive 강조 원칙 (Episode 1)</div>
+      <div class="q-option" data-correct="false">필터 위계 원칙 (Episode 4)</div>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz">
+    <div class="q-title">Q2. "월별 비용 비중"을 파이 차트에서 라인 차트로 바꾼 이유로 가장 적절한 것은?</div>
+    <div class="q-options">
+      <div class="q-option" data-correct="false">라인 차트가 더 많은 색상을 표현할 수 있기 때문</div>
+      <div class="q-option" data-correct="true">시간에 따른 변화(추세)를 보여주는 것이 이 데이터의 핵심 의도이기 때문</div>
+      <div class="q-option" data-correct="false">SAC에서 파이 차트는 더 이상 지원되지 않기 때문</div>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz">
+    <div class="q-title">Q3. Step 3에서 전표 상세 테이블을 드릴다운으로 전환한 주된 목적은?</div>
+    <div class="q-options">
+      <div class="q-option" data-correct="false">데이터 정확도를 높이기 위해</div>
+      <div class="q-option" data-correct="true">기본 화면을 가볍게 유지하고, 필요한 사람만 디테일에 접근하게 하기 위해</div>
+      <div class="q-option" data-correct="false">필터 개수를 줄이기 위해</div>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz">
+    <div class="q-title">Q4. Step 4에서 "Top N", "정렬", "통화", "단위" 필터를 화면 상단에서 제거하고 차트 옆 배지로 옮긴 이유는?</div>
+    <div class="q-options">
+      <div class="q-option" data-correct="false">해당 옵션들이 더 이상 필요하지 않기 때문</div>
+      <div class="q-option" data-correct="true">이 옵션들은 특정 위젯에만 적용되는 보조 설정이며, 화면 전체의 조건(전역 필터)과 구분되어야 하기 때문</div>
+      <div class="q-option" data-correct="false">배지 형태가 드롭다운보다 더 많은 선택지를 제공하기 때문</div>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz">
+    <div class="q-title">Q5. After 화면에서 보는 사람이 "B사업부 외주비"라는 핵심 이슈를 파악하는 데 걸리는 시간이 Before보다 짧아진 가장 근본적인 이유는?</div>
+    <div class="q-options">
+      <div class="q-option" data-correct="false">화면에 더 많은 데이터가 추가되었기 때문</div>
+      <div class="q-option" data-correct="true">화면 구조 자체가 "헤드라인 → 근거 → 디테일" 순서로 메시지를 전달하도록 설계되었기 때문</div>
+      <div class="q-option" data-correct="false">글자 크기가 전체적으로 커졌기 때문</div>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+</section>
+
+<div class="ep-nav">
+  <a class="nav-card prev" href="sac-story-ep4.html">← Episode 4 — 필터와 변수(Variable)</a>
+  <div style="text-align:right;">
+    <div class="ep-label">Next Episode</div>
+    <div class="ep-title">Episode 6 — 체크리스트 및 흔한 실수 Top 5</div>
+  </div>
+</div>
+<div class="ep-nav" style="margin-top:14px; justify-content:flex-end;">
+  <a class="nav-card" href="sac-story-ep6.html">시리즈 마무리 — 자가 점검 및 흔한 실수 정리 →</a>
+</div>
+
+</main>
+
+<script>
+  const sections = document.querySelectorAll('main section');
+  const navLinks = document.querySelectorAll('nav.tabs a');
+  const navMap = {};
+  navLinks.forEach(a => navMap[a.getAttribute('href').slice(1)] = a);
+
+  function onScroll(){
+    let current = sections[0].id;
+    const offset = 90;
+    sections.forEach(sec => {
+      const rect = sec.getBoundingClientRect();
+      if(rect.top - offset <= 0) current = sec.id;
+    });
+    navLinks.forEach(a => a.classList.remove('active'));
+    if(navMap[current]) navMap[current].classList.add('active');
+  }
+  document.addEventListener('scroll', onScroll);
+  onScroll();
+
+  navLinks.forEach(a=>{
+    a.addEventListener('click', e=>{
+      e.preventDefault();
+      const target = document.getElementById(a.getAttribute('href').slice(1));
+      window.scrollTo({top: target.offsetTop - 70, behavior:'smooth'});
+    });
+  });
+
+  // step controls
+  const demo = document.getElementById('demo');
+  const stepBtns = document.querySelectorAll('.step-btn');
+  const stepPanels = document.querySelectorAll('.step-panel');
+  stepBtns.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const step = parseInt(btn.dataset.step, 10);
+      stepBtns.forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      stepPanels.forEach(p=>p.classList.remove('active'));
+      document.querySelector(`.step-panel[data-panel="${step}"]`).classList.add('active');
+      demo.classList.remove('s1','s2','s3','s4');
+      for(let i=1;i<=step;i++) demo.classList.add('s'+i);
+    });
+  });
+
+  // drill-down toggle in demo
+  document.getElementById('demo-drill-row').addEventListener('click', function(){
+    this.classList.toggle('open');
+    document.getElementById('demo-drill-detail').classList.toggle('show');
+  });
+
+  // quiz logic
+  document.querySelectorAll('.quiz').forEach(quiz=>{
+    const options = quiz.querySelectorAll('.q-option');
+    const feedback = quiz.querySelector('.q-feedback');
+    options.forEach(opt=>{
+      opt.addEventListener('click', ()=>{
+        if(quiz.dataset.answered) return;
+        quiz.dataset.answered = 'true';
+        const isCorrect = opt.dataset.correct === 'true';
+        options.forEach(o=>{
+          if(o.dataset.correct === 'true') o.classList.add('correct-ans');
+          else if(o === opt) o.classList.add('wrong-ans');
+        });
+        feedback.textContent = isCorrect
+          ? '정답입니다.'
+          : '다시 생각해보세요. 강조된 정답을 확인하고, 위 본문 내용을 다시 살펴보시기 바랍니다.';
+        feedback.classList.add('show', isCorrect ? 'correct' : 'wrong');
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
