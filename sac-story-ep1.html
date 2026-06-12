@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAC Story 설계 원칙 — Episode 1: Story 설계의 기초</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f0f3f8;
+    --navy:#003366;
+    --navy-10:#e6edf5;
+    --navy-20:#cdd9ea;
+    --warn:#b54708;
+    --warn-bg:#fdf1e8;
+    --correct:#1a6b3c;
+    --correct-bg:#e9f6ee;
+    --wrong:#b3261e;
+    --wrong-bg:#fcebe9;
+    --gray-line:#d7dde6;
+    --text:#1c2733;
+    --subtext:#5b6b7d;
+    font-size:15px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Noto Sans KR', sans-serif;
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.serif{font-family:'DM Serif Display', 'Noto Sans KR', serif;}
+  .mono{font-family:'JetBrains Mono','Noto Sans KR',monospace;}
+
+  /* ===== Top bar / sticky nav ===== */
+  header.top{
+    background:var(--navy);
+    color:#fff;
+    padding:28px 5vw 22px;
+  }
+  header.top .eyebrow{
+    font-size:13px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    opacity:.7;
+    margin-bottom:6px;
+  }
+  header.top h1{
+    font-size:42px;
+    margin:0 0 8px;
+    font-weight:400;
+  }
+  header.top p{
+    font-size:16px;
+    opacity:.85;
+    max-width:760px;
+    margin:0;
+  }
+
+  nav.tabs{
+    position:sticky;
+    top:0;
+    z-index:50;
+    background:#fff;
+    border-bottom:1px solid var(--gray-line);
+    display:flex;
+    overflow-x:auto;
+    box-shadow:0 2px 6px rgba(0,51,102,.06);
+  }
+  nav.tabs a{
+    flex:0 0 auto;
+    padding:14px 22px;
+    font-size:14px;
+    font-weight:500;
+    color:var(--subtext);
+    text-decoration:none;
+    border-bottom:3px solid transparent;
+    white-space:nowrap;
+    transition:.15s;
+  }
+  nav.tabs a:hover{ color:var(--navy); background:var(--navy-10); }
+  nav.tabs a.active{ color:var(--navy); border-bottom-color:var(--navy); font-weight:700; }
+
+  main{ max-width:980px; margin:0 auto; padding:0 5vw 90px; }
+
+  section{ padding-top:56px; }
+  section:first-of-type{ padding-top:40px; }
+
+  .section-badge{
+    display:inline-block;
+    background:var(--navy);
+    color:#fff;
+    font-size:13px;
+    font-weight:700;
+    padding:4px 12px;
+    border-radius:3px;
+    letter-spacing:.04em;
+    margin-bottom:14px;
+  }
+  h2.section-title{
+    font-size:30px;
+    margin:0 0 6px;
+    color:var(--navy);
+    font-weight:400;
+  }
+  .section-sub{
+    color:var(--subtext);
+    font-size:15px;
+    margin:0 0 28px;
+    max-width:680px;
+  }
+
+  /* ===== Cards ===== */
+  .card{
+    background:#fff;
+    border:1px solid var(--gray-line);
+    border-radius:8px;
+    padding:24px 26px;
+    margin-bottom:22px;
+  }
+  .card h3{
+    font-size:18px;
+    margin:0 0 10px;
+    color:var(--navy);
+    font-weight:700;
+    font-family:'Noto Sans KR',sans-serif;
+  }
+  .card p:last-child{margin-bottom:0;}
+
+  /* ===== Callouts ===== */
+  .callout{
+    border-radius:6px;
+    padding:14px 18px;
+    margin:16px 0;
+    font-size:14px;
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+  }
+  .callout .tag{
+    flex:0 0 auto;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.06em;
+    padding:2px 8px;
+    border-radius:3px;
+    margin-top:2px;
+    text-transform:uppercase;
+  }
+  .callout.navy{ background:var(--navy-10); border-left:4px solid var(--navy); }
+  .callout.navy .tag{ background:var(--navy); color:#fff; }
+  .callout.warn{ background:var(--warn-bg); border-left:4px solid var(--warn); }
+  .callout.warn .tag{ background:var(--warn); color:#fff; }
+  .callout.correct{ background:var(--correct-bg); border-left:4px solid var(--correct); }
+  .callout.correct .tag{ background:var(--correct); color:#fff; }
+  .callout.wrong{ background:var(--wrong-bg); border-left:4px solid var(--wrong); }
+  .callout.wrong .tag{ background:var(--wrong); color:#fff; }
+
+  /* ===== Do/Don't ===== */
+  .do-dont{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px;
+    margin:18px 0;
+  }
+  @media (max-width:720px){ .do-dont{grid-template-columns:1fr;} }
+  .dd-box{
+    border-radius:8px;
+    padding:16px 18px;
+    border:1px solid var(--gray-line);
+  }
+  .dd-box.dont{ background:var(--wrong-bg); border-color:#f3c9c6; }
+  .dd-box.do{ background:var(--correct-bg); border-color:#bfe3cd; }
+  .dd-box .dd-head{
+    font-weight:700;
+    font-size:13px;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    margin-bottom:8px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .dd-box.dont .dd-head{ color:var(--wrong); }
+  .dd-box.do .dd-head{ color:var(--correct); }
+  .dd-box ul{ margin:0; padding-left:18px; font-size:14px; }
+  .dd-box li{ margin-bottom:4px; }
+
+  /* ===== Toggle (drill scenario) ===== */
+  .toggle-group{ margin:16px 0; }
+  .toggle-buttons{ display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+  .toggle-btn{
+    border:1.5px solid var(--navy);
+    background:#fff;
+    color:var(--navy);
+    font-size:13px;
+    font-weight:700;
+    padding:8px 16px;
+    border-radius:20px;
+    cursor:pointer;
+    font-family:'Noto Sans KR',sans-serif;
+    transition:.15s;
+  }
+  .toggle-btn.active, .toggle-btn:hover{ background:var(--navy); color:#fff; }
+  .toggle-panel{ display:none; }
+  .toggle-panel.active{ display:block; animation:fadein .25s; }
+  @keyframes fadein{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
+
+  /* ===== SAC mockup shell ===== */
+  .sac-frame{
+    border:1px solid var(--gray-line);
+    border-radius:8px;
+    overflow:hidden;
+    background:#fff;
+    box-shadow:0 4px 16px rgba(0,51,102,.08);
+    margin:18px 0;
+  }
+  .sac-titlebar{
+    background:var(--navy);
+    color:#fff;
+    padding:8px 14px;
+    font-size:12px;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    letter-spacing:.03em;
+  }
+  .sac-titlebar .dots{ display:flex; gap:4px; }
+  .sac-titlebar .dots span{ width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,.4); display:inline-block; }
+  .sac-body{ padding:16px; background:#fafbfd; }
+
+  .sac-kpi-row{ display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+  .sac-kpi{
+    flex:1;
+    min-width:110px;
+    background:#fff;
+    border:1px solid var(--gray-line);
+    border-radius:6px;
+    padding:10px 12px;
+  }
+  .sac-kpi .kpi-label{ font-size:11px; color:var(--subtext); margin-bottom:4px; }
+  .sac-kpi .kpi-value{ font-size:20px; font-weight:700; color:var(--text); font-family:'JetBrains Mono',monospace; }
+  .sac-kpi .kpi-delta{ font-size:11px; margin-top:2px; }
+  .sac-kpi .kpi-delta.up{ color:var(--correct); }
+  .sac-kpi .kpi-delta.down{ color:var(--wrong); }
+
+  .sac-grid{ display:grid; grid-template-columns:2fr 1fr; gap:10px; }
+  @media (max-width:600px){ .sac-grid{ grid-template-columns:1fr; } }
+  .sac-panel{
+    background:#fff;
+    border:1px solid var(--gray-line);
+    border-radius:6px;
+    padding:10px 12px;
+    min-height:160px;
+  }
+  .sac-panel .panel-title{ font-size:12px; font-weight:700; color:var(--text); margin-bottom:8px; }
+
+  /* simple bar chart */
+  .bar-chart{ display:flex; align-items:flex-end; gap:8px; height:110px; padding:0 4px; }
+  .bar-chart .bar{ flex:1; border-radius:3px 3px 0 0; position:relative; }
+  .bar-chart .bar-label{ font-size:10px; color:var(--subtext); text-align:center; margin-top:4px; }
+  .bar-wrap{ display:flex; flex-direction:column; flex:1; align-items:center; }
+
+  /* table */
+  .sac-table{ width:100%; font-size:11px; border-collapse:collapse; }
+  .sac-table th, .sac-table td{ padding:5px 6px; border-bottom:1px solid var(--gray-line); text-align:right; }
+  .sac-table th:first-child, .sac-table td:first-child{ text-align:left; }
+  .sac-table th{ color:var(--subtext); font-weight:700; }
+
+  /* annotation overlay numbers */
+  .anno-wrap{ position:relative; }
+  .anno{
+    position:absolute;
+    width:24px; height:24px;
+    border-radius:50%;
+    background:var(--navy);
+    color:#fff;
+    font-size:13px;
+    font-weight:700;
+    font-family:'JetBrains Mono',monospace;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 2px 6px rgba(0,0,0,.25);
+    z-index:5;
+  }
+  .anno-legend{ margin-top:14px; }
+  .anno-legend .anno-item{ display:flex; gap:10px; align-items:flex-start; margin-bottom:8px; font-size:13.5px; }
+  .anno-legend .anno-num{
+    flex:0 0 auto;
+    width:22px; height:22px; border-radius:50%;
+    background:var(--navy); color:#fff; font-size:12px; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono',monospace;
+  }
+
+  /* eye-flow svg overlay */
+  .flow-overlay{ position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; }
+
+  /* badges */
+  .badge{
+    display:inline-block;
+    font-size:11px;
+    font-weight:700;
+    padding:2px 9px;
+    border-radius:10px;
+    letter-spacing:.03em;
+  }
+  .badge.navy{ background:var(--navy-10); color:var(--navy); }
+  .badge.warn{ background:var(--warn-bg); color:var(--warn); }
+  .badge.correct{ background:var(--correct-bg); color:var(--correct); }
+
+  /* quiz */
+  .quiz{
+    border:1px solid var(--gray-line);
+    border-radius:8px;
+    padding:18px 20px;
+    background:#fff;
+    margin:18px 0;
+  }
+  .quiz .q-title{ font-weight:700; margin-bottom:12px; font-size:15px; }
+  .quiz .q-options{ display:flex; flex-direction:column; gap:8px; }
+  .quiz .q-option{
+    border:1.5px solid var(--gray-line);
+    border-radius:6px;
+    padding:10px 14px;
+    cursor:pointer;
+    font-size:14px;
+    transition:.15s;
+    background:#fff;
+  }
+  .quiz .q-option:hover{ border-color:var(--navy); }
+  .quiz .q-option.correct-ans{ border-color:var(--correct); background:var(--correct-bg); }
+  .quiz .q-option.wrong-ans{ border-color:var(--wrong); background:var(--wrong-bg); }
+  .quiz .q-feedback{
+    margin-top:12px; padding:10px 14px; border-radius:6px;
+    font-size:13.5px; display:none;
+  }
+  .quiz .q-feedback.show{ display:block; }
+  .quiz .q-feedback.correct{ background:var(--correct-bg); color:var(--correct); }
+  .quiz .q-feedback.wrong{ background:var(--wrong-bg); color:var(--wrong); }
+
+  /* nav footer link cards */
+  .next-nav{
+    margin-top:60px;
+    border-top:1px solid var(--gray-line);
+    padding-top:24px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:14px;
+  }
+  .next-nav .ep-label{ font-size:12px; color:var(--subtext); letter-spacing:.05em; text-transform:uppercase; }
+  .next-nav .ep-title{ font-size:17px; font-weight:700; color:var(--navy); }
+  .next-nav .next-card{
+    border:1px solid var(--gray-line);
+    border-radius:8px;
+    padding:14px 20px;
+    background:#fff;
+    transition:.15s;
+    text-decoration:none;
+    color:inherit;
+  }
+  .next-nav .next-card:hover{ border-color:var(--navy); box-shadow:0 2px 10px rgba(0,51,102,.08); }
+
+  /* misc */
+  .center-img-note{ text-align:center; font-size:12px; color:var(--subtext); margin-top:6px; }
+  ul.tight{ padding-left:20px; margin:8px 0; }
+  ul.tight li{ margin-bottom:5px; }
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  @media (max-width:720px){ .grid-2{ grid-template-columns:1fr; } }
+  .small-note{ font-size:12.5px; color:var(--subtext); }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="eyebrow">SAC Story 설계 원칙 시리즈 · Episode 1 / 6</div>
+  <h1>Story 설계의 기초 — 좋은 화면은 왜 다른가</h1>
+  <p>BI 화면 설계의 일반 이론을 SAC Story 화면에 적용해 보면서, "데이터를 보여주는 것"과 "메시지를 전달하는 것"의 차이를 정리합니다.</p>
+</header>
+
+<nav class="tabs" id="tabnav">
+  <a href="#s1" class="active">1. Report vs Story</a>
+  <a href="#s2">2. 정보 위계</a>
+  <a href="#s3">3. 시선 흐름</a>
+  <a href="#s4">4. Pre-attentive</a>
+  <a href="#s5">5. Chart Junk</a>
+  <a href="#s6">6. 정리 퀴즈</a>
+</nav>
+
+<main>
+
+<!-- ============ SECTION 1 ============ -->
+<section id="s1">
+  <div class="section-badge">01</div>
+  <h2 class="section-title">"보고서"와 "Story"는 같은 것이 아니다</h2>
+  <p class="section-sub">동일한 데이터라도 화면에 어떻게 배치하느냐에 따라 받는 사람이 "그래서 뭐?"를 떠올리는 시간이 달라집니다.</p>
+
+  <div class="card">
+    <h3>흔한 장면</h3>
+    <p>월말 보고 미팅. 담당자가 SAC Story를 화면에 띄우고 차트를 하나씩 짚어가며 설명합니다. "이건 매출이고, 이건 비용이고, 이건 전년 대비입니다..." 5분이 지나도 임원은 아직 "그래서 이번 달 핵심 이슈가 뭔지"를 파악하지 못한 상태입니다.</p>
+    <p>화면에 있는 데이터는 모두 정확합니다. 문제는 <strong>배치</strong>입니다.</p>
+  </div>
+
+  <div class="grid-2">
+    <div class="dd-box dont">
+      <div class="dd-head">⊘ Report (데이터 나열형)</div>
+      <ul>
+        <li>모든 차트가 동등한 크기·중요도로 배치됨</li>
+        <li>보는 사람이 스스로 "무엇이 중요한지" 찾아야 함</li>
+        <li>차트 제목이 "매출 추이", "비용 추이" 등 사실 설명형</li>
+        <li>결론은 발표자의 말로만 전달됨 — 화면에는 없음</li>
+      </ul>
+    </div>
+    <div class="dd-box do">
+      <div class="dd-head">✓ Story (메시지 전달형)</div>
+      <ul>
+        <li>화면 상단에 핵심 메시지(결론)가 위치함</li>
+        <li>나머지 요소는 그 메시지를 뒷받침하는 근거로 배치됨</li>
+        <li>차트 제목이 "B사업부 비용 12% 초과" 등 결론형</li>
+        <li>화면만 봐도 결론이 전달됨 — 발표자의 설명은 보조</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout navy">
+    <span class="tag">핵심</span>
+    <div>SAC Story를 설계할 때 첫 질문은 "어떤 차트를 넣을까"가 아니라 <strong>"이 화면을 보고 누가, 무엇을 결정해야 하는가"</strong>입니다. 이 질문에 대한 답이 화면의 구조를 결정합니다.</div>
+  </div>
+
+  <div class="card">
+    <h3>이번 Episode에서 다루는 것</h3>
+    <p>이후 4개 섹션은 모두 위 질문 — "보는 사람이 메시지를 빨리, 정확히 받게 하려면 화면을 어떻게 구성해야 하는가" — 에 대한 구체적인 답입니다. 이론은 일반 BI/대시보드 설계 원칙에서 출발하지만, 모든 예시는 SAC Story 화면을 기준으로 보여드립니다.</p>
+  </div>
+</section>
+
+<!-- ============ SECTION 2 ============ -->
+<section id="s2">
+  <div class="section-badge">02</div>
+  <h2 class="section-title">정보 위계 — 핵심 메시지 → 근거 → 디테일</h2>
+  <p class="section-sub">화면의 모든 요소가 같은 중요도를 가질 수는 없습니다. 보는 사람이 "어디부터 읽어야 하는지"를 화면 구조 자체가 알려줘야 합니다.</p>
+
+  <div class="card">
+    <h3>3단 구조</h3>
+    <ul class="tight">
+      <li><strong>1단계 — 핵심 메시지 (Headline)</strong>: "이번 달 가장 중요한 한 가지"를 숫자 또는 한 문장으로 화면 최상단에 배치</li>
+      <li><strong>2단계 — 근거 (Supporting Evidence)</strong>: 핵심 메시지를 설명하는 차트/비교 — "왜 그런 결과가 나왔는가"</li>
+      <li><strong>3단계 — 디테일 (Detail)</strong>: 필요할 때 드릴다운해서 보는 원장 수준 데이터 — 기본 화면에는 노출하지 않음</li>
+    </ul>
+  </div>
+
+  <p style="font-weight:700; margin-bottom:6px;">예시: 사업부별 비용 Story 화면</p>
+  <div class="anno-wrap">
+    <div class="sac-frame">
+      <div class="sac-titlebar"><span class="dots"><span></span><span></span><span></span></span> SAC Story — 사업부 비용 Variance</div>
+      <div class="sac-body">
+        <div class="sac-kpi-row">
+          <div class="sac-kpi" style="border-color:#003366; border-width:2px;">
+            <div class="kpi-label">B사업부 비용 (당월)</div>
+            <div class="kpi-value">₩12.4억</div>
+            <div class="kpi-delta down">예산 대비 +12.3%</div>
+          </div>
+          <div class="sac-kpi">
+            <div class="kpi-label">A사업부 비용</div>
+            <div class="kpi-value">₩8.1억</div>
+            <div class="kpi-delta up">예산 대비 -1.2%</div>
+          </div>
+          <div class="sac-kpi">
+            <div class="kpi-label">C사업부 비용</div>
+            <div class="kpi-value">₩5.6억</div>
+            <div class="kpi-delta up">예산 대비 +0.4%</div>
+          </div>
+        </div>
+        <div class="sac-grid">
+          <div class="sac-panel">
+            <div class="panel-title">B사업부 — 계정별 초과 내역 (Plan vs Actual)</div>
+            <div class="bar-chart">
+              <div class="bar-wrap"><div class="bar" style="height:60%; background:var(--navy-20);"></div><div class="bar-label">인건비</div></div>
+              <div class="bar-wrap"><div class="bar" style="height:95%; background:var(--navy);"></div><div class="bar-label">외주비</div></div>
+              <div class="bar-wrap"><div class="bar" style="height:50%; background:var(--navy-20);"></div><div class="bar-label">출장비</div></div>
+              <div class="bar-wrap"><div class="bar" style="height:40%; background:var(--navy-20);"></div><div class="bar-label">기타</div></div>
+            </div>
+          </div>
+          <div class="sac-panel">
+            <div class="panel-title">상세 원장 (Drill)</div>
+            <table class="sac-table">
+              <tr><th>전표</th><th>금액</th></tr>
+              <tr><td>100023456</td><td>4,200,000</td></tr>
+              <tr><td>100023481</td><td>3,150,000</td></tr>
+              <tr><td>100023502</td><td>2,980,000</td></tr>
+              <tr><td>...</td><td>...</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="anno" style="top:88px; left:34px;">1</div>
+    <div class="anno" style="top:230px; left:34px;">2</div>
+    <div class="anno" style="top:230px; right:34px;">3</div>
+  </div>
+
+  <div class="anno-legend">
+    <div class="anno-item"><div class="anno-num">1</div><div><strong>핵심 메시지 영역</strong> — B사업부 KPI 카드를 강조 처리(테두리 두께·색상)하여 "이게 이번 달 이슈"임을 즉시 인지시킵니다. 나머지 KPI는 보조 정보로 톤 다운.</div></div>
+    <div class="anno-item"><div class="anno-num">2</div><div><strong>근거 영역</strong> — "왜 B사업부가 초과했는가"에 대한 답을 계정별 Plan/Actual 비교로 보여줍니다. 외주비가 원인임이 한눈에 드러나도록 강조.</div></div>
+    <div class="anno-item"><div class="anno-num">3</div><div><strong>디테일 영역</strong> — 원장 데이터는 화면에 항상 노출하지 않고, 필요시 드릴다운으로 접근. 기본 화면을 가볍게 유지.</div></div>
+  </div>
+
+  <div class="callout warn">
+    <span class="tag">자주 하는 실수</span>
+    <div>3단계(상세 원장)를 기본 화면에 그대로 노출시키는 경우가 많습니다. 이렇게 되면 1·2단계의 메시지가 화면 면적상 묻히고, 보는 사람은 어디를 봐야 할지 판단하는 데 시간을 쓰게 됩니다. 디테일은 "있다는 것"만 보이고, 클릭해야 "보이는" 구조가 바람직합니다.</div>
+  </div>
+</section>
+
+<!-- ============ SECTION 3 ============ -->
+<section id="s3">
+  <div class="section-badge">03</div>
+  <h2 class="section-title">시선 흐름 — 화면을 읽는 순서를 설계한다</h2>
+  <p class="section-sub">사람의 시선은 화면을 무작위로 보지 않습니다. 익숙한 패턴(Z자, F자)을 알고 그 흐름에 맞춰 요소를 배치하면, 별다른 설명 없이도 올바른 순서로 정보를 전달할 수 있습니다.</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <h3>Z 패턴</h3>
+      <p>좌상단 → 우상단 → (대각선) → 좌하단 → 우하단으로 이동. 요소 수가 적고 화면을 한눈에 훑어볼 때(예: 랜딩 화면, 요약 대시보드) 자연스럽습니다.</p>
+    </div>
+    <div class="card">
+      <h3>F 패턴</h3>
+      <p>상단을 가로로 훑은 뒤, 좌측을 따라 내려가며 필요한 부분만 가로로 다시 훑음. 정보량이 많은 화면(상세 분석, 리스트형 화면)에서 나타납니다.</p>
+    </div>
+  </div>
+
+  <p style="font-weight:700; margin-bottom:6px;">SAC Story 화면에 Z 패턴 적용 예시</p>
+  <div class="toggle-group">
+    <div class="toggle-buttons">
+      <button class="toggle-btn active" data-target="flow-before" data-group="flow">패턴을 고려하지 않은 배치</button>
+      <button class="toggle-btn" data-target="flow-after" data-group="flow">Z 패턴을 적용한 배치</button>
+    </div>
+
+    <div class="toggle-panel active" id="flow-before">
+      <div class="sac-frame">
+        <div class="sac-titlebar"><span class="dots"><span></span><span></span><span></span></span> SAC Story — 배치 Before</div>
+        <div class="sac-body">
+          <div class="sac-grid" style="grid-template-columns:1fr 1fr;">
+            <div class="sac-panel"><div class="panel-title">상세 원장 테이블</div>
+              <table class="sac-table"><tr><th>전표</th><th>금액</th></tr><tr><td>100023456</td><td>4,200,000</td></tr><tr><td>100023481</td><td>3,150,000</td></tr></table>
+            </div>
+            <div class="sac-panel"><div class="panel-title">핵심 메시지: B사업부 +12.3%</div>
+              <div class="bar-chart"><div class="bar-wrap"><div class="bar" style="height:80%; background:var(--navy);"></div><div class="bar-label">B</div></div><div class="bar-wrap"><div class="bar" style="height:30%; background:var(--navy-20);"></div><div class="bar-label">A</div></div></div>
+            </div>
+          </div>
+          <div class="sac-grid" style="grid-template-columns:1fr 1fr; margin-top:10px;">
+            <div class="sac-panel"><div class="panel-title">기타 참고 차트</div><div class="bar-chart"><div class="bar-wrap"><div class="bar" style="height:50%; background:var(--navy-20);"></div><div class="bar-label">Q1</div></div><div class="bar-wrap"><div class="bar" style="height:65%; background:var(--navy-20);"></div><div class="bar-label">Q2</div></div></div></div>
+            <div class="sac-panel"><div class="panel-title">필터 / 변수</div><div class="small-note">기간, 버전, 조직 선택...</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="callout wrong">
+        <span class="tag">문제</span>
+        <div>가장 중요한 메시지(B사업부 초과)가 화면 우상단에 있지만, Z패턴 첫 시선이 닿는 좌상단에는 상세 원장 테이블이 있습니다. 보는 사람은 가장 덜 중요한 정보를 가장 먼저 보게 됩니다.</div>
+      </div>
+    </div>
+
+    <div class="toggle-panel" id="flow-after">
+      <div class="sac-frame">
+        <div class="sac-titlebar"><span class="dots"><span></span><span></span><span></span></span> SAC Story — 배치 After</div>
+        <div class="sac-body">
+          <div class="sac-grid" style="grid-template-columns:1fr 1fr;">
+            <div class="sac-panel" style="border-color:#003366; border-width:2px;"><div class="panel-title">핵심 메시지: B사업부 +12.3%</div>
+              <div class="bar-chart"><div class="bar-wrap"><div class="bar" style="height:80%; background:var(--navy);"></div><div class="bar-label">B</div></div><div class="bar-wrap"><div class="bar" style="height:30%; background:var(--navy-20);"></div><div class="bar-label">A</div></div></div>
+            </div>
+            <div class="sac-panel"><div class="panel-title">필터 / 변수</div><div class="small-note">기간, 버전, 조직 선택...</div></div>
+          </div>
+          <div class="sac-grid" style="grid-template-columns:1fr 1fr; margin-top:10px;">
+            <div class="sac-panel"><div class="panel-title">근거: 계정별 Variance</div><div class="bar-chart"><div class="bar-wrap"><div class="bar" style="height:50%; background:var(--navy-20);"></div><div class="bar-label">Q1</div></div><div class="bar-wrap"><div class="bar" style="height:65%; background:var(--navy-20);"></div><div class="bar-label">Q2</div></div></div></div>
+            <div class="sac-panel"><div class="panel-title">상세 원장 (참고)</div>
+              <table class="sac-table"><tr><th>전표</th><th>금액</th></tr><tr><td>100023456</td><td>4,200,000</td></tr></table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="callout correct">
+        <span class="tag">개선</span>
+        <div>핵심 메시지를 좌상단(첫 시선)에 배치하고, 필터는 우상단(보조 컨트롤 영역)으로 이동했습니다. 시선이 자연스럽게 "메시지 → 근거 → 디테일" 순서로 흐릅니다.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout navy">
+    <span class="tag">SAC 적용 팁</span>
+    <div>SAC Story의 Responsive 모드에서는 Section/Column 배치 순서가 곧 읽는 순서가 됩니다. 위젯을 추가할 때 "이 위젯이 시선 흐름의 몇 번째 단계에 해당하는가"를 먼저 정하고 배치하면, 별도 안내 텍스트 없이도 구조로 의도를 전달할 수 있습니다.</div>
+  </div>
+</section>
+
+<!-- ============ SECTION 4 ============ -->
+<section id="s4">
+  <div class="section-badge">04</div>
+  <h2 class="section-title">Pre-attentive Attributes — 보기 전에 이미 보이는 것</h2>
+  <p class="section-sub">색상, 크기, 위치는 의식적으로 "읽기" 전에 뇌가 먼저 처리하는 속성입니다. 이를 의도적으로 사용하면 "강조하고 싶은 부분"을 설명 없이 전달할 수 있습니다.</p>
+
+  <div class="card">
+    <h3>대표적인 Pre-attentive Attribute</h3>
+    <ul class="tight">
+      <li><strong>색상(Color)</strong>: 전체를 회색조로 두고 강조할 항목에만 Navy 적용</li>
+      <li><strong>크기(Size)</strong>: 핵심 KPI 카드를 다른 카드보다 크게</li>
+      <li><strong>위치(Position)</strong>: 강조 항목을 화면 시선 흐름의 첫 지점에 배치 (섹션 3 참고)</li>
+      <li><strong>형태(Shape/Weight)</strong>: 폰트 굵기, 테두리 두께로 차이를 줌</li>
+    </ul>
+  </div>
+
+  <p style="font-weight:700; margin-bottom:6px;">예시: 사업부별 KPI 카드 — 전부 강조 vs 선택적 강조</p>
+  <div class="toggle-group">
+    <div class="toggle-buttons">
+      <button class="toggle-btn active" data-target="pa-before" data-group="pa">모두 동일하게 강조 (Before)</button>
+      <button class="toggle-btn" data-target="pa-after" data-group="pa">선택적 강조 (After)</button>
+    </div>
+    <div class="toggle-panel active" id="pa-before">
+      <div class="sac-frame">
+        <div class="sac-titlebar"><span class="dots"><span></span><span></span><span></span></span> SAC Story — KPI Row Before</div>
+        <div class="sac-body">
+          <div class="sac-kpi-row">
+            <div class="sac-kpi" style="border-color:#003366; border-width:2px;"><div class="kpi-label">A사업부 비용</div><div class="kpi-value" style="color:#003366;">₩8.1억</div><div class="kpi-delta up">-1.2%</div></div>
+            <div class="sac-kpi" style="border-color:#003366; border-width:2px;"><div class="kpi-label">B사업부 비용</div><div class="kpi-value" style="color:#003366;">₩12.4억</div><div class="kpi-delta down">+12.3%</div></div>
+            <div class="sac-kpi" style="border-color:#003366; border-width:2px;"><div class="kpi-label">C사업부 비용</div><div class="kpi-value" style="color:#003366;">₩5.6억</div><div class="kpi-delta up">+0.4%</div></div>
+            <div class="sac-kpi" style="border-color:#003366; border-width:2px;"><div class="kpi-label">D사업부 비용</div><div class="kpi-value" style="color:#003366;">₩3.2억</div><div class="kpi-delta up">-0.8%</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="callout wrong">
+        <span class="tag">문제</span>
+        <div>모든 카드가 같은 색·테두리로 강조되어 있으면, 결과적으로 "아무것도 강조되지 않은 것"과 같습니다. 보는 사람은 4개를 모두 읽고 스스로 비교해야 이슈를 찾을 수 있습니다.</div>
+      </div>
+    </div>
+    <div class="toggle-panel" id="pa-after">
+      <div class="sac-frame">
+        <div class="sac-titlebar"><span class="dots"><span></span><span></span><span></span></span> SAC Story — KPI Row After</div>
+        <div class="sac-body">
+          <div class="sac-kpi-row">
+            <div class="sac-kpi" style="border-color:#003366; border-width:2px;"><div class="kpi-label">B사업부 비용</div><div class="kpi-value" style="color:#003366;">₩12.4억</div><div class="kpi-delta down">+12.3%</div></div>
+            <div class="sac-kpi"><div class="kpi-label">A사업부 비용</div><div class="kpi-value" style="color:#9aa7b5;">₩8.1억</div><div class="kpi-delta up" style="color:#9aa7b5;">-1.2%</div></div>
+            <div class="sac-kpi"><div class="kpi-label">C사업부 비용</div><div class="kpi-value" style="color:#9aa7b5;">₩5.6억</div><div class="kpi-delta up" style="color:#9aa7b5;">+0.4%</div></div>
+            <div class="sac-kpi"><div class="kpi-label">D사업부 비용</div><div class="kpi-value" style="color:#9aa7b5;">₩3.2억</div><div class="kpi-delta up" style="color:#9aa7b5;">-0.8%</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="callout correct">
+        <span class="tag">개선</span>
+        <div>B사업부 카드만 Navy 강조 + 두꺼운 테두리, 나머지는 회색조로 톤 다운했습니다. 화면을 보는 순간(0.5초 이내) "B사업부가 이슈"라는 사실이 의식적 분석 없이 전달됩니다.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout navy">
+    <span class="tag">SAC 적용 팁</span>
+    <div>SAC Story에서는 Conditional Formatting, Number Format의 색상 규칙, 위젯별 Style 설정을 통해 특정 값에만 Navy 계열 강조색을 적용할 수 있습니다. 강조색은 전체 Story를 통틀어 <strong>한 가지(Navy)</strong>로 제한하고, 나머지는 회색 계열로 통일하는 것이 일관성 측면에서 유리합니다.</div>
+  </div>
+</section>
+
+<!-- ============ SECTION 5 ============ -->
+<section id="s5">
+  <div class="section-badge">05</div>
+  <h2 class="section-title">Chart Junk 제거 — 장식이 메시지를 가린다</h2>
+  <p class="section-sub">3D 효과, 그라데이션, 과도한 그리드라인, 불필요한 범례 등은 시각적으로는 화려하지만 데이터를 읽는 속도를 늦추고 때로는 왜곡합니다.</p>
+
+  <div class="toggle-group">
+    <div class="toggle-buttons">
+      <button class="toggle-btn active" data-target="cj-before" data-group="cj">Chart Junk가 있는 차트</button>
+      <button class="toggle-btn" data-target="cj-after" data-group="cj">정리된 차트</button>
+    </div>
+
+    <div class="toggle-panel active" id="cj-before">
+      <div class="sac-frame">
+        <div class="sac-titlebar"><span class="dots"><span></span><span></span><span></span></span> SAC Story — Chart Before</div>
+        <div class="sac-body">
+          <div class="sac-panel" style="min-height:200px;">
+            <div class="panel-title">사업부별 비용 비중</div>
+            <svg viewBox="0 0 300 160" width="100%" height="160">
+              <!-- fake 3D pie -->
+              <ellipse cx="90" cy="100" rx="70" ry="30" fill="#9aa7b5"/>
+              <path d="M90,70 A70,30 0 0 1 160,90 L90,100 Z" fill="#5b8fc7"/>
+              <path d="M90,70 A70,30 0 0 1 90,100 L20,100 A70,30 0 0 1 90,70 Z" fill="#003366"/>
+              <path d="M90,70 A70,30 0 0 0 30,85 L90,100 Z" fill="#7fa8d9"/>
+              <path d="M90,100 L160,90 A70,30 0 0 1 90,130 Z" fill="#3d6fa3"/>
+              <!-- gridlines decoration -->
+              <line x1="0" y1="20" x2="300" y2="20" stroke="#cdd9ea" stroke-dasharray="2 2"/>
+              <line x1="0" y1="40" x2="300" y2="40" stroke="#cdd9ea" stroke-dasharray="2 2"/>
+              <!-- legend with too many colors -->
+              <g font-size="9" fill="#5b6b7d" font-family="Noto Sans KR">
+                <rect x="190" y="40" width="8" height="8" fill="#003366"/><text x="202" y="47">A사업부 32%</text>
+                <rect x="190" y="55" width="8" height="8" fill="#5b8fc7"/><text x="202" y="62">B사업부 28%</text>
+                <rect x="190" y="70" width="8" height="8" fill="#7fa8d9"/><text x="202" y="77">C사업부 22%</text>
+                <rect x="190" y="85" width="8" height="8" fill="#3d6fa3"/><text x="202" y="92">D사업부 18%</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="callout wrong">
+        <span class="tag">문제</span>
+        <div>3D 효과로 인해 뒤쪽 조각의 면적이 실제보다 작아 보입니다(원근 왜곡). 4가지 색상 + 범례를 눈으로 매칭해야 하고, 배경 그리드라인은 어떤 정보도 추가하지 않으면서 시각적 잡음만 더합니다.</div>
+      </div>
+    </div>
+
+    <div class="toggle-panel" id="cj-after">
+      <div class="sac-frame">
+        <div class="sac-titlebar"><span class="dots"><span></span><span></span><span></span></span> SAC Story — Chart After</div>
+        <div class="sac-body">
+          <div class="sac-panel" style="min-height:200px;">
+            <div class="panel-title">사업부별 비용 비중 (B사업부 강조)</div>
+            <div style="padding-top:10px;">
+              <div style="display:flex; align-items:center; margin-bottom:10px;">
+                <div style="width:55px; font-size:12px;">A사업부</div>
+                <div style="flex:1; background:var(--navy-10); border-radius:3px; height:20px; position:relative;">
+                  <div style="width:32%; background:#c3cfdd; height:100%; border-radius:3px;"></div>
+                </div>
+                <div style="width:40px; text-align:right; font-size:12px; font-family:'JetBrains Mono',monospace;">32%</div>
+              </div>
+              <div style="display:flex; align-items:center; margin-bottom:10px;">
+                <div style="width:55px; font-size:12px; font-weight:700;">B사업부</div>
+                <div style="flex:1; background:var(--navy-10); border-radius:3px; height:20px; position:relative;">
+                  <div style="width:28%; background:var(--navy); height:100%; border-radius:3px;"></div>
+                </div>
+                <div style="width:40px; text-align:right; font-size:12px; font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--navy);">28%</div>
+              </div>
+              <div style="display:flex; align-items:center; margin-bottom:10px;">
+                <div style="width:55px; font-size:12px;">C사업부</div>
+                <div style="flex:1; background:var(--navy-10); border-radius:3px; height:20px; position:relative;">
+                  <div style="width:22%; background:#c3cfdd; height:100%; border-radius:3px;"></div>
+                </div>
+                <div style="width:40px; text-align:right; font-size:12px; font-family:'JetBrains Mono',monospace;">22%</div>
+              </div>
+              <div style="display:flex; align-items:center;">
+                <div style="width:55px; font-size:12px;">D사업부</div>
+                <div style="flex:1; background:var(--navy-10); border-radius:3px; height:20px; position:relative;">
+                  <div style="width:18%; background:#c3cfdd; height:100%; border-radius:3px;"></div>
+                </div>
+                <div style="width:40px; text-align:right; font-size:12px; font-family:'JetBrains Mono',monospace;">18%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="callout correct">
+        <span class="tag">개선</span>
+        <div>가로 바 차트로 변경해 정확한 비교가 가능해졌고, 범례 없이 라벨을 직접 붙여 시선 이동을 줄였습니다. B사업부만 Navy로 강조해 "왜 이 차트를 보고 있는지"가 명확합니다. 배경 그리드, 그라데이션, 3D 효과는 모두 제거했습니다.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Chart Junk 자가 점검 질문</h3>
+    <ul class="tight">
+      <li>이 시각 요소(그림자, 그라데이션, 3D, 아이콘)를 제거해도 전달하려는 정보가 그대로인가? → 그렇다면 제거</li>
+      <li>범례를 직접 라벨로 대체할 수 있는가? → 가능하면 라벨 직접 표기</li>
+      <li>색상이 4종 이상 사용되었는가? → Navy 강조 1개 + 회색 계열로 축소 검토</li>
+      <li>그리드라인이 값을 읽는 데 실제로 필요한가? → 필요 최소한만 유지하거나 제거</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ SECTION 6: QUIZ ============ -->
+<section id="s6">
+  <div class="section-badge">06</div>
+  <h2 class="section-title">정리 퀴즈</h2>
+  <p class="section-sub">이번 Episode 핵심 내용을 짧은 퀴즈로 점검합니다.</p>
+
+  <div class="quiz">
+    <div class="q-title">Q1. SAC Story 화면에서 "정보 위계"의 1단계(Headline)에 가장 적합한 것은?</div>
+    <div class="q-options">
+      <div class="q-option" data-correct="false">전표 단위의 상세 원장 테이블</div>
+      <div class="q-option" data-correct="true">이번 달 가장 중요한 이슈를 나타내는 KPI 카드</div>
+      <div class="q-option" data-correct="false">필터 및 변수 선택 컨트롤</div>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz">
+    <div class="q-title">Q2. Z 패턴 시선 흐름을 고려할 때, 화면에서 가장 먼저 시선이 닿는 좌상단에 배치하기 가장 적절한 요소는?</div>
+    <div class="q-options">
+      <div class="q-option" data-correct="false">기타 참고용 보조 차트</div>
+      <div class="q-option" data-correct="false">필터/변수 선택 영역</div>
+      <div class="q-option" data-correct="true">핵심 메시지(헤드라인 KPI)</div>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz">
+    <div class="q-title">Q3. Pre-attentive Attribute를 활용한 강조 방식으로 가장 적절한 설명은?</div>
+    <div class="q-options">
+      <div class="q-option" data-correct="false">모든 KPI 카드에 동일하게 강조 테두리와 색상을 적용한다</div>
+      <div class="q-option" data-correct="true">강조할 1개 항목만 Navy로 표시하고, 나머지는 회색조로 톤 다운한다</div>
+      <div class="q-option" data-correct="false">중요한 항목일수록 더 많은 색상을 사용해 다채롭게 표현한다</div>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz">
+    <div class="q-title">Q4. 다음 중 Chart Junk에 해당하지 않는 것은?</div>
+    <div class="q-options">
+      <div class="q-option" data-correct="false">3D 효과가 적용된 파이 차트</div>
+      <div class="q-option" data-correct="false">값을 읽는 데 필요하지 않은 배경 그리드라인</div>
+      <div class="q-option" data-correct="true">차트 옆에 직접 표기된 데이터 라벨</div>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+</section>
+
+<div class="next-nav">
+  <div>
+    <div class="ep-label">Next Episode</div>
+    <div class="ep-title">Episode 2 — 차트 선택의 원칙 (MECE 관점)</div>
+  </div>
+  <a class="next-card" href="#">분석 의도(비교·추세·분포·관계)에 따른 차트 유형 선택 →</a>
+</div>
+
+</main>
+
+<script>
+  // sticky nav active state on scroll
+  const sections = document.querySelectorAll('main section');
+  const navLinks = document.querySelectorAll('nav.tabs a');
+  const navMap = {};
+  navLinks.forEach(a => navMap[a.getAttribute('href').slice(1)] = a);
+
+  function onScroll(){
+    let current = sections[0].id;
+    const offset = 90;
+    sections.forEach(sec => {
+      const rect = sec.getBoundingClientRect();
+      if(rect.top - offset <= 0) current = sec.id;
+    });
+    navLinks.forEach(a => a.classList.remove('active'));
+    if(navMap[current]) navMap[current].classList.add('active');
+  }
+  document.addEventListener('scroll', onScroll);
+  onScroll();
+
+  navLinks.forEach(a=>{
+    a.addEventListener('click', e=>{
+      e.preventDefault();
+      const target = document.getElementById(a.getAttribute('href').slice(1));
+      window.scrollTo({top: target.offsetTop - 70, behavior:'smooth'});
+    });
+  });
+
+  // toggle groups
+  document.querySelectorAll('.toggle-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const group = btn.dataset.group;
+      document.querySelectorAll(`.toggle-btn[data-group="${group}"]`).forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll(`.toggle-panel`).forEach(p=>{
+        if(p.id.startsWith(group === 'flow' ? 'flow' : group === 'pa' ? 'pa' : 'cj')) p.classList.remove('active');
+      });
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.target).classList.add('active');
+    });
+  });
+
+  // quiz logic
+  document.querySelectorAll('.quiz').forEach(quiz=>{
+    const options = quiz.querySelectorAll('.q-option');
+    const feedback = quiz.querySelector('.q-feedback');
+    options.forEach(opt=>{
+      opt.addEventListener('click', ()=>{
+        if(quiz.dataset.answered) return;
+        quiz.dataset.answered = 'true';
+        const isCorrect = opt.dataset.correct === 'true';
+        options.forEach(o=>{
+          if(o.dataset.correct === 'true') o.classList.add('correct-ans');
+          else if(o === opt) o.classList.add('wrong-ans');
+        });
+        feedback.textContent = isCorrect
+          ? '정답입니다. 핵심 메시지를 먼저, 근거와 디테일은 그 다음 순서로 배치하는 것이 Story 설계의 기본입니다.'
+          : '다시 생각해보세요. 강조된 정답을 확인하고, 위 본문 내용을 다시 살펴보시기 바랍니다.';
+        feedback.classList.add('show', isCorrect ? 'correct' : 'wrong');
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
