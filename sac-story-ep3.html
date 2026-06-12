@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAC Story 설계 원칙 — Episode 3: 레이아웃과 위젯 구조</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f0f3f8;
+    --navy:#003366;
+    --navy-10:#e6edf5;
+    --navy-20:#cdd9ea;
+    --warn:#b54708;
+    --warn-bg:#fdf1e8;
+    --correct:#1a6b3c;
+    --correct-bg:#e9f6ee;
+    --wrong:#b3261e;
+    --wrong-bg:#fcebe9;
+    --gray-line:#d7dde6;
+    --text:#1c2733;
+    --subtext:#5b6b7d;
+    font-size:15px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Noto Sans KR', sans-serif;
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+    word-break:keep-all;
+    overflow-wrap:break-word;
+  }
+  h1,h2,h3,.serif{font-family:'DM Serif Display', 'Noto Sans KR', serif;}
+  .mono{font-family:'JetBrains Mono','Noto Sans KR',monospace;}
+
+  header.top{ background:var(--navy); color:#fff; padding:28px 5vw 22px; }
+  header.top .eyebrow{ font-size:13px; letter-spacing:.12em; text-transform:uppercase; opacity:.7; margin-bottom:6px; }
+  header.top h1{ font-size:42px; margin:0 0 8px; font-weight:400; }
+  header.top p{ font-size:16px; opacity:.85; max-width:760px; margin:0; }
+
+  nav.tabs{
+    position:sticky; top:0; z-index:50;
+    background:#fff; border-bottom:1px solid var(--gray-line);
+    display:flex; overflow-x:auto;
+    box-shadow:0 2px 6px rgba(0,51,102,.06);
+  }
+  nav.tabs a{
+    flex:0 0 auto; padding:14px 22px; font-size:14px; font-weight:500;
+    color:var(--subtext); text-decoration:none; border-bottom:3px solid transparent;
+    white-space:nowrap; transition:.15s;
+  }
+  nav.tabs a:hover{ color:var(--navy); background:var(--navy-10); }
+  nav.tabs a.active{ color:var(--navy); border-bottom-color:var(--navy); font-weight:700; }
+
+  main{ max-width:980px; margin:0 auto; padding:0 5vw 90px; }
+  section{ padding-top:56px; }
+  section:first-of-type{ padding-top:40px; }
+
+  .section-badge{
+    display:inline-block; background:var(--navy); color:#fff;
+    font-size:13px; font-weight:700; padding:4px 12px; border-radius:3px;
+    letter-spacing:.04em; margin-bottom:14px;
+  }
+  h2.section-title{ font-size:30px; margin:0 0 6px; color:var(--navy); font-weight:400; }
+  .section-sub{ color:var(--subtext); font-size:15px; margin:0 0 28px; max-width:680px; }
+
+  .card{
+    background:#fff; border:1px solid var(--gray-line); border-radius:8px;
+    padding:24px 26px; margin-bottom:22px;
+  }
+  .card h3{ font-size:18px; margin:0 0 10px; color:var(--navy); font-weight:700; font-family:'Noto Sans KR',sans-serif; }
+  .card p:last-child{margin-bottom:0;}
+
+  .callout{
+    border-radius:6px; padding:14px 18px; margin:16px 0; font-size:14px;
+    display:flex; gap:12px; align-items:flex-start;
+  }
+  .callout .tag{
+    flex:0 0 auto; font-size:11px; font-weight:700; letter-spacing:.06em;
+    padding:2px 8px; border-radius:3px; margin-top:2px; text-transform:uppercase;
+  }
+  .callout.navy{ background:var(--navy-10); border-left:4px solid var(--navy); }
+  .callout.navy .tag{ background:var(--navy); color:#fff; }
+  .callout.warn{ background:var(--warn-bg); border-left:4px solid var(--warn); }
+  .callout.warn .tag{ background:var(--warn); color:#fff; }
+  .callout.correct{ background:var(--correct-bg); border-left:4px solid var(--correct); }
+  .callout.correct .tag{ background:var(--correct); color:#fff; }
+  .callout.wrong{ background:var(--wrong-bg); border-left:4px solid var(--wrong); }
+  .callout.wrong .tag{ background:var(--wrong); color:#fff; }
+
+  /* hierarchy diagram */
+  .hier-diagram{ display:flex; flex-direction:column; gap:0; margin:18px 0; }
+  .hier-row{ display:flex; align-items:stretch; gap:10px; margin-bottom:10px; }
+  .hier-label{
+    flex:0 0 130px; display:flex; align-items:center; justify-content:center;
+    background:var(--navy); color:#fff; border-radius:6px; font-weight:700; font-size:14px;
+    text-align:center; padding:10px;
+  }
+  .hier-box{
+    flex:1; border:2px solid var(--navy-20); border-radius:6px; padding:14px 16px;
+    background:#fff; font-size:13.5px;
+  }
+  .hier-box.l2{ margin-left:24px; border-color:#9fb6d4; }
+  .hier-box.l3{ margin-left:48px; border-color:var(--navy-20); background:var(--navy-10); }
+  .hier-children{ display:flex; flex-direction:column; gap:8px; }
+
+  /* comparison table */
+  .compare-table{ width:100%; border-collapse:collapse; font-size:13.5px; margin:18px 0; background:#fff; }
+  .compare-table th, .compare-table td{ border:1px solid var(--gray-line); padding:10px 12px; text-align:left; vertical-align:top; }
+  .compare-table th{ background:var(--navy); color:#fff; font-weight:700; }
+  .compare-table td:first-child{ font-weight:700; color:var(--navy); white-space:nowrap; background:var(--navy-10); }
+  .compare-table tr:nth-child(even) td:not(:first-child){ background:#fafbfd; }
+
+  /* toggle */
+  .toggle-group{ margin:16px 0; }
+  .toggle-buttons{ display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+  .toggle-btn{
+    border:1.5px solid var(--navy); background:#fff; color:var(--navy);
+    font-size:13px; font-weight:700; padding:8px 16px; border-radius:20px;
+    cursor:pointer; font-family:'Noto Sans KR',sans-serif; transition:.15s;
+  }
+  .toggle-btn.active, .toggle-btn:hover{ background:var(--navy); color:#fff; }
+  .toggle-panel{ display:none; }
+  .toggle-panel.active{ display:block; animation:fadein .25s; }
+  @keyframes fadein{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
+
+  /* SAC mockup shell */
+  .sac-frame{
+    border:1px solid var(--gray-line); border-radius:8px; overflow:hidden;
+    background:#fff; box-shadow:0 4px 16px rgba(0,51,102,.08); margin:18px 0;
+  }
+  .sac-titlebar{
+    background:var(--navy); color:#fff; padding:8px 14px; font-size:12px; font-weight:700;
+    display:flex; align-items:center; gap:8px; letter-spacing:.03em;
+  }
+  .sac-titlebar .dots{ display:flex; gap:4px; }
+  .sac-titlebar .dots span{ width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,.4); display:inline-block; }
+  .sac-body{ padding:16px; background:#fafbfd; }
+  .sac-kpi-row{ display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+  .sac-kpi{
+    flex:1; min-width:110px; background:#fff; border:1px solid var(--gray-line);
+    border-radius:6px; padding:10px 12px;
+  }
+  .sac-kpi .kpi-label{ font-size:11px; color:var(--subtext); margin-bottom:4px; }
+  .sac-kpi .kpi-value{ font-size:20px; font-weight:700; color:var(--text); font-family:'JetBrains Mono',monospace; }
+  .sac-kpi .kpi-delta{ font-size:11px; margin-top:2px; }
+  .sac-kpi .kpi-delta.up{ color:var(--correct); }
+  .sac-kpi .kpi-delta.down{ color:var(--wrong); }
+  .sac-grid{ display:grid; grid-template-columns:2fr 1fr; gap:10px; }
+  @media (max-width:600px){ .sac-grid{ grid-template-columns:1fr; } }
+  .sac-grid.three{ grid-template-columns:1fr 1fr 1fr; }
+  @media (max-width:600px){ .sac-grid.three{ grid-template-columns:1fr; } }
+  .sac-panel{
+    background:#fff; border:1px solid var(--gray-line); border-radius:6px;
+    padding:10px 12px; min-height:140px;
+  }
+  .sac-panel .panel-title{ font-size:12px; font-weight:700; color:var(--text); margin-bottom:8px; }
+  .bar-chart{ display:flex; align-items:flex-end; gap:8px; height:90px; padding:0 4px; }
+  .bar-chart .bar{ flex:1; border-radius:3px 3px 0 0; }
+  .bar-chart .bar-label{ font-size:10px; color:var(--subtext); text-align:center; margin-top:4px; }
+  .bar-wrap{ display:flex; flex-direction:column; flex:1; align-items:center; }
+  .sac-table{ width:100%; font-size:11px; border-collapse:collapse; }
+  .sac-table th, .sac-table td{ padding:5px 6px; border-bottom:1px solid var(--gray-line); text-align:right; }
+  .sac-table th:first-child, .sac-table td:first-child{ text-align:left; }
+  .sac-table th{ color:var(--subtext); font-weight:700; }
+
+  /* badges */
+  .badge{ display:inline-block; font-size:11px; font-weight:700; padding:2px 9px; border-radius:10px; letter-spacing:.03em; }
+  .badge.navy{ background:var(--navy-10); color:var(--navy); }
+  .badge.warn{ background:var(--warn-bg); color:var(--warn); }
+  .badge.correct{ background:var(--correct-bg); color:var(--correct); }
+
+  /* drill-down interactive */
+  .drill-row{
+    display:flex; justify-content:space-between; align-items:center;
+    border:1px solid var(--gray-line); border-radius:6px; padding:10px 14px;
+    margin-bottom:8px; background:#fff; cursor:pointer; transition:.15s; font-size:13.5px;
+  }
+  .drill-row:hover{ border-color:var(--navy); }
+  .drill-row .drill-arrow{ color:var(--navy); font-weight:700; transition:transform .2s; }
+  .drill-row.open .drill-arrow{ transform:rotate(90deg); }
+  .drill-detail{
+    display:none; border:1px solid var(--navy-20); border-top:none; border-radius:0 0 6px 6px;
+    margin:-8px 0 8px; padding:10px 14px; background:var(--navy-10); font-size:12.5px;
+  }
+  .drill-detail.show{ display:block; animation:fadein .2s; }
+  .drill-detail table{ width:100%; font-size:11.5px; border-collapse:collapse; margin-top:6px; }
+  .drill-detail th, .drill-detail td{ padding:4px 6px; text-align:right; border-bottom:1px solid var(--navy-20); }
+  .drill-detail th:first-child, .drill-detail td:first-child{ text-align:left; }
+
+  /* checklist */
+  .checklist{ list-style:none; padding:0; margin:0; }
+  .checklist li{ display:flex; gap:10px; align-items:flex-start; padding:10px 0; border-bottom:1px solid var(--gray-line); font-size:14px; }
+  .checklist li:last-child{ border-bottom:none; }
+  .checklist .chk{ flex:0 0 auto; width:20px; height:20px; border:2px solid var(--navy); border-radius:4px; margin-top:1px; }
+
+  /* quiz */
+  .quiz{ border:1px solid var(--gray-line); border-radius:8px; padding:18px 20px; background:#fff; margin:18px 0; }
+  .quiz .q-title{ font-weight:700; margin-bottom:12px; font-size:15px; }
+  .quiz .q-options{ display:flex; flex-direction:column; gap:8px; }
+  .quiz .q-option{
+    border:1.5px solid var(--gray-line); border-radius:6px; padding:10px 14px;
+    cursor:pointer; font-size:14px; transition:.15s; background:#fff;
+  }
+  .quiz .q-option:hover{ border-color:var(--navy); }
+  .quiz .q-option.correct-ans{ border-color:var(--correct); background:var(--correct-bg); }
+  .quiz .q-option.wrong-ans{ border-color:var(--wrong); background:var(--wrong-bg); }
+  .quiz .q-feedback{ margin-top:12px; padding:10px 14px; border-radius:6px; font-size:13.5px; display:none; }
+  .quiz .q-feedback.show{ display:block; }
+  .quiz .q-feedback.correct{ background:var(--correct-bg); color:var(--correct); }
+  .quiz .q-feedback.wrong{ background:var(--wrong-bg); color:var(--wrong); }
+
+  /* nav footer */
+  .ep-nav{
+    margin-top:60px; border-top:1px solid var(--gray-line); padding-top:24px;
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;
+  }
+  .ep-nav .ep-label{ font-size:12px; color:var(--subtext); letter-spacing:.05em; text-transform:uppercase; }
+  .ep-nav .ep-title{ font-size:17px; font-weight:700; color:var(--navy); }
+  .ep-nav .nav-card{
+    border:1px solid var(--gray-line); border-radius:8px; padding:14px 20px; background:#fff;
+    transition:.15s; text-decoration:none; color:inherit; font-size:13.5px;
+  }
+  .ep-nav .nav-card:hover{ border-color:var(--navy); box-shadow:0 2px 10px rgba(0,51,102,.08); }
+  .ep-nav .nav-card.prev{ color:var(--subtext); }
+
+  ul.tight{ padding-left:20px; margin:8px 0; }
+  ul.tight li{ margin-bottom:5px; }
+  .small-note{ font-size:12.5px; color:var(--subtext); }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="eyebrow">SAC Story 설계 원칙 시리즈 · Episode 3 / 6</div>
+  <h1>SAC Story 레이아웃과 위젯 구조</h1>
+  <p>Episode 1~2에서 다룬 정보 위계, 시선 흐름, 차트 선택 원칙이 실제 SAC Story에서는 Page / Section / Widget이라는 구조와 Responsive / Canvas 모드를 통해 구현됩니다. 이번 Episode는 그 구조를 다룹니다.</p>
+</header>
+
+<nav class="tabs" id="tabnav">
+  <a href="#s1" class="active">1. Page/Section/Widget</a>
+  <a href="#s2">2. Responsive vs Canvas</a>
+  <a href="#s3">3. 위젯 조합 패턴</a>
+  <a href="#s4">4. 드릴다운 설계</a>
+  <a href="#s5">5. 체크리스트</a>
+  <a href="#s6">6. 정리 퀴즈</a>
+</nav>
+
+<main>
+
+<!-- ============ SECTION 1 ============ -->
+<section id="s1">
+  <div class="section-badge">01</div>
+  <h2 class="section-title">Page / Section / Widget 구조 이해</h2>
+  <p class="section-sub">SAC Story는 Page → Section(Responsive 모드의 경우 Column/Row) → Widget의 계층 구조를 가집니다. 이 구조는 Episode 1의 "정보 위계(헤드라인 → 근거 → 디테일)"를 물리적으로 담는 그릇입니다.</p>
+
+  <div class="card">
+    <h3>계층 구조 매핑</h3>
+    <div class="hier-diagram">
+      <div class="hier-row">
+        <div class="hier-label">Page</div>
+        <div class="hier-box">
+          하나의 보고 주제 단위 (예: "월간 비용 분석"). 여러 Section을 포함하며, 화면 탭으로 구분되는 최상위 단위입니다.
+          <div class="hier-children" style="margin-top:10px;">
+            <div class="hier-box l2">
+              <strong>Section A — 헤드라인 영역</strong>
+              <div class="small-note" style="margin-top:4px;">Episode 1의 "1단계: 핵심 메시지"에 대응</div>
+              <div class="hier-box l3" style="margin-top:8px;">Widget: KPI Card (B사업부 비용 +12.3%)</div>
+            </div>
+            <div class="hier-box l2" style="margin-top:10px;">
+              <strong>Section B — 근거 영역</strong>
+              <div class="small-note" style="margin-top:4px;">Episode 1의 "2단계: 근거"에 대응</div>
+              <div class="hier-box l3" style="margin-top:8px;">Widget: Bar Chart (계정별 Variance)</div>
+            </div>
+            <div class="hier-box l2" style="margin-top:10px;">
+              <strong>Section C — 디테일 영역 (기본 접힘)</strong>
+              <div class="small-note" style="margin-top:4px;">Episode 1의 "3단계: 디테일"에 대응 — Section 4 드릴다운 참고</div>
+              <div class="hier-box l3" style="margin-top:8px;">Widget: Table (원장 상세)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout navy">
+    <span class="tag">핵심</span>
+    <div>위젯을 먼저 만들고 나중에 배치를 고민하는 것이 아니라, <strong>Section 단위로 "이 영역은 정보 위계의 몇 단계인가"를 먼저 정의</strong>한 뒤 그 안에 위젯을 채우는 순서로 작업하면 Episode 1~2의 원칙이 구조적으로 지켜집니다.</div>
+  </div>
+
+  <div class="card">
+    <h3>용어 정리</h3>
+    <ul class="tight">
+      <li><strong>Page</strong>: Story 내 탭 단위. 하나의 보고 목적(주제)에 대응.</li>
+      <li><strong>Section</strong>: Page 내 가로 영역 구분 단위 (Responsive 모드 기준). 정보 위계의 한 "단(段)"에 대응시키는 것을 권장.</li>
+      <li><strong>Widget</strong>: Chart, Table, KPI(Numeric Point), Filter, Text 등 실제 화면 요소.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ SECTION 2 ============ -->
+<section id="s2">
+  <div class="section-badge">02</div>
+  <h2 class="section-title">Responsive vs Canvas 모드 선택 기준</h2>
+  <p class="section-sub">SAC Story는 두 가지 레이아웃 모드를 제공합니다. 어떤 모드를 선택하느냐에 따라 Episode 1의 "Grid Alignment(정렬·여백)" 원칙을 지키는 난이도와 방식이 달라집니다.</p>
+
+  <table class="compare-table">
+    <tr><th>기준</th><th>Responsive 모드</th><th>Canvas 모드</th></tr>
+    <tr>
+      <td>배치 방식</td>
+      <td>Section/Column 단위로 자동 배치, 화면 크기에 따라 줄바꿈·재배열됨</td>
+      <td>좌표(X, Y) 기반 절대 배치, 픽셀 단위로 고정</td>
+    </tr>
+    <tr>
+      <td>화면 크기 대응</td>
+      <td>PC/태블릿/모바일 등 다양한 화면에서 자동 최적화</td>
+      <td>지정한 해상도에서는 정확하지만, 다른 화면 크기에서는 잘림·여백 발생 가능</td>
+    </tr>
+    <tr>
+      <td>정렬·여백 정밀도</td>
+      <td>Section 내 위젯 간격은 균등하게 자동 정렬되나, 미세 조정은 제한적</td>
+      <td>Episode 1~2에서 강조한 "픽셀 단위 정렬"을 직접 구현 가능 — PPT의 Grid Alignment 원칙과 유사</td>
+    </tr>
+    <tr>
+      <td>적합한 용도</td>
+      <td>다양한 기기에서 열람되는 운영 대시보드, 정기 보고용 Story</td>
+      <td>특정 화면(회의실 모니터, 발표용 단일 화면)에 맞춘 정밀 레이아웃, 인쇄·PDF 출력용 보고서형 Story</td>
+    </tr>
+    <tr>
+      <td>유지보수</td>
+      <td>위젯 추가·삭제 시 레이아웃이 자동 재배열되어 관리 부담 낮음</td>
+      <td>위젯 추가·삭제 시 다른 요소와의 좌표 충돌을 수동으로 재조정 필요</td>
+    </tr>
+  </table>
+
+  <div class="callout navy">
+    <span class="tag">선택 가이드</span>
+    <div>"누가, 어떤 화면으로 보는가"가 기준입니다. 여러 사용자가 PC·모바일 등 다양한 환경에서 보는 운영용 Story라면 <strong>Responsive</strong>를, 임원 보고용으로 한 화면에 픽셀 단위로 정렬된 "장표"에 가까운 결과물이 필요하다면 <strong>Canvas</strong>를 선택합니다. 하나의 Story 안에서 Page별로 모드를 다르게 구성하는 것도 가능합니다.</div>
+  </div>
+
+  <div class="callout warn">
+    <span class="tag">자주 하는 실수</span>
+    <div>Canvas 모드에서 "일단 보기 좋게" 위젯을 자유롭게 배치하다 보면, Section 간 간격이 13px, 17px, 22px처럼 제각각이 되는 경우가 많습니다. PPT 작업에서 Gutter를 15~20pt 단위로 고정하는 것과 동일하게, Canvas 모드에서도 <strong>위젯 간격을 일정 단위(예: 16px)로 고정</strong>하는 규칙을 미리 정해두어야 합니다.</div>
+  </div>
+</section>
+
+<!-- ============ SECTION 3 ============ -->
+<section id="s3">
+  <div class="section-badge">03</div>
+  <h2 class="section-title">자주 쓰이는 위젯 조합 패턴</h2>
+  <p class="section-sub">정보 위계(Episode 1)와 차트 선택 원칙(Episode 2)을 적용한 대표적인 위젯 조합 패턴 3가지를 소개합니다.</p>
+
+  <p style="font-weight:700; margin-bottom:6px;">패턴 A — KPI Row + Chart + Table (가장 일반적인 3단 구성)</p>
+  <div class="sac-frame">
+    <div class="sac-titlebar"><span class="dots"><span></span><span></span><span></span></span> 패턴 A — 월간 비용 분석</div>
+    <div class="sac-body">
+      <div class="sac-kpi-row">
+        <div class="sac-kpi" style="border-color:#003366; border-width:2px;"><div class="kpi-label">B사업부 비용</div><div class="kpi-value" style="color:#003366;">₩12.4억</div><div class="kpi-delta down">+12.3%</div></div>
+        <div class="sac-kpi"><div class="kpi-label">A사업부 비용</div><div class="kpi-value">₩8.1억</div><div class="kpi-delta up">-1.2%</div></div>
+        <div class="sac-kpi"><div class="kpi-label">C사업부 비용</div><div class="kpi-value">₩5.6억</div><div class="kpi-delta up">+0.4%</div></div>
+      </div>
+      <div class="sac-grid">
+        <div class="sac-panel">
+          <div class="panel-title">근거: B사업부 계정별 Variance</div>
+          <div class="bar-chart">
+            <div class="bar-wrap"><div class="bar" style="height:60%; background:var(--navy-20);"></div><div class="bar-label">인건비</div></div>
+            <div class="bar-wrap"><div class="bar" style="height:95%; background:var(--navy);"></div><div class="bar-label">외주비</div></div>
+            <div class="bar-wrap"><div class="bar" style="height:50%; background:var(--navy-20);"></div><div class="bar-label">출장비</div></div>
+          </div>
+        </div>
+        <div class="sac-panel">
+          <div class="panel-title">디테일 (기본 축소)</div>
+          <table class="sac-table"><tr><th>전표</th><th>금액</th></tr><tr><td>...</td><td>...</td></tr></table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="small-note" style="margin-bottom:24px;">용도: 월간/주간 정기 보고. Section A=KPI Row, Section B=Chart, Section C=Table로 1:1 매핑됩니다.</div>
+
+  <p style="font-weight:700; margin-bottom:6px;">패턴 B — 좌측 트렌드 + 우측 비교 (시간·카테고리 동시 분석)</p>
+  <div class="sac-frame">
+    <div class="sac-titlebar"><span class="dots"><span></span><span></span><span></span></span> 패턴 B — 추세 + 비교 동시 분석</div>
+    <div class="sac-body">
+      <div class="sac-grid">
+        <div class="sac-panel">
+          <div class="panel-title">근거: 월별 비용 추이 (Trend)</div>
+          <svg viewBox="0 0 240 100" width="100%" height="100">
+            <polyline points="20,70 60,72 100,68 140,55 180,35 220,20" fill="none" stroke="#003366" stroke-width="3"/>
+            <circle cx="220" cy="20" r="4" fill="#003366"/>
+          </svg>
+        </div>
+        <div class="sac-panel">
+          <div class="panel-title">비교: 사업부별 당월 비용</div>
+          <div class="bar-chart" style="height:80px;">
+            <div class="bar-wrap"><div class="bar" style="height:55%; background:var(--navy-20);"></div><div class="bar-label">A</div></div>
+            <div class="bar-wrap"><div class="bar" style="height:90%; background:var(--navy);"></div><div class="bar-label">B</div></div>
+            <div class="bar-wrap"><div class="bar" style="height:35%; background:var(--navy-20);"></div><div class="bar-label">C</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="small-note" style="margin-bottom:24px;">용도: "전체 추세는 어떤가 + 그 안에서 어떤 사업부가 원인인가"를 한 화면에서 동시에 전달. 두 위젯이 모두 "근거" 단계에 속하며, 헤드라인 KPI는 별도 Section(상단)에 위치합니다.</div>
+
+  <p style="font-weight:700; margin-bottom:6px;">패턴 C — 3분할 KPI 비교 (사업부·제품 등 다항목 동시 모니터링)</p>
+  <div class="sac-frame">
+    <div class="sac-titlebar"><span class="dots"><span></span><span></span><span></span></span> 패턴 C — 사업부 모니터링</div>
+    <div class="sac-body">
+      <div class="sac-grid three">
+        <div class="sac-panel" style="border-color:#003366; border-width:2px; min-height:100px;">
+          <div class="panel-title">B사업부 <span class="badge warn" style="margin-left:6px;">주의</span></div>
+          <div class="bar-chart" style="height:50px;"><div class="bar-wrap"><div class="bar" style="height:90%; background:var(--navy);"></div><div class="bar-label">+12.3%</div></div></div>
+        </div>
+        <div class="sac-panel" style="min-height:100px;">
+          <div class="panel-title">A사업부 <span class="badge correct" style="margin-left:6px;">정상</span></div>
+          <div class="bar-chart" style="height:50px;"><div class="bar-wrap"><div class="bar" style="height:30%; background:var(--navy-20);"></div><div class="bar-label">-1.2%</div></div></div>
+        </div>
+        <div class="sac-panel" style="min-height:100px;">
+          <div class="panel-title">C사업부 <span class="badge correct" style="margin-left:6px;">정상</span></div>
+          <div class="bar-chart" style="height:50px;"><div class="bar-wrap"><div class="bar" style="height:20%; background:var(--navy-20);"></div><div class="bar-label">+0.4%</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="small-note">용도: 다수 항목을 동시에 모니터링하는 운영 대시보드. RAG(Red/Amber/Green) 형태의 상태 배지를 활용해 "어디부터 봐야 하는지"를 Pre-attentive하게(Episode 1 참고) 전달합니다.</div>
+</section>
+
+<!-- ============ SECTION 4 ============ -->
+<section id="s4">
+  <div class="section-badge">04</div>
+  <h2 class="section-title">Linked Analysis를 활용한 드릴다운 설계</h2>
+  <p class="section-sub">기본 화면은 "헤드라인 + 근거"만 가볍게 보여주고, "디테일"은 클릭(Linked Analysis · 드릴다운)으로 접근하도록 설계하면 Episode 1의 정보 위계 원칙을 화면 인터랙션으로 확장할 수 있습니다.</p>
+
+  <div class="card">
+    <h3>아래 항목을 클릭해보세요 — 드릴다운 동작 예시</h3>
+    <div class="drill-row" data-target="d1">
+      <div><strong>B사업부</strong> — 외주비 ₩4.2억 (예산 대비 +35%)</div>
+      <div class="drill-arrow">▶</div>
+    </div>
+    <div class="drill-detail" id="d1">
+      <strong>드릴다운: 외주비 전표 상세</strong>
+      <table>
+        <tr><th>전표번호</th><th>거래처</th><th>금액</th></tr>
+        <tr><td>100023456</td><td>OO시스템즈</td><td>180,000,000</td></tr>
+        <tr><td>100023481</td><td>△△개발</td><td>150,000,000</td></tr>
+        <tr><td>100023502</td><td>OO시스템즈</td><td>90,000,000</td></tr>
+      </table>
+    </div>
+
+    <div class="drill-row" data-target="d2">
+      <div><strong>A사업부</strong> — 전체 비용 ₩8.1억 (예산 대비 -1.2%)</div>
+      <div class="drill-arrow">▶</div>
+    </div>
+    <div class="drill-detail" id="d2">
+      <strong>드릴다운: 계정별 비용 구성</strong>
+      <table>
+        <tr><th>계정</th><th>금액</th></tr>
+        <tr><td>인건비</td><td>520,000,000</td></tr>
+        <tr><td>출장비</td><td>180,000,000</td></tr>
+        <tr><td>기타</td><td>110,000,000</td></tr>
+      </table>
+    </div>
+
+    <div class="drill-row" data-target="d3">
+      <div><strong>C사업부</strong> — 전체 비용 ₩5.6억 (예산 대비 +0.4%)</div>
+      <div class="drill-arrow">▶</div>
+    </div>
+    <div class="drill-detail" id="d3">
+      <strong>드릴다운: 계정별 비용 구성</strong>
+      <table>
+        <tr><th>계정</th><th>금액</th></tr>
+        <tr><td>인건비</td><td>410,000,000</td></tr>
+        <tr><td>출장비</td><td>90,000,000</td></tr>
+        <tr><td>기타</td><td>60,000,000</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="callout navy">
+    <span class="tag">SAC 적용 팁</span>
+    <div>SAC Story에서는 Table/Chart 위젯에 <strong>Linked Analysis</strong>를 설정해, 한 위젯에서의 선택(필터)이 같은 Page의 다른 위젯에도 반영되도록 구성할 수 있습니다. 예를 들어 KPI Row에서 "B사업부"를 클릭하면 하단 Chart와 Table이 B사업부 데이터로 자동 필터링되는 방식입니다. 이렇게 하면 별도 "디테일 Section"을 항상 펼쳐두지 않고도, 필요한 사람만 클릭해서 디테일에 접근하게 됩니다.</div>
+  </div>
+
+  <div class="callout warn">
+    <span class="tag">자주 하는 실수</span>
+    <div>모든 디테일을 Linked Analysis 없이 별도의 "상세 Page"로 분리하는 경우, 보는 사람이 탭을 옮겨 다니며 맥락을 잃기 쉽습니다. 핵심 메시지와 직접 연결된 디테일은 같은 Page 내 드릴다운으로, 완전히 다른 분석 주제의 디테일은 별도 Page로 분리하는 것이 기준입니다.</div>
+  </div>
+</section>
+
+<!-- ============ SECTION 5 ============ -->
+<section id="s5">
+  <div class="section-badge">05</div>
+  <h2 class="section-title">SAC 레이아웃 체크리스트</h2>
+  <p class="section-sub">Story 초안을 완성한 뒤, 아래 항목으로 레이아웃을 점검합니다.</p>
+
+  <div class="card">
+    <ul class="checklist">
+      <li><div class="chk"></div><div>각 Section이 정보 위계(헤드라인 / 근거 / 디테일) 중 어느 단계에 해당하는지 명확한가?</div></li>
+      <li><div class="chk"></div><div>Page 내 Section의 배치 순서가 의도한 시선 흐름(Episode 1의 Z/F 패턴)과 일치하는가?</div></li>
+      <li><div class="chk"></div><div>Responsive·Canvas 모드를 선택한 이유(열람 환경)가 명확한가?</div></li>
+      <li><div class="chk"></div><div>Canvas 모드 사용 시, 위젯 간 간격이 일정 단위로 고정되어 있는가?</div></li>
+      <li><div class="chk"></div><div>디테일 데이터(원장 등)가 기본 화면에 항상 노출되어 있지 않고 드릴다운으로 접근 가능한가?</div></li>
+      <li><div class="chk"></div><div>Linked Analysis를 적용한 위젯과 그렇지 않은 위젯이 사용자에게 구분되어 인지되는가? (예: 클릭 가능 표시)</div></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ SECTION 6: QUIZ ============ -->
+<section id="s6">
+  <div class="section-badge">06</div>
+  <h2 class="section-title">정리 퀴즈</h2>
+  <p class="section-sub">이번 Episode 핵심 내용을 짧은 퀴즈로 점검합니다.</p>
+
+  <div class="quiz">
+    <div class="q-title">Q1. SAC Story의 Section을 설계할 때 가장 먼저 정의해야 하는 것은?</div>
+    <div class="q-options">
+      <div class="q-option" data-correct="false">Section에 들어갈 위젯의 색상</div>
+      <div class="q-option" data-correct="true">해당 Section이 정보 위계상 어느 단계(헤드라인/근거/디테일)에 해당하는가</div>
+      <div class="q-option" data-correct="false">Section의 배경 이미지</div>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz">
+    <div class="q-title">Q2. 임원 보고용으로 한 화면에 픽셀 단위로 정렬된 "장표"형 Story가 필요할 때 적합한 모드는?</div>
+    <div class="q-options">
+      <div class="q-option" data-correct="false">Responsive 모드</div>
+      <div class="q-option" data-correct="true">Canvas 모드</div>
+      <div class="q-option" data-correct="false">두 모드 모두 동일한 결과를 제공한다</div>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz">
+    <div class="q-title">Q3. 디테일(원장 수준) 데이터를 다루는 가장 바람직한 방식은?</div>
+    <div class="q-options">
+      <div class="q-option" data-correct="false">항상 기본 화면 하단에 전체 노출한다</div>
+      <div class="q-option" data-correct="true">기본 화면에는 노출하지 않고, Linked Analysis나 드릴다운으로 필요할 때 접근하게 한다</div>
+      <div class="q-option" data-correct="false">별도 엑셀 파일로 제공하고 Story에는 포함하지 않는다</div>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz">
+    <div class="q-title">Q4. Canvas 모드에서 위젯을 자유롭게 배치하다 발생하기 쉬운 문제는?</div>
+    <div class="q-options">
+      <div class="q-option" data-correct="true">위젯 간 간격이 제각각이 되어 정렬이 흐트러진다</div>
+      <div class="q-option" data-correct="false">화면 크기에 따라 위젯이 자동으로 재배열된다</div>
+      <div class="q-option" data-correct="false">차트 유형을 선택할 수 없게 된다</div>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+</section>
+
+<div class="ep-nav">
+  <a class="nav-card prev" href="sac-story-ep2.html">← Episode 2 — 차트 선택의 원칙</a>
+  <div style="text-align:right;">
+    <div class="ep-label">Next Episode</div>
+    <div class="ep-title">Episode 4 — SAC Story 필터와 변수(Variable)</div>
+  </div>
+</div>
+<div class="ep-nav" style="margin-top:14px; justify-content:flex-end;">
+  <a class="nav-card" href="sac-story-ep4.html">전역 필터와 Variable을 활용한 동적 화면 구성 →</a>
+</div>
+
+</main>
+
+<script>
+  const sections = document.querySelectorAll('main section');
+  const navLinks = document.querySelectorAll('nav.tabs a');
+  const navMap = {};
+  navLinks.forEach(a => navMap[a.getAttribute('href').slice(1)] = a);
+
+  function onScroll(){
+    let current = sections[0].id;
+    const offset = 90;
+    sections.forEach(sec => {
+      const rect = sec.getBoundingClientRect();
+      if(rect.top - offset <= 0) current = sec.id;
+    });
+    navLinks.forEach(a => a.classList.remove('active'));
+    if(navMap[current]) navMap[current].classList.add('active');
+  }
+  document.addEventListener('scroll', onScroll);
+  onScroll();
+
+  navLinks.forEach(a=>{
+    a.addEventListener('click', e=>{
+      e.preventDefault();
+      const target = document.getElementById(a.getAttribute('href').slice(1));
+      window.scrollTo({top: target.offsetTop - 70, behavior:'smooth'});
+    });
+  });
+
+  // drill-down toggles
+  document.querySelectorAll('.drill-row').forEach(row=>{
+    row.addEventListener('click', ()=>{
+      const detail = document.getElementById(row.dataset.target);
+      row.classList.toggle('open');
+      detail.classList.toggle('show');
+    });
+  });
+
+  // quiz logic
+  document.querySelectorAll('.quiz').forEach(quiz=>{
+    const options = quiz.querySelectorAll('.q-option');
+    const feedback = quiz.querySelector('.q-feedback');
+    options.forEach(opt=>{
+      opt.addEventListener('click', ()=>{
+        if(quiz.dataset.answered) return;
+        quiz.dataset.answered = 'true';
+        const isCorrect = opt.dataset.correct === 'true';
+        options.forEach(o=>{
+          if(o.dataset.correct === 'true') o.classList.add('correct-ans');
+          else if(o === opt) o.classList.add('wrong-ans');
+        });
+        feedback.textContent = isCorrect
+          ? '정답입니다. Section은 정보 위계 단계와 매핑하고, 모드 선택은 열람 환경 기준, 디테일은 드릴다운으로 처리하는 것이 핵심입니다.'
+          : '다시 생각해보세요. 강조된 정답을 확인하고, 위 본문 내용을 다시 살펴보시기 바랍니다.';
+        feedback.classList.add('show', isCorrect ? 'correct' : 'wrong');
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
