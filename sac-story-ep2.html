@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAC Story 설계 원칙 — Episode 2: 차트 선택의 원칙</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f0f3f8;
+    --navy:#003366;
+    --navy-10:#e6edf5;
+    --navy-20:#cdd9ea;
+    --warn:#b54708;
+    --warn-bg:#fdf1e8;
+    --correct:#1a6b3c;
+    --correct-bg:#e9f6ee;
+    --wrong:#b3261e;
+    --wrong-bg:#fcebe9;
+    --gray-line:#d7dde6;
+    --text:#1c2733;
+    --subtext:#5b6b7d;
+    font-size:15px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Noto Sans KR', sans-serif;
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+    word-break:keep-all;
+    overflow-wrap:break-word;
+  }
+  h1,h2,h3,.serif{font-family:'DM Serif Display', 'Noto Sans KR', serif;}
+  .mono{font-family:'JetBrains Mono','Noto Sans KR',monospace;}
+
+  header.top{ background:var(--navy); color:#fff; padding:28px 5vw 22px; }
+  header.top .eyebrow{ font-size:13px; letter-spacing:.12em; text-transform:uppercase; opacity:.7; margin-bottom:6px; }
+  header.top h1{ font-size:42px; margin:0 0 8px; font-weight:400; }
+  header.top p{ font-size:16px; opacity:.85; max-width:760px; margin:0; }
+
+  nav.tabs{
+    position:sticky; top:0; z-index:50;
+    background:#fff; border-bottom:1px solid var(--gray-line);
+    display:flex; overflow-x:auto;
+    box-shadow:0 2px 6px rgba(0,51,102,.06);
+  }
+  nav.tabs a{
+    flex:0 0 auto; padding:14px 22px; font-size:14px; font-weight:500;
+    color:var(--subtext); text-decoration:none; border-bottom:3px solid transparent;
+    white-space:nowrap; transition:.15s;
+  }
+  nav.tabs a:hover{ color:var(--navy); background:var(--navy-10); }
+  nav.tabs a.active{ color:var(--navy); border-bottom-color:var(--navy); font-weight:700; }
+
+  main{ max-width:980px; margin:0 auto; padding:0 5vw 90px; }
+  section{ padding-top:56px; }
+  section:first-of-type{ padding-top:40px; }
+
+  .section-badge{
+    display:inline-block; background:var(--navy); color:#fff;
+    font-size:13px; font-weight:700; padding:4px 12px; border-radius:3px;
+    letter-spacing:.04em; margin-bottom:14px;
+  }
+  h2.section-title{ font-size:30px; margin:0 0 6px; color:var(--navy); font-weight:400; }
+  .section-sub{ color:var(--subtext); font-size:15px; margin:0 0 28px; max-width:680px; }
+
+  .card{
+    background:#fff; border:1px solid var(--gray-line); border-radius:8px;
+    padding:24px 26px; margin-bottom:22px;
+  }
+  .card h3{ font-size:18px; margin:0 0 10px; color:var(--navy); font-weight:700; font-family:'Noto Sans KR',sans-serif; }
+  .card p:last-child{margin-bottom:0;}
+
+  .callout{
+    border-radius:6px; padding:14px 18px; margin:16px 0; font-size:14px;
+    display:flex; gap:12px; align-items:flex-start;
+  }
+  .callout .tag{
+    flex:0 0 auto; font-size:11px; font-weight:700; letter-spacing:.06em;
+    padding:2px 8px; border-radius:3px; margin-top:2px; text-transform:uppercase;
+  }
+  .callout.navy{ background:var(--navy-10); border-left:4px solid var(--navy); }
+  .callout.navy .tag{ background:var(--navy); color:#fff; }
+  .callout.warn{ background:var(--warn-bg); border-left:4px solid var(--warn); }
+  .callout.warn .tag{ background:var(--warn); color:#fff; }
+  .callout.correct{ background:var(--correct-bg); border-left:4px solid var(--correct); }
+  .callout.correct .tag{ background:var(--correct); color:#fff; }
+  .callout.wrong{ background:var(--wrong-bg); border-left:4px solid var(--wrong); }
+  .callout.wrong .tag{ background:var(--wrong); color:#fff; }
+
+  /* 4-quadrant grid for analysis intents */
+  .intent-grid{
+    display:grid; grid-template-columns:1fr 1fr; gap:18px; margin:18px 0;
+  }
+  @media (max-width:720px){ .intent-grid{ grid-template-columns:1fr; } }
+  .intent-card{
+    background:#fff; border:1px solid var(--gray-line); border-radius:8px;
+    padding:18px 20px;
+  }
+  .intent-card .intent-head{
+    display:flex; align-items:center; gap:10px; margin-bottom:10px;
+  }
+  .intent-card .intent-num{
+    width:28px; height:28px; border-radius:50%; background:var(--navy); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-weight:700;
+    font-family:'JetBrains Mono',monospace; font-size:13px; flex:0 0 auto;
+  }
+  .intent-card .intent-title{ font-size:16px; font-weight:700; color:var(--navy); }
+  .intent-card .intent-q{ font-size:13px; color:var(--subtext); margin-bottom:12px; }
+  .intent-card .intent-chart{ height:90px; display:flex; align-items:center; justify-content:center; margin-bottom:10px; }
+  .intent-card .intent-example{ font-size:13px; }
+  .intent-card .intent-example b{ color:var(--navy); }
+
+  /* mini chart shapes */
+  .mini-bar{ display:flex; align-items:flex-end; gap:6px; height:80px; width:100%; padding:0 10px; }
+  .mini-bar .b{ flex:1; background:var(--navy-20); border-radius:2px 2px 0 0; }
+  .mini-bar .b.hi{ background:var(--navy); }
+
+  .mini-line svg{ width:100%; height:80px; }
+
+  .mini-hist{ display:flex; align-items:flex-end; gap:3px; height:80px; width:100%; padding:0 10px; }
+  .mini-hist .b{ flex:1; background:var(--navy-20); border-radius:2px 2px 0 0; }
+
+  .mini-scatter svg{ width:100%; height:80px; }
+
+  /* Do/Dont */
+  .do-dont{ display:grid; grid-template-columns:1fr 1fr; gap:18px; margin:18px 0; }
+  @media (max-width:720px){ .do-dont{grid-template-columns:1fr;} }
+  .dd-box{ border-radius:8px; padding:16px 18px; border:1px solid var(--gray-line); }
+  .dd-box.dont{ background:var(--wrong-bg); border-color:#f3c9c6; }
+  .dd-box.do{ background:var(--correct-bg); border-color:#bfe3cd; }
+  .dd-box .dd-head{
+    font-weight:700; font-size:13px; letter-spacing:.05em; text-transform:uppercase;
+    margin-bottom:8px; display:flex; align-items:center; gap:6px;
+  }
+  .dd-box.dont .dd-head{ color:var(--wrong); }
+  .dd-box.do .dd-head{ color:var(--correct); }
+  .dd-box ul{ margin:0; padding-left:18px; font-size:14px; }
+  .dd-box li{ margin-bottom:4px; }
+
+  /* toggle */
+  .toggle-group{ margin:16px 0; }
+  .toggle-buttons{ display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+  .toggle-btn{
+    border:1.5px solid var(--navy); background:#fff; color:var(--navy);
+    font-size:13px; font-weight:700; padding:8px 16px; border-radius:20px;
+    cursor:pointer; font-family:'Noto Sans KR',sans-serif; transition:.15s;
+  }
+  .toggle-btn.active, .toggle-btn:hover{ background:var(--navy); color:#fff; }
+  .toggle-panel{ display:none; }
+  .toggle-panel.active{ display:block; animation:fadein .25s; }
+  @keyframes fadein{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
+
+  /* SAC mockup shell */
+  .sac-frame{
+    border:1px solid var(--gray-line); border-radius:8px; overflow:hidden;
+    background:#fff; box-shadow:0 4px 16px rgba(0,51,102,.08); margin:18px 0;
+  }
+  .sac-titlebar{
+    background:var(--navy); color:#fff; padding:8px 14px; font-size:12px; font-weight:700;
+    display:flex; align-items:center; gap:8px; letter-spacing:.03em;
+  }
+  .sac-titlebar .dots{ display:flex; gap:4px; }
+  .sac-titlebar .dots span{ width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,.4); display:inline-block; }
+  .sac-body{ padding:16px; background:#fafbfd; }
+  .sac-panel{
+    background:#fff; border:1px solid var(--gray-line); border-radius:6px;
+    padding:10px 12px; min-height:160px;
+  }
+  .sac-panel .panel-title{ font-size:12px; font-weight:700; color:var(--text); margin-bottom:8px; }
+
+  /* checklist */
+  .checklist{ list-style:none; padding:0; margin:0; }
+  .checklist li{
+    display:flex; gap:10px; align-items:flex-start; padding:10px 0;
+    border-bottom:1px solid var(--gray-line); font-size:14px;
+  }
+  .checklist li:last-child{ border-bottom:none; }
+  .checklist .chk{
+    flex:0 0 auto; width:20px; height:20px; border:2px solid var(--navy); border-radius:4px;
+    margin-top:1px;
+  }
+
+  /* quiz */
+  .quiz{ border:1px solid var(--gray-line); border-radius:8px; padding:18px 20px; background:#fff; margin:18px 0; }
+  .quiz .q-title{ font-weight:700; margin-bottom:12px; font-size:15px; }
+  .quiz .q-options{ display:flex; flex-direction:column; gap:8px; }
+  .quiz .q-option{
+    border:1.5px solid var(--gray-line); border-radius:6px; padding:10px 14px;
+    cursor:pointer; font-size:14px; transition:.15s; background:#fff;
+  }
+  .quiz .q-option:hover{ border-color:var(--navy); }
+  .quiz .q-option.correct-ans{ border-color:var(--correct); background:var(--correct-bg); }
+  .quiz .q-option.wrong-ans{ border-color:var(--wrong); background:var(--wrong-bg); }
+  .quiz .q-feedback{ margin-top:12px; padding:10px 14px; border-radius:6px; font-size:13.5px; display:none; }
+  .quiz .q-feedback.show{ display:block; }
+  .quiz .q-feedback.correct{ background:var(--correct-bg); color:var(--correct); }
+  .quiz .q-feedback.wrong{ background:var(--wrong-bg); color:var(--wrong); }
+
+  /* nav footer */
+  .ep-nav{
+    margin-top:60px; border-top:1px solid var(--gray-line); padding-top:24px;
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;
+  }
+  .ep-nav .ep-label{ font-size:12px; color:var(--subtext); letter-spacing:.05em; text-transform:uppercase; }
+  .ep-nav .ep-title{ font-size:17px; font-weight:700; color:var(--navy); }
+  .ep-nav .nav-card{
+    border:1px solid var(--gray-line); border-radius:8px; padding:14px 20px; background:#fff;
+    transition:.15s; text-decoration:none; color:inherit; font-size:13.5px;
+  }
+  .ep-nav .nav-card:hover{ border-color:var(--navy); box-shadow:0 2px 10px rgba(0,51,102,.08); }
+  .ep-nav .nav-card.prev{ color:var(--subtext); }
+
+  ul.tight{ padding-left:20px; margin:8px 0; }
+  ul.tight li{ margin-bottom:5px; }
+  .small-note{ font-size:12.5px; color:var(--subtext); }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="eyebrow">SAC Story 설계 원칙 시리즈 · Episode 2 / 6</div>
+  <h1>차트 선택의 원칙 — 분석 의도에 따른 MECE 분류</h1>
+  <p>차트는 "예쁜 그림"이 아니라 분석 의도를 전달하는 도구입니다. 비교·추세·분포·관계라는 4가지 의도에 따라 적합한 차트가 정해지며, 이 매핑이 깨지면 데이터가 정확해도 메시지가 왜곡됩니다.</p>
+</header>
+
+<nav class="tabs" id="tabnav">
+  <a href="#s1" class="active">1. MECE 관점</a>
+  <a href="#s2">2. 4가지 분석 의도</a>
+  <a href="#s3">3. 잘못된 선택 사례</a>
+  <a href="#s4">4. SAC 체크리스트</a>
+  <a href="#s5">5. 정리 퀴즈</a>
+</nav>
+
+<main>
+
+<!-- ============ SECTION 1 ============ -->
+<section id="s1">
+  <div class="section-badge">01</div>
+  <h2 class="section-title">왜 차트 선택이 MECE 문제인가</h2>
+  <p class="section-sub">차트 유형은 취향이 아니라 "이 데이터로 어떤 질문에 답하려는가"에 따라 결정되는 분류 문제입니다. 분류가 중복·누락 없이 이루어지면 차트 선택에 대한 고민이 크게 줄어듭니다.</p>
+
+  <div class="card">
+    <h3>흔한 장면</h3>
+    <p>SAC Story를 만들 때 "이 위젯에 어떤 차트가 좋을까"를 차트 갤러리를 보며 고민하는 경우가 많습니다. 도넛, 라디얼, 워터폴, 영역형... 선택지가 많을수록 오히려 결정이 어려워지고, 결국 "보기 좋은 것"을 고르게 됩니다.</p>
+    <p>하지만 차트 갤러리에서 시작하면 안 됩니다. 시작점은 항상 <strong>"이 화면에서 보는 사람이 어떤 질문에 답을 얻어야 하는가"</strong>입니다.</p>
+  </div>
+
+  <div class="callout navy">
+    <span class="tag">핵심</span>
+    <div>모든 데이터 시각화 질문은 다음 4가지 분석 의도 중 하나(또는 조합)로 귀결됩니다: <strong>비교(Comparison)</strong>, <strong>추세(Trend)</strong>, <strong>분포(Distribution)</strong>, <strong>관계(Relationship)</strong>. 이 4가지는 서로 중복되지 않고(ME), 대부분의 비즈니스 질문을 포괄(CE)합니다.</div>
+  </div>
+
+  <div class="card">
+    <h3>판단 순서</h3>
+    <ul class="tight">
+      <li><strong>1단계</strong>: 이 위젯이 답해야 하는 질문은 무엇인가? (예: "사업부 간 비용 차이는?", "비용은 시간에 따라 어떻게 변했는가?")</li>
+      <li><strong>2단계</strong>: 그 질문이 4가지 의도 중 어디에 해당하는가?</li>
+      <li><strong>3단계</strong>: 해당 의도에 맞는 차트 유형 중에서 선택 (이 단계에서만 "어떤 차트가 더 명확한가"를 고민)</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ SECTION 2 ============ -->
+<section id="s2">
+  <div class="section-badge">02</div>
+  <h2 class="section-title">4가지 분석 의도와 적합 차트</h2>
+  <p class="section-sub">각 의도별로 "어떤 질문에 답하는가"와 "SAC에서 어떤 차트 유형이 대응되는가"를 정리합니다.</p>
+
+  <div class="intent-grid">
+    <div class="intent-card">
+      <div class="intent-head">
+        <div class="intent-num">1</div>
+        <div class="intent-title">비교 (Comparison)</div>
+      </div>
+      <div class="intent-q">"항목 간 크기 차이는 얼마나 되는가?" — 사업부, 계정, 제품 등 카테고리 간 비교</div>
+      <div class="intent-chart mini-bar">
+        <div class="b" style="height:55%"></div>
+        <div class="b hi" style="height:90%"></div>
+        <div class="b" style="height:40%"></div>
+        <div class="b" style="height:65%"></div>
+      </div>
+      <div class="intent-example">SAC 차트: <b>Bar / Column Chart</b><br>예시: "사업부별 당월 비용"</div>
+    </div>
+
+    <div class="intent-card">
+      <div class="intent-head">
+        <div class="intent-num">2</div>
+        <div class="intent-title">추세 (Trend)</div>
+      </div>
+      <div class="intent-q">"시간이 지나면서 어떻게 변했는가?" — 월별, 분기별 변화 추이</div>
+      <div class="intent-chart mini-line">
+        <svg viewBox="0 0 200 80" preserveAspectRatio="none">
+          <polyline points="10,60 40,50 70,55 100,30 130,35 160,15 190,20" fill="none" stroke="#003366" stroke-width="3"/>
+          <circle cx="160" cy="15" r="4" fill="#003366"/>
+        </svg>
+      </div>
+      <div class="intent-example">SAC 차트: <b>Line Chart</b><br>예시: "월별 매출 추이 (Plan vs Actual)"</div>
+    </div>
+
+    <div class="intent-card">
+      <div class="intent-head">
+        <div class="intent-num">3</div>
+        <div class="intent-title">분포 (Distribution)</div>
+      </div>
+      <div class="intent-q">"값들이 어떤 범위에 어떻게 퍼져 있는가?" — 이상치, 집중 구간 파악</div>
+      <div class="intent-chart mini-hist">
+        <div class="b" style="height:20%"></div>
+        <div class="b" style="height:45%"></div>
+        <div class="b" style="height:80%"></div>
+        <div class="b" style="height:90%"></div>
+        <div class="b" style="height:60%"></div>
+        <div class="b" style="height:30%"></div>
+        <div class="b" style="height:15%"></div>
+      </div>
+      <div class="intent-example">SAC 차트: <b>Histogram / Box Plot</b><br>예시: "전표 금액 분포 — 이상치 점검"</div>
+    </div>
+
+    <div class="intent-card">
+      <div class="intent-head">
+        <div class="intent-num">4</div>
+        <div class="intent-title">관계 (Relationship)</div>
+      </div>
+      <div class="intent-q">"두 지표 사이에 상관관계가 있는가?" — 변수 간 영향 관계 파악</div>
+      <div class="intent-chart mini-scatter">
+        <svg viewBox="0 0 200 80" preserveAspectRatio="none">
+          <circle cx="20" cy="65" r="4" fill="#cdd9ea"/>
+          <circle cx="40" cy="55" r="4" fill="#cdd9ea"/>
+          <circle cx="60" cy="50" r="4" fill="#003366"/>
+          <circle cx="80" cy="40" r="4" fill="#cdd9ea"/>
+          <circle cx="100" cy="35" r="4" fill="#003366"/>
+          <circle cx="120" cy="28" r="4" fill="#cdd9ea"/>
+          <circle cx="140" cy="20" r="4" fill="#003366"/>
+          <circle cx="160" cy="15" r="4" fill="#cdd9ea"/>
+          <circle cx="180" cy="10" r="4" fill="#003366"/>
+        </svg>
+      </div>
+      <div class="intent-example">SAC 차트: <b>Scatter Plot</b><br>예시: "광고비 vs 매출 — 상관관계"</div>
+    </div>
+  </div>
+
+  <div class="callout navy">
+    <span class="tag">참고</span>
+    <div>실무에서는 한 화면에 여러 의도가 섞이는 경우가 많습니다 (예: "사업부별(비교) 월별(추세) 비용"). 이때는 라인 차트에 사업부별 시리즈를 나누거나, 비교가 더 중요하면 바 차트에 기간을 그룹으로 묶는 방식 등 <strong>어떤 의도가 메시지의 핵심인지</strong>를 기준으로 1차 차트 유형을 정하고, 나머지는 보조적으로(색상 구분, 그룹화) 표현합니다.</div>
+  </div>
+</section>
+
+<!-- ============ SECTION 3 ============ -->
+<section id="s3">
+  <div class="section-badge">03</div>
+  <h2 class="section-title">잘못된 차트 선택 사례</h2>
+  <p class="section-sub">분석 의도와 차트 유형이 맞지 않으면, 데이터는 정확하더라도 메시지가 전달되지 않거나 왜곡됩니다.</p>
+
+  <p style="font-weight:700; margin-bottom:6px;">사례 1 — 추세 데이터에 파이 차트 사용</p>
+  <div class="toggle-group">
+    <div class="toggle-buttons">
+      <button class="toggle-btn active" data-target="c1-before" data-group="c1">파이 차트 (Before)</button>
+      <button class="toggle-btn" data-target="c1-after" data-group="c1">라인 차트 (After)</button>
+    </div>
+
+    <div class="toggle-panel active" id="c1-before">
+      <div class="sac-frame">
+        <div class="sac-titlebar"><span class="dots"><span></span><span></span><span></span></span> SAC Story — 월별 비용 비중 (Before)</div>
+        <div class="sac-body">
+          <div class="sac-panel" style="min-height:200px;">
+            <div class="panel-title">월별 비용 비중 (1~6월)</div>
+            <svg viewBox="0 0 240 160" width="100%" height="160">
+              <circle cx="80" cy="80" r="60" fill="#e6edf5"/>
+              <path d="M80,80 L80,20 A60,60 0 0 1 132,52 Z" fill="#003366"/>
+              <path d="M80,80 L132,52 A60,60 0 0 1 138,90 Z" fill="#5b8fc7"/>
+              <path d="M80,80 L138,90 A60,60 0 0 1 115,134 Z" fill="#7fa8d9"/>
+              <path d="M80,80 L115,134 A60,60 0 0 1 60,139 Z" fill="#9aa7b5"/>
+              <path d="M80,80 L60,139 A60,60 0 0 1 24,108 Z" fill="#c3cfdd"/>
+              <path d="M80,80 L24,108 A60,60 0 0 1 80,20 Z" fill="#dde6f0"/>
+              <g font-size="11" fill="#5b6b7d" font-family="Noto Sans KR">
+                <text x="160" y="30">1월 18%</text>
+                <text x="160" y="50">2월 17%</text>
+                <text x="160" y="70">3월 16%</text>
+                <text x="160" y="90">4월 17%</text>
+                <text x="160" y="110">5월 15%</text>
+                <text x="160" y="130">6월 17%</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="callout wrong">
+        <span class="tag">문제</span>
+        <div>파이 차트는 "전체에서 각 항목이 차지하는 비중"을 보여주는 데 적합하지만, 6개 조각의 크기가 16~18%로 거의 비슷해 시각적으로 구분이 안 됩니다. 더 중요한 문제는 — 이 데이터의 핵심 질문은 "비중"이 아니라 <strong>"시간에 따라 비용이 어떻게 변했는가(추세)"</strong>인데, 파이 차트는 시간의 흐름이라는 차원 자체를 표현하지 못합니다.</div>
+      </div>
+    </div>
+
+    <div class="toggle-panel" id="c1-after">
+      <div class="sac-frame">
+        <div class="sac-titlebar"><span class="dots"><span></span><span></span><span></span></span> SAC Story — 월별 비용 추이 (After)</div>
+        <div class="sac-body">
+          <div class="sac-panel" style="min-height:200px;">
+            <div class="panel-title">월별 비용 추이 (1~6월) — 5월 이후 상승</div>
+            <svg viewBox="0 0 240 160" width="100%" height="160">
+              <line x1="20" y1="20" x2="20" y2="140" stroke="#d7dde6"/>
+              <line x1="20" y1="140" x2="230" y2="140" stroke="#d7dde6"/>
+              <polyline points="30,90 65,95 100,100 135,95 170,55 205,30"
+                fill="none" stroke="#003366" stroke-width="3"/>
+              <circle cx="170" cy="55" r="4" fill="#003366"/>
+              <circle cx="205" cy="30" r="4" fill="#003366"/>
+              <g font-size="11" fill="#5b6b7d" font-family="Noto Sans KR" text-anchor="middle">
+                <text x="30" y="155">1월</text><text x="65" y="155">2월</text><text x="100" y="155">3월</text>
+                <text x="135" y="155">4월</text><text x="170" y="155">5월</text><text x="205" y="155">6월</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="callout correct">
+        <span class="tag">개선</span>
+        <div>라인 차트로 변경하면 "5월부터 비용이 증가하는 추세"라는 메시지가 즉시 드러납니다. 같은 데이터라도 분석 의도(추세)에 맞는 차트로 바꾸자 "그래서 무엇이 문제인가"가 명확해집니다.</div>
+      </div>
+    </div>
+  </div>
+
+  <p style="font-weight:700; margin-bottom:6px; margin-top:30px;">사례 2 — 비교(카테고리) 데이터에 라인 차트 사용</p>
+  <div class="toggle-group">
+    <div class="toggle-buttons">
+      <button class="toggle-btn active" data-target="c2-before" data-group="c2">라인 차트 (Before)</button>
+      <button class="toggle-btn" data-target="c2-after" data-group="c2">바 차트 (After)</button>
+    </div>
+
+    <div class="toggle-panel active" id="c2-before">
+      <div class="sac-frame">
+        <div class="sac-titlebar"><span class="dots"><span></span><span></span><span></span></span> SAC Story — 사업부별 비용 (Before)</div>
+        <div class="sac-body">
+          <div class="sac-panel" style="min-height:200px;">
+            <div class="panel-title">사업부별 비용 (A~D)</div>
+            <svg viewBox="0 0 240 160" width="100%" height="160">
+              <line x1="20" y1="20" x2="20" y2="140" stroke="#d7dde6"/>
+              <line x1="20" y1="140" x2="230" y2="140" stroke="#d7dde6"/>
+              <polyline points="40,60 100,30 160,100 220,115"
+                fill="none" stroke="#003366" stroke-width="3"/>
+              <circle cx="40" cy="60" r="4" fill="#003366"/>
+              <circle cx="100" cy="30" r="4" fill="#003366"/>
+              <circle cx="160" cy="100" r="4" fill="#003366"/>
+              <circle cx="220" cy="115" r="4" fill="#003366"/>
+              <g font-size="11" fill="#5b6b7d" font-family="Noto Sans KR" text-anchor="middle">
+                <text x="40" y="155">A사업부</text><text x="100" y="155">B사업부</text>
+                <text x="160" y="155">C사업부</text><text x="220" y="155">D사업부</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="callout wrong">
+        <span class="tag">문제</span>
+        <div>선으로 점들을 연결하면, 보는 사람은 무의식적으로 "A → B → C → D 순서로 변화하는 흐름"이 있다고 인식하게 됩니다. 하지만 사업부 A~D는 순서나 연속성이 있는 데이터가 아니라 <strong>독립적인 카테고리(비교 대상)</strong>입니다. 선은 존재하지 않는 추세를 암시하는 왜곡을 만듭니다.</div>
+      </div>
+    </div>
+
+    <div class="toggle-panel" id="c2-after">
+      <div class="sac-frame">
+        <div class="sac-titlebar"><span class="dots"><span></span><span></span><span></span></span> SAC Story — 사업부별 비용 (After)</div>
+        <div class="sac-body">
+          <div class="sac-panel" style="min-height:200px;">
+            <div class="panel-title">사업부별 비용 (A~D) — B사업부 최고</div>
+            <div class="mini-bar" style="height:130px; padding:20px 20px 0;">
+              <div class="b" style="height:55%"></div>
+              <div class="b hi" style="height:90%"></div>
+              <div class="b" style="height:35%"></div>
+              <div class="b" style="height:25%"></div>
+            </div>
+            <div style="display:flex; padding:0 20px; font-size:11px; color:var(--subtext);">
+              <div style="flex:1; text-align:center;">A사업부</div>
+              <div style="flex:1; text-align:center;">B사업부</div>
+              <div style="flex:1; text-align:center;">C사업부</div>
+              <div style="flex:1; text-align:center;">D사업부</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="callout correct">
+        <span class="tag">개선</span>
+        <div>바 차트는 각 카테고리를 독립된 막대로 표현해 "A~D 사이에 순서나 흐름이 있다"는 잘못된 인상을 주지 않으면서, 각 항목의 크기를 정확히 비교할 수 있게 합니다. B사업부 막대만 Navy로 강조해 핵심 메시지를 함께 전달합니다.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SECTION 4 ============ -->
+<section id="s4">
+  <div class="section-badge">04</div>
+  <h2 class="section-title">SAC Story 차트 선택 체크리스트</h2>
+  <p class="section-sub">위젯을 추가하기 전, 아래 순서로 점검하면 차트 갤러리를 둘러보며 고민하는 시간을 줄일 수 있습니다.</p>
+
+  <div class="card">
+    <ul class="checklist">
+      <li><div class="chk"></div><div>이 위젯이 답해야 하는 질문을 한 문장으로 적을 수 있는가? (적을 수 없다면 위젯을 추가하기 전 단계)</div></li>
+      <li><div class="chk"></div><div>그 질문은 비교 / 추세 / 분포 / 관계 중 어디에 해당하는가?</div></li>
+      <li><div class="chk"></div><div>SAC에서 해당 의도에 대응하는 차트 유형(Bar / Line / Histogram·Box Plot / Scatter)을 선택했는가?</div></li>
+      <li><div class="chk"></div><div>카테고리형 축(사업부, 계정 등)에 선(Line)을 사용하지 않았는가?</div></li>
+      <li><div class="chk"></div><div>시간축 데이터를 파이 차트나 도넛 차트로 표현하지 않았는가?</div></li>
+      <li><div class="chk"></div><div>강조해야 할 항목이 있다면 색상(Navy)으로 구분되어 있는가? (Episode 1 참고)</div></li>
+      <li><div class="chk"></div><div>범례, 그리드라인, 3D 효과 등 불필요한 장식이 없는가? (Episode 1 Chart Junk 참고)</div></li>
+    </ul>
+  </div>
+
+  <div class="callout navy">
+    <span class="tag">SAC 적용 팁</span>
+    <div>SAC Story의 차트 위젯 생성 시 기본으로 제시되는 차트 유형(주로 Column/Bar)을 그대로 사용하는 경우가 많은데, 이는 우연히 "비교"에 가장 자주 쓰이는 차트일 뿐입니다. 추세를 보여줘야 하는 위젯에서 기본값을 그대로 두면 사례 1과 같은 문제가 발생할 수 있으니, 위젯 생성 후 반드시 차트 유형을 분석 의도에 맞게 재확인하는 습관이 필요합니다.</div>
+  </div>
+</section>
+
+<!-- ============ SECTION 5: QUIZ ============ -->
+<section id="s5">
+  <div class="section-badge">05</div>
+  <h2 class="section-title">정리 퀴즈</h2>
+  <p class="section-sub">이번 Episode 핵심 내용을 짧은 퀴즈로 점검합니다.</p>
+
+  <div class="quiz">
+    <div class="q-title">Q1. "사업부별 당월 비용 비교"라는 질문에 가장 적합한 차트는?</div>
+    <div class="q-options">
+      <div class="q-option" data-correct="true">Bar / Column Chart</div>
+      <div class="q-option" data-correct="false">Line Chart</div>
+      <div class="q-option" data-correct="false">Scatter Plot</div>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz">
+    <div class="q-title">Q2. "월별 매출이 어떻게 변화해왔는가"를 보여주려 할 때 가장 부적합한 차트는?</div>
+    <div class="q-options">
+      <div class="q-option" data-correct="false">Line Chart</div>
+      <div class="q-option" data-correct="true">Pie Chart</div>
+      <div class="q-option" data-correct="false">Area Chart</div>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz">
+    <div class="q-title">Q3. 사업부 A~D처럼 순서나 연속성이 없는 카테고리 데이터를 라인 차트로 표현하면 어떤 문제가 발생하는가?</div>
+    <div class="q-options">
+      <div class="q-option" data-correct="false">데이터 값이 부정확하게 표시된다</div>
+      <div class="q-option" data-correct="true">존재하지 않는 추세나 흐름이 있다고 오인하게 만든다</div>
+      <div class="q-option" data-correct="false">차트 색상이 자동으로 제한된다</div>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz">
+    <div class="q-title">Q4. 차트 선택 과정에서 가장 먼저 결정해야 하는 것은?</div>
+    <div class="q-options">
+      <div class="q-option" data-correct="false">SAC 차트 갤러리에서 시각적으로 가장 매력적인 유형</div>
+      <div class="q-option" data-correct="true">이 위젯이 답해야 하는 질문이 비교/추세/분포/관계 중 무엇인가</div>
+      <div class="q-option" data-correct="false">화면에서 사용 중인 다른 위젯과 동일한 차트 유형</div>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+</section>
+
+<div class="ep-nav">
+  <a class="nav-card prev" href="sac-story-ep1.html">← Episode 1 — Story 설계의 기초</a>
+  <div style="text-align:right;">
+    <div class="ep-label">Next Episode</div>
+    <div class="ep-title">Episode 3 — SAC Story 레이아웃과 위젯 구조</div>
+  </div>
+</div>
+<div class="ep-nav" style="margin-top:14px; justify-content:flex-end;">
+  <a class="nav-card" href="sac-story-ep3.html">Page/Section/Widget 구조와 배치 패턴 →</a>
+</div>
+
+</main>
+
+<script>
+  const sections = document.querySelectorAll('main section');
+  const navLinks = document.querySelectorAll('nav.tabs a');
+  const navMap = {};
+  navLinks.forEach(a => navMap[a.getAttribute('href').slice(1)] = a);
+
+  function onScroll(){
+    let current = sections[0].id;
+    const offset = 90;
+    sections.forEach(sec => {
+      const rect = sec.getBoundingClientRect();
+      if(rect.top - offset <= 0) current = sec.id;
+    });
+    navLinks.forEach(a => a.classList.remove('active'));
+    if(navMap[current]) navMap[current].classList.add('active');
+  }
+  document.addEventListener('scroll', onScroll);
+  onScroll();
+
+  navLinks.forEach(a=>{
+    a.addEventListener('click', e=>{
+      e.preventDefault();
+      const target = document.getElementById(a.getAttribute('href').slice(1));
+      window.scrollTo({top: target.offsetTop - 70, behavior:'smooth'});
+    });
+  });
+
+  document.querySelectorAll('.toggle-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const group = btn.dataset.group;
+      document.querySelectorAll(`.toggle-btn[data-group="${group}"]`).forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll(`.toggle-panel`).forEach(p=>{
+        if(p.id.startsWith(group)) p.classList.remove('active');
+      });
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.target).classList.add('active');
+    });
+  });
+
+  document.querySelectorAll('.quiz').forEach(quiz=>{
+    const options = quiz.querySelectorAll('.q-option');
+    const feedback = quiz.querySelector('.q-feedback');
+    options.forEach(opt=>{
+      opt.addEventListener('click', ()=>{
+        if(quiz.dataset.answered) return;
+        quiz.dataset.answered = 'true';
+        const isCorrect = opt.dataset.correct === 'true';
+        options.forEach(o=>{
+          if(o.dataset.correct === 'true') o.classList.add('correct-ans');
+          else if(o === opt) o.classList.add('wrong-ans');
+        });
+        feedback.textContent = isCorrect
+          ? '정답입니다. 차트 유형은 분석 의도(비교/추세/분포/관계)에 따라 결정됩니다.'
+          : '다시 생각해보세요. 강조된 정답을 확인하고, 위 본문 내용을 다시 살펴보시기 바랍니다.';
+        feedback.classList.add('show', isCorrect ? 'correct' : 'wrong');
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
