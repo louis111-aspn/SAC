@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAC Custom Widget — 컨설턴트를 위한 Claude 협업 개발 가이드</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ── 색상 변수 ─────────────────────────────── */
+:root {
+  --navy:        #003366;
+  --navy-mid:    #004080;
+  --navy-light:  #e8eef5;
+  --gray-dark:   #333333;
+  --gray-mid:    #666666;
+  --gray-light:  #f4f6f9;
+  --gray-border: #d0d8e4;
+  --correct:     #1a6e3c;
+  --correct-bg:  #eaf5ee;
+  --wrong:       #8b1a1a;
+  --wrong-bg:    #fdf0f0;
+  --warn:        #7a5200;
+  --warn-bg:     #fdf6e3;
+  --body-bg:     #f0f3f8;
+  --white:       #ffffff;
+}
+
+/* ── 리셋 & 기본 ────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--gray-dark);
+  background: var(--body-bg);
+}
+
+/* ── 헤더 ───────────────────────────────────── */
+.site-header {
+  background: var(--navy);
+  color: var(--white);
+  padding: clamp(32px, 5vw, 56px) clamp(20px, 5vw, 60px);
+  position: relative;
+  overflow: hidden;
+}
+.site-header::before {
+  content: '';
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 260px; height: 260px;
+  border: 2px solid rgba(255,255,255,0.08);
+  border-radius: 50%;
+}
+.site-header::after {
+  content: '';
+  position: absolute;
+  bottom: -60px; right: 60px;
+  width: 160px; height: 160px;
+  border: 2px solid rgba(255,255,255,0.05);
+  border-radius: 50%;
+}
+.header-label {
+  font-family: 'JetBrains Mono', 'Noto Sans KR', monospace;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.55);
+  margin-bottom: 12px;
+}
+.site-header h1 {
+  font-family: 'Noto Sans KR', sans-serif; font-weight: 900;
+  font-size: clamp(24px, 4vw, 38px);
+  font-weight: 400;
+  line-height: 1.25;
+  margin-bottom: 14px;
+}
+.site-header h1 em {
+  font-style: italic;
+  color: rgba(255,255,255,0.75);
+}
+.header-desc {
+  font-size: 14px;
+  color: rgba(255,255,255,0.65);
+  max-width: 580px;
+  line-height: 1.7;
+}
+.header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 20px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 2px;
+  padding: 6px 14px;
+  font-family: 'JetBrains Mono', 'Noto Sans KR', monospace;
+  font-size: 12px;
+  color: rgba(255,255,255,0.8);
+}
+
+/* ── 탭 내비게이션 ──────────────────────────── */
+.tab-nav-wrap {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--navy);
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+}
+.tab-nav {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 0 clamp(16px, 4vw, 48px);
+}
+.tab-btn {
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: 14px 18px;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.5);
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+.tab-btn:hover { color: rgba(255,255,255,0.85); }
+.tab-btn.active {
+  color: var(--white);
+  border-bottom-color: var(--white);
+}
+
+/* ── 탭 콘텐츠 ──────────────────────────────── */
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* ── 섹션 레이아웃 ──────────────────────────── */
+.section {
+  padding: clamp(32px, 5vw, 56px) clamp(20px, 5vw, 60px);
+}
+.section + .section {
+  border-top: 1px solid var(--gray-border);
+  background: var(--white);
+}
+.section:first-child { background: var(--white); }
+
+.section-eyebrow {
+  font-family: 'JetBrains Mono', 'Noto Sans KR', monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--navy);
+  margin-bottom: 10px;
+}
+.section-title {
+  font-family: 'Noto Sans KR', sans-serif; font-weight: 900;
+  font-size: clamp(20px, 3vw, 28px);
+  font-weight: 400;
+  color: var(--navy);
+  margin-bottom: 18px;
+  line-height: 1.3;
+}
+.section-lead {
+  font-size: 15px;
+  color: var(--gray-mid);
+  margin-bottom: 28px;
+  max-width: 720px;
+  line-height: 1.8;
+}
+
+/* ── 카드 그리드 ────────────────────────────── */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+.card {
+  background: var(--white);
+  border: 1px solid var(--gray-border);
+  border-radius: 2px;
+  padding: 22px 24px;
+}
+.card-label {
+  font-family: 'JetBrains Mono', 'Noto Sans KR', monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--navy);
+  margin-bottom: 8px;
+}
+.card h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--gray-dark);
+  margin-bottom: 8px;
+}
+.card p {
+  font-size: 13.5px;
+  color: var(--gray-mid);
+  line-height: 1.7;
+}
+.card.navy-card {
+  background: var(--navy);
+  border-color: var(--navy);
+}
+.card.navy-card .card-label { color: rgba(255,255,255,0.5); }
+.card.navy-card h3 { color: var(--white); }
+.card.navy-card p { color: rgba(255,255,255,0.7); }
+
+/* ── Callout ────────────────────────────────── */
+.callout {
+  border-radius: 2px;
+  padding: 16px 20px;
+  margin: 20px 0;
+  border-left: 4px solid;
+  font-size: 14px;
+  line-height: 1.75;
+}
+.callout.correct {
+  background: var(--correct-bg);
+  border-color: var(--correct);
+  color: var(--correct);
+}
+.callout.wrong {
+  background: var(--wrong-bg);
+  border-color: var(--wrong);
+  color: var(--wrong);
+}
+.callout.warn {
+  background: var(--warn-bg);
+  border-color: var(--warn);
+  color: var(--warn);
+}
+.callout.info {
+  background: var(--navy-light);
+  border-color: var(--navy);
+  color: var(--navy);
+}
+.callout-title {
+  font-weight: 700;
+  margin-bottom: 4px;
+  display: block;
+}
+
+/* ── 코드 블록 ──────────────────────────────── */
+.math-block {
+  background: #1a1e2e;
+  border-radius: 2px;
+  padding: 20px 24px;
+  margin: 18px 0;
+  overflow-x: auto;
+}
+.math-block pre {
+  font-family: 'JetBrains Mono', 'Noto Sans KR', monospace;
+  font-size: 12.5px;
+  line-height: 1.8;
+  color: #c9d1d9;
+  white-space: pre;
+}
+.math-block .cm { color: #6e7681; }
+.math-block .ck { color: #79c0ff; }
+.math-block .cs { color: #a5d6ff; }
+.math-block .cv { color: #ffa657; }
+.math-block .cn { color: #ff7b72; }
+
+/* ── 플로우 다이어그램 ──────────────────────── */
+.flow-diagram {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  align-items: stretch;
+  margin: 20px 0;
+}
+.flow-step {
+  flex: 1;
+  min-width: 130px;
+  background: var(--white);
+  border: 1px solid var(--gray-border);
+  border-right: none;
+  padding: 16px 16px;
+  position: relative;
+  text-align: center;
+}
+.flow-step:last-child { border-right: 1px solid var(--gray-border); }
+.flow-step::after {
+  content: '▶';
+  position: absolute;
+  right: -11px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 10px;
+  color: var(--navy);
+  z-index: 1;
+  background: var(--white);
+  padding: 2px 0;
+}
+.flow-step:last-child::after { display: none; }
+.flow-step.active-step {
+  background: var(--navy);
+  border-color: var(--navy);
+}
+.flow-step.active-step::after { background: var(--navy); }
+.flow-num {
+  font-family: 'JetBrains Mono', 'Noto Sans KR', monospace;
+  font-size: 11px;
+  color: var(--navy);
+  display: block;
+  margin-bottom: 4px;
+}
+.flow-step.active-step .flow-num { color: rgba(255,255,255,0.6); }
+.flow-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gray-dark);
+  line-height: 1.4;
+}
+.flow-step.active-step .flow-label { color: var(--white); }
+
+/* ── 비교 테이블 (path-diagram) ─────────────── */
+.path-diagram {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 0;
+  margin: 20px 0;
+  align-items: stretch;
+}
+.path-col {
+  border: 1px solid var(--gray-border);
+  border-radius: 2px;
+}
+.path-col-head {
+  padding: 12px 18px;
+  font-weight: 700;
+  font-size: 13px;
+  text-align: center;
+}
+.path-col-head.wrong-head {
+  background: var(--wrong-bg);
+  color: var(--wrong);
+  border-bottom: 1px solid var(--gray-border);
+}
+.path-col-head.correct-head {
+  background: var(--correct-bg);
+  color: var(--correct);
+  border-bottom: 1px solid var(--gray-border);
+}
+.path-col-body { padding: 16px 18px; }
+.path-col-body li {
+  font-size: 13.5px;
+  color: var(--gray-mid);
+  margin-bottom: 8px;
+  padding-left: 16px;
+  position: relative;
+  list-style: none;
+}
+.path-col-body li::before {
+  content: '·';
+  position: absolute;
+  left: 4px;
+  color: var(--gray-border);
+}
+.path-vs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  font-family: 'Noto Sans KR', sans-serif; font-weight: 900;
+  font-size: 18px;
+  color: var(--gray-border);
+}
+
+/* ── 데이터 테이블 ──────────────────────────── */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 13.5px;
+}
+.data-table th {
+  background: var(--navy);
+  color: var(--white);
+  padding: 11px 16px;
+  text-align: left;
+  font-weight: 500;
+  font-size: 12.5px;
+}
+.data-table td {
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--gray-border);
+  vertical-align: top;
+  line-height: 1.65;
+}
+.data-table tr:nth-child(even) td { background: var(--gray-light); }
+.data-table tr:last-child td { border-bottom: none; }
+
+/* ── 스텝 리스트 ────────────────────────────── */
+.step-list { margin: 20px 0; }
+.step-item {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  align-items: flex-start;
+}
+.step-num {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  background: var(--navy);
+  color: var(--white);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', 'Noto Sans KR', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 2px;
+}
+.step-body h4 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--gray-dark);
+  margin-bottom: 4px;
+}
+.step-body p {
+  font-size: 13.5px;
+  color: var(--gray-mid);
+  line-height: 1.7;
+}
+
+/* ── 파일 구조 박스 ─────────────────────────── */
+.file-tree {
+  background: var(--gray-light);
+  border: 1px solid var(--gray-border);
+  border-radius: 2px;
+  padding: 20px 24px;
+  margin: 16px 0;
+}
+.file-tree-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--gray-border);
+}
+.file-tree-item:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+.file-icon {
+  flex-shrink: 0;
+  font-family: 'JetBrains Mono', 'Noto Sans KR', monospace;
+  font-size: 11px;
+  background: var(--navy);
+  color: var(--white);
+  padding: 3px 8px;
+  border-radius: 2px;
+  margin-top: 2px;
+}
+.file-name {
+  font-family: 'JetBrains Mono', 'Noto Sans KR', monospace;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--navy);
+  display: block;
+  margin-bottom: 3px;
+}
+.file-desc {
+  font-size: 13px;
+  color: var(--gray-mid);
+  line-height: 1.65;
+}
+
+/* ── 프롬프트 박스 ──────────────────────────── */
+.prompt-box {
+  background: #1a1e2e;
+  border-radius: 2px;
+  padding: 24px 28px;
+  margin: 20px 0;
+  position: relative;
+}
+.prompt-label {
+  font-family: 'JetBrains Mono', 'Noto Sans KR', monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.35);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  display: block;
+}
+.prompt-text {
+  font-size: 13.5px;
+  color: #c9d1d9;
+  line-height: 1.85;
+  white-space: pre-wrap;
+}
+.prompt-text strong {
+  color: #79c0ff;
+  font-weight: 600;
+}
+
+/* ── 퀴즈 ───────────────────────────────────── */
+.quiz-section { margin: 28px 0; }
+.quiz-card {
+  background: var(--white);
+  border: 1px solid var(--gray-border);
+  border-radius: 2px;
+  padding: 22px 24px;
+  margin-bottom: 16px;
+}
+.quiz-q {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--gray-dark);
+  margin-bottom: 14px;
+  line-height: 1.6;
+}
+.quiz-q span {
+  font-family: 'JetBrains Mono', 'Noto Sans KR', monospace;
+  font-size: 11px;
+  background: var(--navy-light);
+  color: var(--navy);
+  padding: 2px 8px;
+  border-radius: 2px;
+  margin-right: 8px;
+  font-weight: 400;
+}
+.quiz-options { display: flex; flex-direction: column; gap: 8px; }
+.quiz-opt {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid var(--gray-border);
+  border-radius: 2px;
+  cursor: pointer;
+  font-size: 13.5px;
+  color: var(--gray-mid);
+  transition: all 0.15s;
+  background: var(--gray-light);
+  text-align: left;
+  width: 100%;
+}
+.quiz-opt:hover { border-color: var(--navy); color: var(--gray-dark); }
+.quiz-opt.correct-ans {
+  background: var(--correct-bg);
+  border-color: var(--correct);
+  color: var(--correct);
+}
+.quiz-opt.wrong-ans {
+  background: var(--wrong-bg);
+  border-color: var(--wrong);
+  color: var(--wrong);
+}
+.quiz-explain {
+  margin-top: 12px;
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.7;
+  display: none;
+  border-left: 3px solid;
+}
+.quiz-explain.visible { display: block; }
+.quiz-explain.correct {
+  background: var(--correct-bg);
+  border-color: var(--correct);
+  color: var(--correct);
+}
+.quiz-explain.wrong {
+  background: var(--wrong-bg);
+  border-color: var(--wrong);
+  color: var(--wrong);
+}
+
+/* ── 뱃지 ───────────────────────────────────── */
+.badge {
+  display: inline-block;
+  font-family: 'JetBrains Mono', 'Noto Sans KR', monospace;
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 2px;
+  font-weight: 600;
+  margin-right: 6px;
+}
+.badge-navy { background: var(--navy-light); color: var(--navy); }
+.badge-warn { background: var(--warn-bg); color: var(--warn); }
+.badge-correct { background: var(--correct-bg); color: var(--correct); }
+
+/* ── 다음 단계 예고 박스 ────────────────────── */
+.next-box {
+  border: 2px dashed var(--navy-mid);
+  border-radius: 2px;
+  padding: 22px 24px;
+  margin: 28px 0;
+  background: var(--navy-light);
+}
+.next-box-title {
+  font-family: 'JetBrains Mono', 'Noto Sans KR', monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--navy);
+  margin-bottom: 10px;
+  display: block;
+}
+.next-box h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 8px;
+}
+.next-box p {
+  font-size: 13.5px;
+  color: var(--gray-mid);
+  line-height: 1.7;
+}
+
+/* ── 구분선 ─────────────────────────────────── */
+.divider {
+  border: none;
+  border-top: 1px solid var(--gray-border);
+  margin: 32px 0;
+}
+
+ul.bullet-list {
+  padding-left: 0;
+  list-style: none;
+  margin: 12px 0;
+}
+ul.bullet-list li {
+  padding: 5px 0 5px 20px;
+  position: relative;
+  font-size: 14px;
+  color: var(--gray-mid);
+  line-height: 1.7;
+}
+ul.bullet-list li::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: var(--gray-border);
+}
+
+/* ── 반응형 ─────────────────────────────────── */
+@media (max-width: 640px) {
+  .path-diagram {
+    grid-template-columns: 1fr;
+  }
+  .path-vs { padding: 8px 0; }
+  .flow-diagram { flex-direction: column; }
+  .flow-step { border-right: 1px solid var(--gray-border); border-bottom: none; }
+  .flow-step:last-child { border-bottom: 1px solid var(--gray-border); }
+  .flow-step::after { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── 헤더 ─────────────────────────────────── -->
+<header class="site-header">
+  <div class="header-label">SAC Custom Widget · 컨설턴트 개발 가이드</div>
+  <h1>Claude와 함께 만드는<br><em>SAC Custom Widget</em></h1>
+  <p class="header-desc">JavaScript 개발 역량 없이도 가능합니다. 요구사항을 정의하고, Claude에게 전달하고, 오류를 함께 해결하는 협업 프로세스를 익힙니다.</p>
+  <div class="header-badge">대상: SAC Story 경험이 있는 컨설턴트 · 전제: Claude 사용 경험</div>
+</header>
+
+<!-- ── 탭 내비게이션 ──────────────────────────── -->
+<nav class="tab-nav-wrap">
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="showTab('tab1', this)">01 · 교육 방향</button>
+    <button class="tab-btn" onclick="showTab('tab2', this)">02 · Widget 개요</button>
+    <button class="tab-btn" onclick="showTab('tab3', this)">03 · 협업 프로세스</button>
+    <button class="tab-btn" onclick="showTab('tab4', this)">04 · 예제 A: 메뉴 위젯</button>
+    <button class="tab-btn" onclick="showTab('tab5', this)">05 · 예제 B: AI 위젯</button>
+    <button class="tab-btn" onclick="showTab('tab6', this)">06 · 트러블슈팅</button>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- 탭 1. 교육 방향 -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="tab1" class="tab-content active">
+
+  <div class="section">
+    <div class="section-eyebrow">이 교육과정에 대하여</div>
+    <h2 class="section-title">코드를 짜는 것이 목표가 아닙니다</h2>
+    <p class="section-lead">SAC Custom Widget 개발은 전통적으로 JavaScript 개발자의 영역이었습니다. 그러나 Claude를 개발 파트너로 활용하면 컨설턴트가 직접 위젯을 설계하고 완성할 수 있습니다. 이 교육과정은 그 협업 방법을 다룹니다.</p>
+
+    <div class="path-diagram">
+      <div class="path-col">
+        <div class="path-col-head wrong-head">❌ 기존 방식</div>
+        <ul class="path-col-body">
+          <li>JavaScript 개발자에게 요청 위임</li>
+          <li>요구사항 전달 → 개발 → 수정 사이클 반복</li>
+          <li>코드 내용을 이해하지 못한 채 납품</li>
+          <li>오류 발생 시 개발자 재요청 필요</li>
+          <li>컨설턴트가 결과물을 주도하기 어려움</li>
+        </ul>
+      </div>
+      <div class="path-vs">vs</div>
+      <div class="path-col">
+        <div class="path-col-head correct-head">✓ 이 교육과정의 방식</div>
+        <ul class="path-col-body">
+          <li>컨설턴트가 직접 요구사항을 Claude에게 전달</li>
+          <li>Claude가 파일 생성 → 컨설턴트가 SAC에 등록·테스트</li>
+          <li>오류 메시지를 Claude에게 그대로 전달하여 해결</li>
+          <li>기능·디자인 요구사항을 컨설턴트가 직접 조율</li>
+          <li>개발 결과물의 내용과 의도를 완전히 파악</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">역할 분담</div>
+    <h2 class="section-title">컨설턴트와 Claude의 역할</h2>
+    <p class="section-lead">이 협업 모델에서 컨설턴트와 Claude는 각자 가장 잘하는 영역을 맡습니다.</p>
+
+    <div class="card-grid">
+      <div class="card navy-card">
+        <div class="card-label">컨설턴트가 담당</div>
+        <h3>What & Why</h3>
+        <p>무엇을 만들지, 왜 만드는지를 정의합니다. 비즈니스 요구사항, UI 동작 방식, 데이터 연동 구조, 허용 가능한 제약사항을 결정합니다.</p>
+      </div>
+      <div class="card navy-card">
+        <div class="card-label">Claude가 담당</div>
+        <h3>How</h3>
+        <p>어떻게 구현할지를 결정합니다. 파일 구조 설계, JavaScript 코드 작성, 오류 원인 분석 및 수정안 제시를 담당합니다.</p>
+      </div>
+      <div class="card">
+        <div class="card-label">함께 하는 것</div>
+        <h3>Iterate</h3>
+        <p>컨설턴트가 SAC 환경에서 테스트하고, 발생한 오류나 요구사항 변경을 Claude에게 전달하여 반복 개선합니다. 이 사이클이 핵심입니다.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">학습 구성</div>
+    <h2 class="section-title">이 교육과정이 다루는 것</h2>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-label">✓ 포함</div>
+        <h3>다루는 내용</h3>
+        <p>SAC Custom Widget 개념과 구조, Claude 협업 프로세스, 완성된 위젯 예제 2종 코드 해설, 실제 발생 오류 해결 패턴</p>
+      </div>
+      <div class="card">
+        <div class="card-label">→ 후속 교육 예정</div>
+        <h3>다루지 않는 내용</h3>
+        <p>Public Dimension 마스터 연계 동적 메뉴 구성 (예제 A 고도화), SAC 데이터셋과 위젯 연동 setContext 실습 (예제 B 고도화)</p>
+      </div>
+    </div>
+
+    <div class="callout info" style="margin-top: 24px;">
+      <span class="callout-title">📌 전제 조건</span>
+      SAC Story 생성 및 편집 경험이 있어야 합니다. Claude(claude.ai) 사용 경험이 있어야 합니다. JavaScript 지식은 필요하지 않습니다.
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- 탭 2. Widget 개요 -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="tab2" class="tab-content">
+
+  <div class="section">
+    <div class="section-eyebrow">기본 개념</div>
+    <h2 class="section-title">SAC Custom Widget이란</h2>
+    <p class="section-lead">SAC(SAP Analytics Cloud)는 기본 제공되는 표준 위젯(차트, 테이블, 필터 등) 외에, 개발자가 직접 만든 UI 컴포넌트를 스토리에 삽입할 수 있도록 Custom Widget 기능을 지원합니다. 기반 기술은 W3C 표준인 Web Component입니다.</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-label">표준 위젯으로 충분한 경우</div>
+        <h3>Custom Widget 불필요</h3>
+        <p>데이터 시각화, 테이블 표시, 기본 필터 적용, 표준 입력 셀 형태의 계획 입력</p>
+      </div>
+      <div class="card">
+        <div class="card-label">Custom Widget이 필요한 경우</div>
+        <h3>이런 때 써야 합니다</h3>
+        <p>계층형 메뉴 내비게이션, AI API 직접 연동, 완전히 커스텀한 입력 폼, 외부 데이터 실시간 호출 등 표준 기능의 범위를 벗어나는 UI</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">파일 구조</div>
+    <h2 class="section-title">3개 파일로 구성됩니다</h2>
+    <p class="section-lead">SAC Custom Widget은 반드시 3개의 파일로 구성되며, 각 파일의 역할이 명확히 분리되어 있습니다. 이 구조를 이해하는 것이 Claude에게 요구사항을 정확히 전달하는 출발점입니다.</p>
+
+    <div class="file-tree">
+      <div class="file-tree-item">
+        <div class="file-icon">JSON</div>
+        <div>
+          <span class="file-name">widget.json</span>
+          <span class="file-desc">위젯의 신분증입니다. 위젯 이름, 고유 ID, 파라미터 정의, SAC가 인식해야 할 모든 메타데이터가 담깁니다. SAC는 이 파일을 먼저 읽어 위젯 등록 가능 여부를 판단합니다.</span>
+        </div>
+      </div>
+      <div class="file-tree-item">
+        <div class="file-icon">JS</div>
+        <div>
+          <span class="file-name">main.js</span>
+          <span class="file-desc">위젯의 실제 동작과 화면을 담당합니다. 화면에 무엇을 표시할지(HTML), 어떻게 보일지(CSS), 클릭·입력 등 사용자 상호작용에 어떻게 반응할지(JavaScript)가 모두 이 파일 안에 있습니다.</span>
+        </div>
+      </div>
+      <div class="file-tree-item">
+        <div class="file-icon">JS</div>
+        <div>
+          <span class="file-name">styling.js</span>
+          <span class="file-desc">SAC 스토리 편집 화면 우측의 Styling Panel을 담당합니다. API Key, System Prompt, 최대 토큰 수 등 위젯 설정값을 편집할 수 있는 입력 폼을 제공합니다.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-title">ZIP 패키징 규칙</span>
+      3개 파일을 ZIP으로 묶을 때 반드시 루트에 직접 포함해야 합니다. <code>my_widget/widget.json</code>처럼 서브폴더 안에 넣으면 SAC가 인식하지 못합니다.
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">등록 절차</div>
+    <h2 class="section-title">SAC에 위젯 등록하는 방법</h2>
+
+    <div class="step-list">
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>ZIP 파일 준비</h4>
+          <p><code>widget.json</code>, <code>main.js</code>, <code>styling.js</code> 3개 파일을 서브폴더 없이 ZIP으로 압축합니다.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>Custom Widgets 메뉴 진입</h4>
+          <p>SAC 메인 메뉴 → Stories → Custom Widgets 탭으로 이동합니다.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>widget.json 먼저 업로드</h4>
+          <p>"+" 버튼 클릭 → widget.json 파일 선택. ZIP이 아닌 JSON 파일만 선택합니다.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h4>ZIP 파일 업로드</h4>
+          <p>JSON 업로드 후 나타나는 "Select File" 버튼 → 준비한 ZIP 파일 선택.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <h4>등록 확인 후 스토리에서 사용</h4>
+          <p>Custom Widgets 목록에 위젯이 표시되면 완료. 이후 스토리 편집 화면의 위젯 패널에서 드래그하여 캔버스에 배치합니다.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-title">재등록 시 주의</span>
+      동일한 id의 위젯을 수정하려면 기존 위젯을 삭제한 후 재등록해야 합니다. 삭제 전 해당 위젯을 사용 중인 스토리 목록을 반드시 확인하십시오.
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- 탭 3. 협업 프로세스 -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="tab3" class="tab-content">
+
+  <div class="section">
+    <div class="section-eyebrow">전체 흐름</div>
+    <h2 class="section-title">Claude와 함께 하는 위젯 개발 사이클</h2>
+    <p class="section-lead">위젯 개발은 단발성 작업이 아닙니다. 요구사항 정의 → 코드 생성 → 등록·테스트 → 오류 전달 → 수정의 사이클을 여러 번 반복합니다. 이 사이클을 효율적으로 돌리는 것이 핵심 역량입니다.</p>
+
+    <div class="flow-diagram">
+      <div class="flow-step">
+        <span class="flow-num">STEP 1</span>
+        <span class="flow-label">요구사항<br>정의</span>
+      </div>
+      <div class="flow-step active-step">
+        <span class="flow-num">STEP 2</span>
+        <span class="flow-label">Claude에<br>프롬프트 전달</span>
+      </div>
+      <div class="flow-step">
+        <span class="flow-num">STEP 3</span>
+        <span class="flow-label">파일 수령·<br>SAC 등록</span>
+      </div>
+      <div class="flow-step">
+        <span class="flow-num">STEP 4</span>
+        <span class="flow-label">테스트</span>
+      </div>
+      <div class="flow-step active-step">
+        <span class="flow-num">STEP 5</span>
+        <span class="flow-label">오류 메시지<br>Claude 전달</span>
+      </div>
+      <div class="flow-step">
+        <span class="flow-num">STEP 6</span>
+        <span class="flow-label">수정 후<br>재등록</span>
+      </div>
+    </div>
+
+    <p style="font-size:13px; color:var(--gray-mid); margin-top:10px;">파란색 배경 단계가 컨설턴트가 Claude와 직접 상호작용하는 구간입니다. Step 4~6은 위젯이 완성될 때까지 반복합니다.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Step 1 · 요구사항 정의</div>
+    <h2 class="section-title">좋은 요구사항 프롬프트 작성법</h2>
+    <p class="section-lead">Claude에게 전달하는 초기 프롬프트의 품질이 개발 사이클 횟수를 결정합니다. 다음 4가지를 반드시 포함하십시오.</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-label">① UI 동작</div>
+        <h3>화면이 어떻게 보이고 작동해야 하는가</h3>
+        <p>레이아웃, 색상, 클릭·입력 시 동작 방식을 구체적으로 묘사합니다. "예쁘게"가 아니라 "좌측에 트리 메뉴, 클릭 시 오른쪽 영역 전환"처럼 서술합니다.</p>
+      </div>
+      <div class="card">
+        <div class="card-label">② 데이터 연동</div>
+        <h3>어떤 데이터를 어떻게 받는가</h3>
+        <p>SAC 스크립트에서 어떤 형태로 데이터를 전달할지 명시합니다. 예: "SAC 스크립트에서 문자열 형태로 JSON을 전달하는 setContext() 메서드가 필요합니다."</p>
+      </div>
+      <div class="card">
+        <div class="card-label">③ SAC 제약 명시</div>
+        <h3>SAC 환경 제약사항을 반드시 포함</h3>
+        <p>SAC Custom Widget은 일반 웹과 다른 제약이 있습니다. 이를 Claude에게 미리 알려야 오류를 줄일 수 있습니다. (다음 섹션 참고)</p>
+      </div>
+      <div class="card">
+        <div class="card-label">④ 파일 구조</div>
+        <h3>3파일 구조임을 명시</h3>
+        <p>"widget.json, main.js, styling.js 3개 파일을 각각 작성해 주세요"라고 명시합니다. 누락하면 Claude가 단일 파일로 작성할 수 있습니다.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Step 2 · Claude 프롬프트 구성</div>
+    <h2 class="section-title">SAC 제약사항 — Claude에게 반드시 전달해야 할 내용</h2>
+    <p class="section-lead">SAC Custom Widget 환경에는 일반 JavaScript와 다른 구조적 제약이 있습니다. 이를 초기 프롬프트에 포함하거나, 오류 발생 시 함께 전달해야 Claude가 올바른 코드를 생성합니다.</p>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>제약 항목</th>
+          <th>이유 / 증상</th>
+          <th>Claude에게 전달할 내용</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="badge badge-warn">필수</span>widget.json 구조</td>
+          <td>properties / methods / events는 최상위 레벨에 선언해야 하며, <code>contributions</code> 블록 사용 불가</td>
+          <td>"contributions 블록을 사용하지 말고 properties, methods, events를 최상위 레벨에 선언해 주세요"</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-warn">필수</span>HTMLElement 상속</td>
+          <td>prototype 방식 사용 시 "Failed to construct HTMLElement" 오류 발생</td>
+          <td>"반드시 class extends HTMLElement 문법을 사용해 주세요"</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-warn">필수</span>id 작명 규칙</td>
+          <td>점(.)과 하이픈(-)은 사용 불가, 언더스코어(_)만 허용</td>
+          <td>"widget id에 점이나 하이픈을 쓰지 마세요. 언더스코어만 사용합니다"</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-navy">권장</span>parameter 타입</td>
+          <td>object 타입 지원 안 됨. string 타입으로 우회 필요</td>
+          <td>"setContext() 파라미터 타입은 string을 사용해 주세요"</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-navy">권장</span>SAC 스크립트 제약</td>
+          <td>SAC 스크립트에서 [] 리터럴, JSON.stringify(), 삼항연산자 사용 불가</td>
+          <td>"SAC 스크립트 예제를 작성할 때 아래 제약을 지켜 주세요" (아래 표 포함)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3 style="font-size:15px; font-weight:700; color:var(--gray-dark); margin: 24px 0 12px;">SAC 스크립트 제약 대응표</h3>
+    <p style="font-size:13.5px; color:var(--gray-mid); margin-bottom:14px;">SAC 스크립트(버튼 onClick 등)에서 위젯에 데이터를 전달하는 코드를 Claude가 작성할 때, 아래 금지 구문을 쓰지 않도록 미리 알려야 합니다.</p>
+
+    <table class="data-table">
+      <thead>
+        <tr><th>금지 구문</th><th>대체 방법</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>var arr = []</code></td><td><code>ArrayUtils.create(Type.string)</code> 사용</td></tr>
+        <tr><td><code>JSON.stringify(obj)</code></td><td>문자열 + 연결로 직접 조립</td></tr>
+        <tr><td><code>condition ? a : b</code> 삼항연산자</td><td><code>if / else if / else</code> 블록으로 전환</td></tr>
+        <tr><td><code>str.replace()</code></td><td><code>StringUtils.replaceAll(str, from, to)</code></td></tr>
+        <tr><td><code>parseInt()</code></td><td><code>ConvertUtils.stringToInteger()</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Step 5 · 오류 전달</div>
+    <h2 class="section-title">오류 발생 시 Claude에게 전달하는 방법</h2>
+    <p class="section-lead">SAC 등록 후 오류가 발생하면 당황하지 않아도 됩니다. 오류 메시지 전체를 Claude에게 전달하면 됩니다. 이때 컨텍스트를 함께 제공할수록 해결이 빠릅니다.</p>
+
+    <div class="callout correct">
+      <span class="callout-title">✓ 좋은 오류 전달 예시</span>
+      "SAC에 등록하고 스토리에 배치했는데 다음 오류가 발생했습니다: <strong>Failed to construct HTMLElement</strong><br>
+      오류는 위젯을 캔버스에 드래그했을 때 바로 발생했고, 위젯이 화면에 표시되지 않습니다. 현재 widget.json과 main.js 코드를 첨부합니다."
+    </div>
+
+    <div class="callout wrong">
+      <span class="callout-title">✗ 나쁜 오류 전달 예시</span>
+      "안 됩니다. 오류가 떠요."<br>
+      → 오류 메시지, 발생 시점, 현재 코드 없이 전달 시 Claude가 원인을 추정해야 하므로 해결 사이클이 늘어납니다.
+    </div>
+
+    <h3 style="font-size:15px; font-weight:700; color:var(--gray-dark); margin: 24px 0 12px;">오류 전달 체크리스트</h3>
+    <ul class="bullet-list">
+      <li>Chrome 개발자 도구(F12) → Console 탭의 오류 메시지 전체 복사</li>
+      <li>오류가 발생한 시점 명시 (등록 시, 스토리 배치 시, 버튼 클릭 시 등)</li>
+      <li>현재 widget.json / main.js / styling.js 코드 전체 첨부</li>
+      <li>직전에 변경한 내용이 있다면 무엇을 변경했는지 기술</li>
+    </ul>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- 탭 4. 예제 A: 메뉴 위젯 -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="tab4" class="tab-content">
+
+  <div class="section">
+    <div class="section-eyebrow">실습 예제 A</div>
+    <h2 class="section-title">메뉴 내비게이션 위젯</h2>
+    <p class="section-lead">SAC 스토리 안에 계층형 메뉴 트리를 표시하고, 메뉴 항목 클릭 시 다른 스토리나 기능으로 이동하는 위젯입니다. 메뉴 구조는 위젯 코드에 하드코딩되어 있으며, Public Dimension 연계를 통한 동적 구성은 후속 교육에서 다룹니다.</p>
+
+    <div class="card-grid" style="margin-bottom:28px;">
+      <div class="card">
+        <div class="card-label">구현된 기능</div>
+        <h3>완성본 기준</h3>
+        <p>2단계 계층 메뉴 트리 렌더링, 섹션 펼침/접힘(accordion), 메뉴 전체 숨기기/보이기(flip), 항목 클릭 시 SAC NavigationUtils 연동</p>
+      </div>
+      <div class="card">
+        <div class="card-label">구성 파일</div>
+        <h3>widget.json + main.js</h3>
+        <p>이 위젯은 외부 설정값이 없어 styling.js가 불필요합니다. 2파일로 구성됩니다.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Step 1 · 요구사항 정의</div>
+    <h2 class="section-title">Claude에게 전달한 초기 프롬프트</h2>
+    <p class="section-lead">다음은 메뉴 위젯 개발 시 Claude에게 전달한 정제된 모범 프롬프트입니다.</p>
+
+    <div class="prompt-box">
+      <span class="prompt-label">Initial Prompt — Menu Navigation Widget</span>
+      <div class="prompt-text">SAP Analytics Cloud(SAC)에서 사용할 Custom Widget을 만들어 주세요.
+이 위젯은 사업계획 패키지의 내비게이션 메뉴 역할을 합니다.
+
+<strong>[ 기능 요구사항 ]</strong>
+1. 2단계 계층 메뉴를 트리 형태로 표시합니다
+   - 1단계: 대분류 섹션 (클릭 시 펼침/접힘)
+   - 2단계: 세부 메뉴 항목 (클릭 시 화면 전환)
+2. 위젯 상단에 메뉴 전체를 숨기고 펼치는 flip 버튼이 있어야 합니다
+3. 현재 선택된 항목이 시각적으로 강조 표시되어야 합니다
+4. 메뉴 항목 클릭 시 SAC의 NavigationUtils.openApplication()을 호출합니다
+
+<strong>[ UI 디자인 ]</strong>
+- 배경 흰색, 강조색 네이비(#003366), 폰트 작고 깔끔하게
+- 아이콘 없이 텍스트만 사용, 그림자·입체 효과 없음
+- 최소 너비 200px, 높이는 위젯 크기에 맞게 자동 조절
+
+<strong>[ SAC 환경 제약 — 반드시 준수 ]</strong>
+- widget.json에서 contributions 블록 사용 금지. properties/methods/events는 최상위 레벨에 선언
+- widget id에 점(.)과 하이픈(-) 사용 금지, 언더스코어(_)만 사용
+- main.js에서 반드시 class extends HTMLElement 문법 사용 (prototype 방식 금지)
+- newInstancePrefix 필드를 widget.json에 반드시 포함
+- ignoreIntegrity: true 설정
+
+<strong>[ 파일 구성 ]</strong>
+widget.json, main.js 2개 파일을 각각 작성해 주세요.
+(Styling Panel 불필요, styling.js 제외)
+
+메뉴 데이터는 main.js 내부에 하드코딩으로 테스트용 샘플을 넣어 주세요.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Step 2 · 완성 코드</div>
+    <h2 class="section-title">widget.json — 핵심 구조</h2>
+    <p class="section-lead">widget.json의 전체 코드가 아닌 핵심 구조와 주의 포인트를 설명합니다.</p>
+
+    <div class="math-block">
+      <pre><span class="cm">// widget.json 핵심 구조</span>
+{
+  <span class="ck">"id"</span>: <span class="cs">"custom_planning_nav_menu"</span>,     <span class="cm">// 언더스코어만 사용 ← 중요</span>
+  <span class="ck">"version"</span>: <span class="cs">"1.0.0"</span>,
+  <span class="ck">"name"</span>: <span class="cs">"Planning Nav Menu"</span>,
+  <span class="ck">"newInstancePrefix"</span>: <span class="cs">"NavMenu"</span>,       <span class="cm">// 누락 시 등록 오류 발생 ← 필수</span>
+  <span class="ck">"ignoreIntegrity"</span>: <span class="cv">true</span>,            <span class="cm">// 개발 단계에서만 true</span>
+
+  <span class="cm">// ✓ contributions 블록 없이 최상위 레벨에 직접 선언</span>
+  <span class="ck">"webcomponents"</span>: [
+    {
+      <span class="ck">"kind"</span>: <span class="cs">"main"</span>,
+      <span class="ck">"tag"</span>: <span class="cs">"com-planning-nav-menu"</span>,
+      <span class="ck">"url"</span>: <span class="cs">"main.js"</span>,
+      <span class="ck">"integrity"</span>: <span class="cs">""</span>
+    }
+  ],
+
+  <span class="ck">"properties"</span>: {},                     <span class="cm">// 최상위 레벨 선언</span>
+  <span class="ck">"methods"</span>: {
+    <span class="ck">"setMenuData"</span>: {                    <span class="cm">// SAC 스크립트에서 호출할 메서드</span>
+      <span class="ck">"description"</span>: <span class="cs">"메뉴 데이터 JSON 문자열 전달"</span>,
+      <span class="ck">"parameters"</span>: [
+        { <span class="ck">"name"</span>: <span class="cs">"menuJson"</span>, <span class="ck">"type"</span>: <span class="cs">"string"</span> }  <span class="cm">// object 아닌 string ← 중요</span>
+      ]
+    }
+  },
+  <span class="ck">"events"</span>: {
+    <span class="ck">"onMenuSelect"</span>: {
+      <span class="ck">"description"</span>: <span class="cs">"메뉴 항목 선택 시 발생"</span>
+    }
+  }
+}</pre>
+    </div>
+
+    <h2 class="section-title" style="margin-top:32px;">main.js — 핵심 패턴</h2>
+
+    <div class="math-block">
+      <pre><span class="cm">// main.js 핵심 구조 — Web Component 필수 패턴</span>
+
+<span class="cn">class</span> <span class="cv">PlanningNavMenu</span> <span class="cn">extends</span> <span class="cv">HTMLElement</span> {  <span class="cm">// ← prototype 방식 금지</span>
+
+  <span class="cv">constructor</span>() {
+    <span class="cn">super</span>();
+    <span class="cm">// Shadow DOM으로 스타일 격리</span>
+    <span class="cn">this</span>._shadow = <span class="cn">this</span>.attachShadow({ mode: <span class="cs">'open'</span> });
+    <span class="cn">this</span>._menuData = <span class="cn">null</span>;
+    <span class="cn">this</span>._collapsed = <span class="cv">false</span>;
+  }
+
+  <span class="cm">// SAC가 위젯을 캔버스에 추가할 때 자동 호출</span>
+  <span class="cv">connectedCallback</span>() {
+    <span class="cn">this</span>._render();
+  }
+
+  <span class="cm">// widget.json의 methods에 선언한 메서드 — SAC 스크립트에서 직접 호출</span>
+  <span class="cv">setMenuData</span>(menuJson) {
+    <span class="cn">try</span> {
+      <span class="cn">this</span>._menuData = JSON.parse(menuJson);
+      <span class="cn">this</span>._render();
+    } <span class="cn">catch</span>(e) {
+      console.error(<span class="cs">'메뉴 데이터 파싱 오류:'</span>, e);
+    }
+  }
+
+  <span class="cm">// 메뉴 항목 클릭 → SAC 이벤트 발생</span>
+  <span class="cv">_onMenuClick</span>(storyId) {
+    <span class="cn">this</span>.dispatchEvent(<span class="cn">new</span> CustomEvent(<span class="cs">'onMenuSelect'</span>, {
+      detail: { storyId },
+      bubbles: <span class="cv">true</span>
+    }));
+  }
+}
+
+customElements.define(<span class="cs">'com-planning-nav-menu'</span>, PlanningNavMenu);</pre>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Step 3 · SAC 연동</div>
+    <h2 class="section-title">스토리에서 메뉴 위젯 호출하는 SAC 스크립트</h2>
+    <p class="section-lead">스토리의 버튼 onClick 등에서 아래와 같이 위젯 메서드를 호출합니다. SAC 스크립트 제약에 맞게 작성된 예시입니다.</p>
+
+    <div class="math-block">
+      <pre><span class="cm">// SAC 스크립트 — 메뉴 데이터를 위젯에 전달하는 예시</span>
+<span class="cm">// ✗ JSON.stringify() 금지 / ✓ 문자열 직접 조립</span>
+
+<span class="cn">var</span> menuJson = <span class="cs">'{'</span>
+  + <span class="cs">'"sections": ['</span>
+  + <span class="cs">'{"id":"s1","label":"매출 계획","items":['</span>
+  + <span class="cs">'{"id":"m1","label":"연간 매출 계획","storyId":"STORY_001"},'</span>
+  + <span class="cs">'{"id":"m2","label":"월별 매출 분석","storyId":"STORY_002"}'</span>
+  + <span class="cs">']}'</span>
+  + <span class="cs">']}'</span>;
+
+<span class="cm">// 위젯의 setMenuData() 메서드 직접 호출</span>
+NavMenu_1.setMenuData(menuJson);</pre>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-title">SAC 스크립트 제약 적용 포인트</span>
+      위 코드에서 <code>JSON.stringify()</code> 대신 문자열을 직접 + 연결로 조립했습니다. Claude에게 SAC 스크립트를 요청할 때 이 제약을 명시하면 처음부터 올바른 코드를 받을 수 있습니다.
+    </div>
+  </div>
+
+  <div class="next-box">
+    <span class="next-box-title">⟶ 후속 교육 예정</span>
+    <h4>메뉴 위젯 고도화편: Public Dimension 마스터 연계</h4>
+    <p>현재 예제는 메뉴 데이터가 SAC 스크립트에 하드코딩되어 있습니다. 후속 교육에서는 SAC Public Dimension에 메뉴 계층 구조(ID, 부모ID, 라벨, 링크, 순서, 표시여부)를 마스터로 관리하고, 스토리 로드 시 Planning Model 오브젝트를 통해 Dimension 멤버를 읽어 동적으로 메뉴를 구성하는 전체 과정을 다룹니다.</p>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- 탭 5. 예제 B: AI 위젯 -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="tab5" class="tab-content">
+
+  <div class="section">
+    <div class="section-eyebrow">실습 예제 B</div>
+    <h2 class="section-title">Claude AI 분석 위젯</h2>
+    <p class="section-lead">SAC 스토리 안에서 Anthropic Claude API를 직접 호출하여 자연어로 데이터를 분석하는 위젯입니다. API Key, System Prompt, 최대 토큰 수를 Styling Panel에서 설정할 수 있습니다.</p>
+
+    <div class="card-grid" style="margin-bottom:28px;">
+      <div class="card">
+        <div class="card-label">구현된 기능</div>
+        <h3>완성본 기준</h3>
+        <p>사용자 입력 → Claude API 직접 호출 → 응답 표시, 대화 히스토리 관리(누적/초기화), Styling Panel에서 API Key / System Prompt / maxTokens 설정</p>
+      </div>
+      <div class="card">
+        <div class="card-label">구성 파일</div>
+        <h3>widget.json + main.js + styling.js</h3>
+        <p>API Key 등 설정값 입력 UI가 필요하므로 styling.js가 포함됩니다. 3파일 풀 구성입니다.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Step 1 · 요구사항 정의</div>
+    <h2 class="section-title">Claude에게 전달한 초기 프롬프트</h2>
+
+    <div class="prompt-box">
+      <span class="prompt-label">Initial Prompt — Claude AI Analysis Widget</span>
+      <div class="prompt-text">SAP Analytics Cloud(SAC)에서 사용할 Claude AI 분석 Custom Widget을 만들어 주세요.
+
+<strong>[ 기능 요구사항 ]</strong>
+1. 사용자가 텍스트를 입력하고 전송하면 Anthropic Claude API를 호출합니다
+2. API 응답을 위젯 안에 표시하고, 대화 히스토리를 유지합니다
+3. [대화 초기화] 버튼으로 히스토리를 초기화할 수 있어야 합니다
+4. setContext(jsonString) 메서드를 통해 외부에서 데이터 컨텍스트를 주입받을 수 있어야 합니다
+   - SAC 스크립트에서 문자열 형태로 JSON을 전달합니다
+   - 전달받은 데이터는 다음 API 호출 시 시스템 컨텍스트로 포함됩니다
+
+<strong>[ Styling Panel 설정값 ]</strong>
+다음 항목을 Styling Panel에서 편집할 수 있어야 합니다:
+- API Key (text 입력)
+- System Prompt (textarea 형태의 text 입력)
+- Max Tokens (number 입력, 기본값 8192)
+
+<strong>[ API 호출 방식 ]</strong>
+- 엔드포인트: https://api.anthropic.com/v1/messages
+- 모델: claude-sonnet-4-6
+- 반드시 anthropic-dangerous-direct-browser-access 헤더를 포함해야 합니다
+- API Key는 Styling Panel에서 받아옵니다
+
+<strong>[ SAC 환경 제약 — 반드시 준수 ]</strong>
+- contributions 블록 사용 금지, properties/methods/events 최상위 선언
+- id에 점(.)과 하이픈(-) 사용 금지
+- class extends HTMLElement 사용 (prototype 방식 금지)
+- newInstancePrefix 필드 필수 포함
+- ignoreIntegrity: true 설정
+- widget.json의 methods body 필드에 this.setContext() 등 자기 참조 코드 금지
+
+<strong>[ 파일 구성 ]</strong>
+widget.json, main.js, styling.js 3개 파일을 각각 작성해 주세요.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Step 2 · 완성 코드</div>
+    <h2 class="section-title">핵심 구현 포인트</h2>
+
+    <h3 style="font-size:15px; font-weight:700; color:var(--gray-dark); margin: 0 0 12px;">① Anthropic API 직접 호출 — 브라우저 환경 필수 헤더</h3>
+    <div class="math-block">
+      <pre><span class="cm">// main.js — Claude API 호출 핵심 코드</span>
+<span class="cn">async</span> <span class="cv">_callClaude</span>(userMessage) {
+  <span class="cn">const</span> response = <span class="cn">await</span> fetch(<span class="cs">'https://api.anthropic.com/v1/messages'</span>, {
+    method: <span class="cs">'POST'</span>,
+    headers: {
+      <span class="cs">'Content-Type'</span>: <span class="cs">'application/json'</span>,
+      <span class="cs">'x-api-key'</span>: <span class="cn">this</span>._apiKey,
+      <span class="cs">'anthropic-version'</span>: <span class="cs">'2023-06-01'</span>,
+      <span class="cm">// ↓ 브라우저에서 직접 API 호출 시 반드시 필요</span>
+      <span class="cs">'anthropic-dangerous-direct-browser-access'</span>: <span class="cs">'true'</span>
+    },
+    body: JSON.stringify({
+      model: <span class="cs">'claude-sonnet-4-6'</span>,
+      max_tokens: <span class="cn">this</span>._maxTokens,
+      system: <span class="cn">this</span>._buildSystemPrompt(),  <span class="cm">// context 포함</span>
+      messages: <span class="cn">this</span>._history           <span class="cm">// 대화 히스토리 전체 전달</span>
+    })
+  });
+
+  <span class="cn">const</span> data = <span class="cn">await</span> response.json();
+  <span class="cn">return</span> data.content[0].text;
+}</pre>
+    </div>
+
+    <h3 style="font-size:15px; font-weight:700; color:var(--gray-dark); margin: 24px 0 12px;">② setContext() — SAC 데이터 주입 패턴</h3>
+    <div class="math-block">
+      <pre><span class="cm">// main.js — SAC 스크립트에서 데이터를 받는 메서드</span>
+<span class="cv">setContext</span>(jsonString) {
+  <span class="cn">try</span> {
+    <span class="cn">this</span>._context = JSON.parse(jsonString);
+    <span class="cm">// 컨텍스트 수신 알림 (선택)</span>
+    <span class="cn">this</span>._showContextBadge();
+  } <span class="cn">catch</span>(e) {
+    console.error(<span class="cs">'Context 파싱 오류:'</span>, e);
+  }
+}
+
+<span class="cm">// API 호출 시 컨텍스트를 시스템 프롬프트에 추가</span>
+<span class="cv">_buildSystemPrompt</span>() {
+  <span class="cn">var</span> prompt = <span class="cn">this</span>._systemPrompt;
+  <span class="cn">if</span> (<span class="cn">this</span>._context) {
+    prompt += <span class="cs">'\n\n[분석 데이터]\n'</span> + JSON.stringify(<span class="cn">this</span>._context);
+  }
+  <span class="cn">return</span> prompt;
+}</pre>
+    </div>
+
+    <h3 style="font-size:15px; font-weight:700; color:var(--gray-dark); margin: 24px 0 12px;">③ widget.json — methods body 필드 제거 포인트</h3>
+    <div class="math-block">
+      <pre><span class="cm">// widget.json — setContext 메서드 선언 (body 필드 없음)</span>
+<span class="ck">"methods"</span>: {
+  <span class="ck">"setContext"</span>: {
+    <span class="ck">"description"</span>: <span class="cs">"SAC 데이터를 JSON 문자열로 전달"</span>,
+    <span class="ck">"parameters"</span>: [
+      { <span class="ck">"name"</span>: <span class="cs">"jsonString"</span>, <span class="ck">"type"</span>: <span class="cs">"string"</span> }
+    ]
+    <span class="cm">// ✗ body 필드 금지 — this.setContext() 자기 호출로</span>
+    <span class="cm">//   Maximum call stack exceeded 오류 발생</span>
+  }
+}</pre>
+    </div>
+
+    <h3 style="font-size:15px; font-weight:700; color:var(--gray-dark); margin: 24px 0 12px;">④ Styling Panel API Key 설정</h3>
+    <p style="font-size:13.5px; color:var(--gray-mid); margin-bottom:14px;">위젯을 스토리에 배치한 후 우측 Styling 탭에서 다음 순서로 설정합니다.</p>
+    <div class="step-list">
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>위젯 선택 → Styling 탭</h4>
+          <p>캔버스에서 위젯 클릭 → 우측 패널 상단 "Styling" 탭 클릭</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>API Key 입력</h4>
+          <p><code>sk-ant-api03-...</code> 형태의 Anthropic API Key 입력</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>System Prompt 작성</h4>
+          <p>예: "당신은 재무 분석 전문가입니다. 주어진 데이터를 기반으로 한국어로 분석 의견을 제시해 주세요."</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h4>적용 버튼 클릭</h4>
+          <p>위젯 헤더 타이틀이 변경되면 설정 완료. API Key 입력란이 표시되지 않으면 styling.js 미등록 상태로, 트러블슈팅 탭을 참고하십시오.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">운영 고려사항</div>
+    <h2 class="section-title">비용 구조와 보안 개요</h2>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-label">비용 구조</div>
+        <h3>토큰 기반 과금</h3>
+        <p>Claude API는 입력 토큰 + 출력 토큰 합산으로 과금됩니다. 한국어는 영어보다 토큰 효율이 낮아(약 1.5자/토큰) 영어 대비 비용이 높습니다. 대화 히스토리가 누적될수록 입력 토큰이 증가하므로, 분석 완료 후 히스토리 초기화를 습관화하십시오.</p>
+      </div>
+      <div class="card">
+        <div class="card-label">보안 — 개발 vs 운영</div>
+        <h3>API Key 노출 위험</h3>
+        <p>현재 구현은 브라우저에서 API를 직접 호출하는 개발/테스트 전용 구조입니다. API Key가 브라우저 메모리에 올라가므로 내부 테스트 환경에서만 사용하십시오. 운영 배포 시에는 SAP BTP 또는 별도 서버에 Proxy를 구축하고 API Key를 서버 환경변수로만 관리해야 합니다.</p>
+      </div>
+    </div>
+
+    <div class="callout warn" style="margin-top:20px;">
+      <span class="callout-title">운영 Proxy 구조 개요</span>
+      브라우저 → SAP BTP(or Node.js) Proxy 서버 → Anthropic API. Proxy 서버가 API Key를 보관하고, SAC 테넌트 도메인만 CORS 허용합니다. 이 구조에서는 위젯 Styling Panel에 API Key 대신 Proxy 서버 URL만 입력합니다.
+    </div>
+  </div>
+
+  <div class="next-box">
+    <span class="next-box-title">⟶ 후속 교육 예정</span>
+    <h4>AI 위젯 데이터 연동편: SAC 데이터셋과 setContext 실습</h4>
+    <p>현재 예제는 위젯 자체의 동작을 확인하는 수준입니다. 후속 교육에서는 SAC 테이블 위젯의 실제 데이터를 getResultSet()으로 읽어 문자열로 조립한 뒤 setContext()로 AI 위젯에 주입하는 전체 데이터 연동 흐름을 실습합니다. 대화 히스토리 관리 전략과 비용 최적화 방법도 함께 다룹니다.</p>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- 탭 6. 트러블슈팅 -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="tab6" class="tab-content">
+
+  <div class="section">
+    <div class="section-eyebrow">실제 발생 오류 모음</div>
+    <h2 class="section-title">오류 발생 시 Claude에게 어떻게 전달하는가</h2>
+    <p class="section-lead">다음은 SAC Custom Widget 개발 중 실제로 발생한 오류 8종입니다. 각 오류의 발생 원인과 함께, Claude에게 어떻게 설명하면 빠르게 해결할 수 있는지를 정리했습니다.</p>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th style="width:22%">오류 메시지</th>
+          <th style="width:28%">원인</th>
+          <th style="width:28%">Claude에게 전달 방법</th>
+          <th style="width:22%">해결 결과</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>Contribution 속성 누락</code></td>
+          <td>widget.json에 <code>contributions</code> 블록 구조 사용</td>
+          <td>"contributions 블록을 사용했는데 오류가 납니다. properties/methods/events를 최상위로 이동해 주세요"</td>
+          <td>contributions 블록 제거, 3개 섹션을 최상위 레벨로 이동</td>
+        </tr>
+        <tr>
+          <td><code>newInstancePrefix 누락</code></td>
+          <td>widget.json 필수 필드 미기입</td>
+          <td>"newInstancePrefix 오류가 납니다. 이 필드를 추가해 주세요"</td>
+          <td><code>"newInstancePrefix": "위젯명"</code> 추가</td>
+        </tr>
+        <tr>
+          <td><code>"object" 타입이 유효하지 않음</code></td>
+          <td>methods parameter에 object 타입 사용</td>
+          <td>"object 타입이 지원 안 된다고 합니다. string 타입으로 바꾸고 JSON 문자열로 전달하는 방식으로 변경해 주세요"</td>
+          <td>type을 string으로 변경, main.js에서 JSON.parse()로 수신</td>
+        </tr>
+        <tr>
+          <td><code>Maximum call stack exceeded</code></td>
+          <td>widget.json methods body 필드에서 <code>this.setContext()</code> 자기 호출</td>
+          <td>"Maximum call stack exceeded 오류가 납니다. methods body 필드에서 this.setContext()가 자기 자신을 호출하는 것이 원인인 것 같습니다"</td>
+          <td>widget.json methods에서 body 필드 완전 제거. 메서드는 main.js에서만 구현</td>
+        </tr>
+        <tr>
+          <td><code>id에 특수문자 포함 오류</code></td>
+          <td>widget id에 점(.) 또는 하이픈(-) 포함</td>
+          <td>"id 특수문자 오류가 납니다. id에서 점과 하이픈을 제거하고 언더스코어만 사용하도록 변경해 주세요"</td>
+          <td>id를 <code>언더스코어_형태</code>로 변경</td>
+        </tr>
+        <tr>
+          <td><code>Failed to construct HTMLElement</code></td>
+          <td>prototype 방식으로 HTMLElement 상속 시도</td>
+          <td>"Failed to construct HTMLElement 오류가 납니다. prototype 방식을 쓴 것 같습니다. class extends HTMLElement 문법으로 바꿔 주세요"</td>
+          <td>전체 main.js를 class 문법으로 재작성</td>
+        </tr>
+        <tr>
+          <td><code>Failed to fetch</code></td>
+          <td>API Key 미설정 또는 CORS 헤더 누락</td>
+          <td>"Failed to fetch 오류가 납니다. API Key는 Styling Panel에 입력했는데, anthropic-dangerous-direct-browser-access 헤더가 빠진 것 같습니다"</td>
+          <td>fetch 헤더에 <code>anthropic-dangerous-direct-browser-access: true</code> 추가</td>
+        </tr>
+        <tr>
+          <td>API Key 입력란 미표시</td>
+          <td>styling.js 미등록 또는 widget.json webcomponents에 styling 항목 누락</td>
+          <td>"Styling Panel에 API Key 입력란이 표시되지 않습니다. styling.js를 등록하지 않은 것 같습니다. widget.json 수정 방법과 재등록 절차를 알려 주세요"</td>
+          <td>widget.json webcomponents 배열에 styling 항목 추가 후 위젯 삭제 및 재등록</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">패턴 정리</div>
+    <h2 class="section-title">오류 유형별 빠른 진단</h2>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-label">등록 단계 오류</div>
+        <h3>SAC에 업로드할 때 발생</h3>
+        <p>주로 widget.json 구조 문제입니다. contributions 블록, newInstancePrefix 누락, id 특수문자를 먼저 확인합니다. Claude에게 widget.json 전체를 붙여넣고 "등록 오류가 발생했다"고 전달하면 구조를 진단해 줍니다.</p>
+      </div>
+      <div class="card">
+        <div class="card-label">배치 단계 오류</div>
+        <h3>스토리에 드래그할 때 발생</h3>
+        <p>주로 main.js의 HTMLElement 상속 방식 문제입니다. <code>Failed to construct HTMLElement</code> 또는 <code>Failed to retrieve webcomponent instance</code>가 대표적입니다. main.js 전체를 Claude에게 전달하면 됩니다.</p>
+      </div>
+      <div class="card">
+        <div class="card-label">실행 단계 오류</div>
+        <h3>위젯 사용 중 발생</h3>
+        <p>API 호출 오류(<code>Failed to fetch</code>), 데이터 파싱 오류 등입니다. Chrome 개발자 도구 Console의 오류 메시지 전체를 복사하여 Claude에게 전달합니다.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Quiz</div>
+    <h2 class="section-title">확인 문제</h2>
+
+    <div class="quiz-section">
+
+      <div class="quiz-card">
+        <div class="quiz-q"><span>Q1</span>SAC Custom Widget의 3개 파일 중, SAC 스토리 편집 화면 우측 패널의 설정 입력 폼을 담당하는 파일은?</div>
+        <div class="quiz-options">
+          <button class="quiz-opt" onclick="answerQuiz(this, false, 'q1')">① widget.json</button>
+          <button class="quiz-opt" onclick="answerQuiz(this, false, 'q1')">② main.js</button>
+          <button class="quiz-opt" onclick="answerQuiz(this, true, 'q1')">③ styling.js</button>
+          <button class="quiz-opt" onclick="answerQuiz(this, false, 'q1')">④ config.js</button>
+        </div>
+        <div class="quiz-explain" id="q1-explain">styling.js는 SAC 스토리 편집 화면의 Styling Panel을 담당합니다. API Key, System Prompt 등 위젯 설정값을 입력받는 UI를 이 파일에서 구현합니다. 이 파일이 누락되면 Styling Panel에 설정 입력란이 표시되지 않습니다.</div>
+      </div>
+
+      <div class="quiz-card">
+        <div class="quiz-q"><span>Q2</span>widget.json의 id 필드에 사용할 수 없는 문자는?</div>
+        <div class="quiz-options">
+          <button class="quiz-opt" onclick="answerQuiz(this, false, 'q2')">① 영문 소문자</button>
+          <button class="quiz-opt" onclick="answerQuiz(this, false, 'q2')">② 숫자</button>
+          <button class="quiz-opt" onclick="answerQuiz(this, false, 'q2')">③ 언더스코어(_)</button>
+          <button class="quiz-opt" onclick="answerQuiz(this, true, 'q2')">④ 하이픈(-)과 점(.)</button>
+        </div>
+        <div class="quiz-explain" id="q2-explain">SAC는 widget id에 하이픈(-)과 점(.)을 허용하지 않습니다. 언더스코어(_)만 사용해야 합니다. 예를 들어 <code>my.widget-v1</code>은 불가하며, <code>my_widget_v1</code>로 작성해야 합니다.</div>
+      </div>
+
+      <div class="quiz-card">
+        <div class="quiz-q"><span>Q3</span>SAC 스크립트에서 사용할 수 없는 구문은?</div>
+        <div class="quiz-options">
+          <button class="quiz-opt" onclick="answerQuiz(this, false, 'q3')">① if / else if / else</button>
+          <button class="quiz-opt" onclick="answerQuiz(this, true, 'q3')">② JSON.stringify()</button>
+          <button class="quiz-opt" onclick="answerQuiz(this, false, 'q3')">③ StringUtils.replaceAll()</button>
+          <button class="quiz-opt" onclick="answerQuiz(this, false, 'q3')">④ var 변수 선언</button>
+        </div>
+        <div class="quiz-explain" id="q3-explain">SAC 스크립트에서는 JSON.stringify(), [] 배열 리터럴, 삼항연산자(?:), str.replace() 등을 사용할 수 없습니다. JSON 문자열이 필요한 경우 + 연결 연산자로 직접 조립해야 합니다. Claude에게 SAC 스크립트 작성을 요청할 때 이 제약을 미리 명시하면 오류를 줄일 수 있습니다.</div>
+      </div>
+
+      <div class="quiz-card">
+        <div class="quiz-q"><span>Q4</span>브라우저에서 Anthropic API를 직접 호출할 때 반드시 포함해야 하는 헤더는?</div>
+        <div class="quiz-options">
+          <button class="quiz-opt" onclick="answerQuiz(this, false, 'q4')">① anthropic-version</button>
+          <button class="quiz-opt" onclick="answerQuiz(this, false, 'q4')">② x-api-key</button>
+          <button class="quiz-opt" onclick="answerQuiz(this, true, 'q4')">③ anthropic-dangerous-direct-browser-access</button>
+          <button class="quiz-opt" onclick="answerQuiz(this, false, 'q4')">④ Authorization: Bearer</button>
+        </div>
+        <div class="quiz-explain" id="q4-explain">브라우저에서 직접 Anthropic API를 호출하려면 <code>anthropic-dangerous-direct-browser-access: true</code> 헤더가 반드시 필요합니다. 이 헤더가 없으면 CORS 정책에 의해 <code>Failed to fetch</code> 오류가 발생합니다. 단, 이 방식은 개발/테스트 전용이며 운영 환경에서는 Proxy 서버 구조를 사용해야 합니다.</div>
+      </div>
+
+      <div class="quiz-card">
+        <div class="quiz-q"><span>Q5</span>동일한 id의 위젯을 수정하여 재배포할 때 올바른 순서는?</div>
+        <div class="quiz-options">
+          <button class="quiz-opt" onclick="answerQuiz(this, false, 'q5')">① 기존 위젯을 덮어쓰기로 업로드한다</button>
+          <button class="quiz-opt" onclick="answerQuiz(this, true, 'q5')">② 기존 위젯을 삭제한 후 새 버전을 등록한다</button>
+          <button class="quiz-opt" onclick="answerQuiz(this, false, 'q5')">③ version 필드만 변경하면 자동 업데이트된다</button>
+          <button class="quiz-opt" onclick="answerQuiz(this, false, 'q5')">④ widget.json만 재업로드하면 된다</button>
+        </div>
+        <div class="quiz-explain" id="q5-explain">SAC Custom Widget은 덮어쓰기를 지원하지 않습니다. 동일한 id의 위젯을 수정하려면 반드시 기존 위젯을 삭제한 후 새로 등록해야 합니다. 삭제 전에 해당 위젯을 사용 중인 스토리가 있는지 먼저 확인하십시오.</div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── 탭 전환 ──────────────────────────────────────────
+function showTab(tabId, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  btn.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── 퀴즈 ─────────────────────────────────────────────
+function answerQuiz(btn, isCorrect, questionId) {
+  const card = btn.closest('.quiz-card');
+  if (card.dataset.answered) return;
+  card.dataset.answered = 'true';
+
+  if (isCorrect) {
+    btn.classList.add('correct-ans');
+  } else {
+    btn.classList.add('wrong-ans');
+    // 정답 버튼 강조
+    card.querySelectorAll('.quiz-opt').forEach(opt => {
+      const onclickStr = opt.getAttribute('onclick') || '';
+      if (onclickStr.includes('true,')) {
+        opt.classList.add('correct-ans');
+      }
+    });
+  }
+  const explain = document.getElementById(questionId + '-explain');
+  if (explain) {
+    explain.classList.add('visible');
+    explain.classList.add(isCorrect ? 'correct' : 'wrong');
+  }
+}
+</script>
+
+</body>
+</html>
