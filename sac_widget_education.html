@@ -1048,14 +1048,36 @@ code {
       <div class="card">
         <div class="card-label">구현된 기능</div>
         <h3>완성본 기준</h3>
-        <p>2단계 계층 메뉴 트리 렌더링, 섹션 펼침/접힘(accordion), 메뉴 전체 숨기기/보이기(flip), 항목 클릭 시 SAC NavigationUtils 연동</p>
+        <p>2단계 계층 메뉴 트리 렌더링, 섹션 펼침/접힘(accordion), 메뉴 패널 전체 접기/펼치기(flip), 활성 메뉴 하이라이트, 항목 클릭 시 SAC 이벤트 발생 및 get 메서드로 선택 항목 속성 반환</p>
       </div>
       <div class="card">
         <div class="card-label">구성 파일</div>
-        <h3>widget.json + main.js</h3>
-        <p>이 위젯은 외부 설정값이 없어 styling.js가 불필요합니다. 2파일로 구성됩니다.</p>
+        <h3>widget.json + main.js + styling.js</h3>
+        <p>메뉴 타이틀·강조색·배경색·텍스트색·패널 너비·초기 접힘 여부 등을 Styling Panel에서 설정합니다. 3파일 풀 구성입니다.</p>
       </div>
     </div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Styling Panel 설정값</div>
+    <h2 class="section-title">메뉴 위젯 Styling Panel 설정 항목</h2>
+    <p class="section-lead">위젯을 스토리에 배치한 후 Styling Panel에서 다음 항목을 설정합니다.</p>
+
+    <table class="data-table">
+      <thead>
+        <tr><th>설정 항목</th><th>설명</th><th>기본값</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>menuTitle</code></td><td>메뉴 패널 상단 타이틀</td><td>사업계획</td></tr>
+        <tr><td><code>accentColor</code></td><td>활성 메뉴 강조색 (hex)</td><td>#0070f2</td></tr>
+        <tr><td><code>bgColor</code></td><td>메뉴 패널 배경색 (hex)</td><td>#111827</td></tr>
+        <tr><td><code>textColor</code></td><td>메뉴 기본 텍스트 색상 (hex)</td><td>#e8edf5</td></tr>
+        <tr><td><code>collapsed</code></td><td>초기 상태에서 패널 접힘 여부</td><td>false</td></tr>
+        <tr><td><code>collapsedWidth</code></td><td>접힘 상태 패널 너비 (px)</td><td>48</td></tr>
+        <tr><td><code>expandedWidth</code></td><td>펼침 상태 패널 너비 (px)</td><td>220</td></tr>
+        <tr><td><code>iconOnly</code></td><td>접힘 상태에서 아이콘만 표시 여부</td><td>true</td></tr>
+      </tbody>
+    </table>
   </div>
 
   <div class="section">
@@ -1089,8 +1111,7 @@ code {
 - ignoreIntegrity: true 설정
 
 <strong>[ 파일 구성 ]</strong>
-widget.json, main.js 2개 파일을 각각 작성해 주세요.
-(Styling Panel 불필요, styling.js 제외)
+widget.json, main.js, styling.js 3개 파일을 각각 작성해 주세요.
 
 메뉴 데이터는 main.js 내부에 하드코딩으로 테스트용 샘플을 넣어 주세요.</div>
     </div>
@@ -1114,18 +1135,29 @@ widget.json, main.js 2개 파일을 각각 작성해 주세요.
   <span class="ck">"webcomponents"</span>: [
     {
       <span class="ck">"kind"</span>: <span class="cs">"main"</span>,
-      <span class="ck">"tag"</span>: <span class="cs">"com-planning-nav-menu"</span>,
+      <span class="ck">"tag"</span>: <span class="cs">"custom-planning-nav-menu"</span>,
       <span class="ck">"url"</span>: <span class="cs">"main.js"</span>,
+      <span class="ck">"integrity"</span>: <span class="cs">""</span>
+    },
+    {
+      <span class="ck">"kind"</span>: <span class="cs">"styling"</span>,             <span class="cm">// ← Styling Panel 등록 필수</span>
+      <span class="ck">"tag"</span>: <span class="cs">"custom-planning-nav-menu-styling"</span>,
+      <span class="ck">"url"</span>: <span class="cs">"styling.js"</span>,
       <span class="ck">"integrity"</span>: <span class="cs">""</span>
     }
   ],
 
-  <span class="ck">"properties"</span>: {},                     <span class="cm">// 최상위 레벨 선언</span>
+  <span class="ck">"properties"</span>: {
+    <span class="ck">"menuTitle"</span>: { <span class="ck">"type"</span>: <span class="cs">"string"</span>, <span class="ck">"default"</span>: <span class="cs">"사업계획"</span> },
+    <span class="ck">"accentColor"</span>: { <span class="ck">"type"</span>: <span class="cs">"string"</span>, <span class="ck">"default"</span>: <span class="cs">"#0070f2"</span> },
+    <span class="ck">"bgColor"</span>: { <span class="ck">"type"</span>: <span class="cs">"string"</span>, <span class="ck">"default"</span>: <span class="cs">"#111827"</span> },
+    <span class="ck">"collapsed"</span>: { <span class="ck">"type"</span>: <span class="cs">"boolean"</span>, <span class="ck">"default"</span>: <span class="cv">false</span> }
+    <span class="cm">// ... 나머지 설정값 생략</span>
+  },
   <span class="ck">"methods"</span>: {
-    <span class="ck">"setMenuData"</span>: {                    <span class="cm">// SAC 스크립트에서 호출할 메서드</span>
-      <span class="ck">"description"</span>: <span class="cs">"메뉴 데이터 JSON 문자열 전달"</span>,
+    <span class="ck">"setMenuData"</span>: {                    <span class="cm">// SAC 스크립트에서 데이터 전달</span>
       <span class="ck">"parameters"</span>: [
-        { <span class="ck">"name"</span>: <span class="cs">"menuJson"</span>, <span class="ck">"type"</span>: <span class="cs">"string"</span> }  <span class="cm">// object 아닌 string ← 중요</span>
+        { <span class="ck">"name"</span>: <span class="cs">"jsonString"</span>, <span class="ck">"type"</span>: <span class="cs">"string"</span> }  <span class="cm">// object 아닌 string ← 중요</span>
       ]
     }
   },
@@ -1223,19 +1255,40 @@ NavMenu_1.setMenuData(menuJson);</pre>
   <div class="section">
     <div class="section-eyebrow">실습 예제 B</div>
     <h2 class="section-title">Claude AI 분석 위젯</h2>
-    <p class="section-lead">SAC 스토리 안에서 Anthropic Claude API를 직접 호출하여 자연어로 데이터를 분석하는 위젯입니다. API Key, System Prompt, 최대 토큰 수를 Styling Panel에서 설정할 수 있습니다.</p>
+    <p class="section-lead">SAC 스토리 안에서 Anthropic Claude API를 직접 호출하여 자연어로 데이터를 분석하는 위젯입니다. API Key, Widget Title, System Prompt를 Styling Panel에서 설정하고 [적용] 버튼으로 반영합니다.</p>
 
     <div class="card-grid" style="margin-bottom:28px;">
       <div class="card">
-        <div class="card-label">구현된 기능</div>
-        <h3>완성본 기준</h3>
-        <p>사용자 입력 → Claude API 직접 호출 → 응답 표시, 대화 히스토리 관리(누적/초기화), Styling Panel에서 API Key / System Prompt / maxTokens 설정</p>
+        <div class="card-label">구현된 기능 (완성본 기준)</div>
+        <h3>채팅 UI + 데이터 첨부</h3>
+        <p>채팅 형태 대화 UI, Enter 전송 / Shift+Enter 줄바꿈, [데이터 첨부] 버튼으로 SAC 컨텍스트 선택적 포함, [대화 초기화], 응답 생성 중 타이핑 표시, 오류 메시지 인라인 표시</p>
       </div>
       <div class="card">
         <div class="card-label">구성 파일</div>
         <h3>widget.json + main.js + styling.js</h3>
-        <p>API Key 등 설정값 입력 UI가 필요하므로 styling.js가 포함됩니다. 3파일 풀 구성입니다.</p>
+        <p>Styling Panel에서 API Key(password 타입), Widget Title, System Prompt를 입력하고 [적용] 버튼으로 propertiesChanged 이벤트를 발생시켜 main 위젯에 반영합니다.</p>
       </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Styling Panel 설정값</div>
+    <h2 class="section-title">Claude AI 위젯 Styling Panel 설정 항목</h2>
+
+    <table class="data-table">
+      <thead>
+        <tr><th>설정 항목</th><th>입력 타입</th><th>설명</th><th>기본값</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>apiKey</code></td><td>password</td><td>Anthropic API Key (sk-ant-...)</td><td>빈 값</td></tr>
+        <tr><td><code>widgetTitle</code></td><td>text</td><td>위젯 헤더에 표시될 타이틀</td><td>Claude AI Assistant</td></tr>
+        <tr><td><code>systemPrompt</code></td><td>textarea</td><td>Claude에게 전달할 시스템 프롬프트</td><td>You are a helpful data analyst...</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout info" style="margin-top:16px;">
+      <span class="callout-title">📌 API Key 입력 타입</span>
+      실제 파일에서 API Key 입력란은 <code>type="password"</code>로 구현되어 있어 입력 내용이 마스킹됩니다. 단, 브라우저 메모리에는 평문으로 존재하므로 개발·테스트 전용입니다.
     </div>
   </div>
 
@@ -1248,32 +1301,35 @@ NavMenu_1.setMenuData(menuJson);</pre>
       <div class="prompt-text">SAP Analytics Cloud(SAC)에서 사용할 Claude AI 분석 Custom Widget을 만들어 주세요.
 
 <strong>[ 기능 요구사항 ]</strong>
-1. 사용자가 텍스트를 입력하고 전송하면 Anthropic Claude API를 호출합니다
-2. API 응답을 위젯 안에 표시하고, 대화 히스토리를 유지합니다
-3. [대화 초기화] 버튼으로 히스토리를 초기화할 수 있어야 합니다
-4. setContext(jsonString) 메서드를 통해 외부에서 데이터 컨텍스트를 주입받을 수 있어야 합니다
-   - SAC 스크립트에서 문자열 형태로 JSON을 전달합니다
-   - 전달받은 데이터는 다음 API 호출 시 시스템 컨텍스트로 포함됩니다
+1. 채팅 UI — 사용자가 텍스트를 입력하고 전송하면 Claude API를 호출합니다
+   - Enter: 전송 / Shift+Enter: 줄바꿈
+   - 응답 생성 중에는 "답변 생성 중..." 타이핑 표시
+2. 대화 히스토리를 유지하고 [대화 초기화] 버튼으로 초기화합니다
+3. setContext() 메서드로 SAC 데이터를 주입받으면 헤더에 "데이터 연결됨" 배지를 표시합니다
+4. [데이터 첨부] 버튼 클릭 시 다음 전송 메시지에 SAC 데이터를 포함합니다
+   (매 전송마다 자동 포함이 아닌, 버튼으로 선택적 포함)
+5. API 오류 시 채팅 영역에 인라인 오류 메시지를 표시합니다
 
 <strong>[ Styling Panel 설정값 ]</strong>
 다음 항목을 Styling Panel에서 편집할 수 있어야 합니다:
-- API Key (text 입력)
-- System Prompt (textarea 형태의 text 입력)
-- Max Tokens (number 입력, 기본값 8192)
+- API Key (password 타입 input — 마스킹 처리)
+- Widget Title (text 타입 input)
+- System Prompt (textarea)
+- [적용] 버튼 클릭 시 propertiesChanged 이벤트로 main 위젯에 반영
 
 <strong>[ API 호출 방식 ]</strong>
 - 엔드포인트: https://api.anthropic.com/v1/messages
-- 모델: claude-sonnet-4-6
-- 반드시 anthropic-dangerous-direct-browser-access 헤더를 포함해야 합니다
-- API Key는 Styling Panel에서 받아옵니다
+- 모델: claude-sonnet-4-20250514
+- 반드시 anthropic-dangerous-direct-browser-access: true 헤더 포함
+- max_tokens: 8192
 
 <strong>[ SAC 환경 제약 — 반드시 준수 ]</strong>
 - contributions 블록 사용 금지, properties/methods/events 최상위 선언
-- id에 점(.)과 하이픈(-) 사용 금지
+- widget id에 점(.)과 하이픈(-) 사용 금지
 - class extends HTMLElement 사용 (prototype 방식 금지)
 - newInstancePrefix 필드 필수 포함
-- ignoreIntegrity: true 설정
-- widget.json의 methods body 필드에 this.setContext() 등 자기 참조 코드 금지
+- widget.json의 methods에 body 필드 금지 (Maximum call stack exceeded 오류 원인)
+- IIFE 패턴 사용: (function() { 'use strict'; ... })()
 
 <strong>[ 파일 구성 ]</strong>
 widget.json, main.js, styling.js 3개 파일을 각각 작성해 주세요.</div>
@@ -1284,72 +1340,150 @@ widget.json, main.js, styling.js 3개 파일을 각각 작성해 주세요.</div
     <div class="section-eyebrow">Step 2 · 완성 코드</div>
     <h2 class="section-title">핵심 구현 포인트</h2>
 
-    <h3 style="font-size:15px; font-weight:700; color:var(--gray-dark); margin: 0 0 12px;">① Anthropic API 직접 호출 — 브라우저 환경 필수 헤더</h3>
+    <h3 style="font-size:15px; font-weight:700; color:var(--gray-dark); margin: 0 0 12px;">① IIFE + 전역 상수 선언 패턴</h3>
+    <p style="font-size:13.5px; color:var(--gray-mid); margin-bottom:12px;">실제 완성 코드는 IIFE(즉시 실행 함수 표현식) 패턴으로 작성되어 전역 스코프 오염을 방지합니다. API URL, 모델명 등은 상단에 상수로 선언합니다.</p>
     <div class="math-block">
-      <pre><span class="cm">// main.js — Claude API 호출 핵심 코드</span>
-<span class="cn">async</span> <span class="cv">_callClaude</span>(userMessage) {
-  <span class="cn">const</span> response = <span class="cn">await</span> fetch(<span class="cs">'https://api.anthropic.com/v1/messages'</span>, {
+      <pre><span class="cm">// main.js — 전체 구조</span>
+(<span class="cn">function</span> () {
+  <span class="cs">'use strict'</span>;
+
+  <span class="cm">// ── 전역 상수 (상단에 모아서 관리) ─────────────────────</span>
+  <span class="cn">var</span> ANTHROPIC_API_URL = <span class="cs">'https://api.anthropic.com/v1/messages'</span>;
+  <span class="cn">var</span> ANTHROPIC_VERSION = <span class="cs">'2023-06-01'</span>;
+  <span class="cn">var</span> CLAUDE_MODEL      = <span class="cs">'claude-sonnet-4-20250514'</span>;  <span class="cm">// ← 최신 모델명</span>
+  <span class="cn">var</span> MAX_TOKENS        = <span class="cv">8192</span>;
+
+  <span class="cm">// template, class 정의, customElements.define 순서로 구성</span>
+  <span class="cn">class</span> <span class="cv">ClaudeWidget</span> <span class="cn">extends</span> <span class="cv">HTMLElement</span> { ... }
+
+  customElements.define(<span class="cs">'yourcompany-claude-widget'</span>, ClaudeWidget);
+})();</pre>
+    </div>
+
+    <h3 style="font-size:15px; font-weight:700; color:var(--gray-dark); margin: 24px 0 12px;">② Anthropic API 직접 호출 — 브라우저 환경 필수 헤더</h3>
+    <div class="math-block">
+      <pre><span class="cm">// main.js — _callClaude() 핵심 구조 (Promise 체인 방식)</span>
+<span class="cv">_callClaude</span>() {
+  <span class="cn">var</span> self = <span class="cn">this</span>;
+  self._loading = <span class="cv">true</span>;
+
+  <span class="cm">// "답변 생성 중..." 타이핑 메시지 먼저 표시</span>
+  <span class="cn">var</span> typingEl = self._appendMsg(<span class="cs">'claude'</span>, <span class="cs">'답변 생성 중...'</span>);
+  typingEl.classList.add(<span class="cs">'typing'</span>);
+
+  fetch(ANTHROPIC_API_URL, {
     method: <span class="cs">'POST'</span>,
     headers: {
-      <span class="cs">'Content-Type'</span>: <span class="cs">'application/json'</span>,
-      <span class="cs">'x-api-key'</span>: <span class="cn">this</span>._apiKey,
-      <span class="cs">'anthropic-version'</span>: <span class="cs">'2023-06-01'</span>,
-      <span class="cm">// ↓ 브라우저에서 직접 API 호출 시 반드시 필요</span>
+      <span class="cs">'Content-Type'</span>:      <span class="cs">'application/json'</span>,
+      <span class="cs">'x-api-key'</span>:         self._apiKey,
+      <span class="cs">'anthropic-version'</span>: ANTHROPIC_VERSION,
+      <span class="cm">// ↓ 브라우저 직접 호출 시 반드시 필요</span>
       <span class="cs">'anthropic-dangerous-direct-browser-access'</span>: <span class="cs">'true'</span>
     },
     body: JSON.stringify({
-      model: <span class="cs">'claude-sonnet-4-6'</span>,
-      max_tokens: <span class="cn">this</span>._maxTokens,
-      system: <span class="cn">this</span>._buildSystemPrompt(),  <span class="cm">// context 포함</span>
-      messages: <span class="cn">this</span>._history           <span class="cm">// 대화 히스토리 전체 전달</span>
+      model:    CLAUDE_MODEL,
+      max_tokens: MAX_TOKENS,
+      system:   self._systemPrompt,
+      messages: self._history       <span class="cm">// 누적 대화 히스토리 전체 전달</span>
     })
+  })
+  .then(<span class="cn">function</span>(res) {
+    <span class="cn">if</span> (!res.ok) {
+      <span class="cm">// HTTP 오류 시 응답 본문 포함해서 throw</span>
+      <span class="cn">return</span> res.text().then(<span class="cn">function</span>(t) {
+        <span class="cn">throw new</span> Error(<span class="cs">'HTTP '</span> + res.status + <span class="cs">' - '</span> + t);
+      });
+    }
+    <span class="cn">return</span> res.json();
+  })
+  .then(<span class="cn">function</span>(data) {
+    <span class="cn">var</span> reply = data.content[0].text;
+    typingEl.textContent = reply;
+    typingEl.classList.remove(<span class="cs">'typing'</span>);
+    self._history.push({ role: <span class="cs">'assistant'</span>, content: reply });
+  })
+  .catch(<span class="cn">function</span>(err) {
+    typingEl.textContent = <span class="cs">'오류: '</span> + err.message;
+    typingEl.classList.add(<span class="cs">'error'</span>);   <span class="cm">// 인라인 오류 표시</span>
+    self._history.pop();               <span class="cm">// 실패한 user 메시지 rollback</span>
+  })
+  .finally(<span class="cn">function</span>() {
+    self._loading = <span class="cv">false</span>;
   });
-
-  <span class="cn">const</span> data = <span class="cn">await</span> response.json();
-  <span class="cn">return</span> data.content[0].text;
 }</pre>
     </div>
 
-    <h3 style="font-size:15px; font-weight:700; color:var(--gray-dark); margin: 24px 0 12px;">② setContext() — SAC 데이터 주입 패턴</h3>
+    <h3 style="font-size:15px; font-weight:700; color:var(--gray-dark); margin: 24px 0 12px;">③ setContext() + 데이터 첨부 버튼 패턴</h3>
+    <p style="font-size:13.5px; color:var(--gray-mid); margin-bottom:12px;">컨텍스트를 매 전송마다 자동 포함하면 비용이 누적됩니다. 실제 구현에서는 <code>_attachNext</code> 플래그로 사용자가 명시적으로 선택할 때만 포함합니다.</p>
     <div class="math-block">
-      <pre><span class="cm">// main.js — SAC 스크립트에서 데이터를 받는 메서드</span>
-<span class="cv">setContext</span>(jsonString) {
+      <pre><span class="cm">// setContext() — SAC 스크립트에서 데이터 주입</span>
+<span class="cv">setContext</span>(contextData) {
   <span class="cn">try</span> {
-    <span class="cn">this</span>._context = JSON.parse(jsonString);
-    <span class="cm">// 컨텍스트 수신 알림 (선택)</span>
-    <span class="cn">this</span>._showContextBadge();
+    <span class="cm">// string / object 양쪽 모두 대응</span>
+    <span class="cn">this</span>._sacContext = (<span class="cn">typeof</span> contextData === <span class="cs">'string'</span>)
+      ? JSON.parse(contextData)
+      : contextData;
   } <span class="cn">catch</span>(e) {
-    console.error(<span class="cs">'Context 파싱 오류:'</span>, e);
+    <span class="cn">this</span>._sacContext = { raw: String(contextData) };
   }
+  <span class="cm">// 헤더에 "데이터 연결됨" 배지 표시</span>
+  <span class="cn">var</span> badge = <span class="cn">this</span>.shadowRoot.getElementById(<span class="cs">'ctx-badge'</span>);
+  <span class="cn">if</span> (badge) badge.classList.add(<span class="cs">'visible'</span>);
 }
 
-<span class="cm">// API 호출 시 컨텍스트를 시스템 프롬프트에 추가</span>
-<span class="cv">_buildSystemPrompt</span>() {
-  <span class="cn">var</span> prompt = <span class="cn">this</span>._systemPrompt;
-  <span class="cn">if</span> (<span class="cn">this</span>._context) {
-    prompt += <span class="cs">'\n\n[분석 데이터]\n'</span> + JSON.stringify(<span class="cn">this</span>._context);
+<span class="cm">// [데이터 첨부] 버튼 — 다음 전송에만 포함 플래그 설정</span>
+<span class="cv">_handleAttach</span>() {
+  <span class="cn">if</span> (!<span class="cn">this</span>._sacContext) {
+    <span class="cn">this</span>._appendMsg(<span class="cs">'system'</span>, <span class="cs">'연결된 SAC 데이터가 없습니다.'</span>);
+    <span class="cn">return</span>;
   }
-  <span class="cn">return</span> prompt;
+  <span class="cn">this</span>._attachNext = <span class="cv">true</span>;  <span class="cm">// ← 다음 전송 시 한 번만 포함</span>
+}
+
+<span class="cm">// 전송 핸들러 — attachNext 플래그에 따라 조건부 포함</span>
+<span class="cv">_handleSend</span>() {
+  <span class="cn">var</span> userContent = text;
+  <span class="cn">if</span> (<span class="cn">this</span>._attachNext &amp;&amp; <span class="cn">this</span>._sacContext) {
+    userContent =
+      <span class="cs">'[SAC 데이터 컨텍스트]\n'</span> +
+      JSON.stringify(<span class="cn">this</span>._sacContext, <span class="cv">null</span>, <span class="cv">2</span>) +
+      <span class="cs">'\n\n[질문]\n'</span> + text;
+    <span class="cn">this</span>._attachNext = <span class="cv">false</span>;  <span class="cm">// ← 전송 후 플래그 리셋</span>
+  }
+  <span class="cn">this</span>._history.push({ role: <span class="cs">'user'</span>, content: userContent });
+  <span class="cn">this</span>._callClaude();
 }</pre>
     </div>
 
-    <h3 style="font-size:15px; font-weight:700; color:var(--gray-dark); margin: 24px 0 12px;">③ widget.json — methods body 필드 제거 포인트</h3>
+    <h3 style="font-size:15px; font-weight:700; color:var(--gray-dark); margin: 24px 0 12px;">④ styling.js — propertiesChanged 이벤트 패턴</h3>
+    <p style="font-size:13.5px; color:var(--gray-mid); margin-bottom:12px;">Styling Panel에서 [적용] 버튼 클릭 시 <code>propertiesChanged</code> 커스텀 이벤트를 발생시켜 SAC가 main 위젯의 property를 업데이트하도록 합니다.</p>
     <div class="math-block">
-      <pre><span class="cm">// widget.json — setContext 메서드 선언 (body 필드 없음)</span>
-<span class="ck">"methods"</span>: {
-  <span class="ck">"setContext"</span>: {
-    <span class="ck">"description"</span>: <span class="cs">"SAC 데이터를 JSON 문자열로 전달"</span>,
-    <span class="ck">"parameters"</span>: [
-      { <span class="ck">"name"</span>: <span class="cs">"jsonString"</span>, <span class="ck">"type"</span>: <span class="cs">"string"</span> }
-    ]
-    <span class="cm">// ✗ body 필드 금지 — this.setContext() 자기 호출로</span>
-    <span class="cm">//   Maximum call stack exceeded 오류 발생</span>
-  }
+      <pre><span class="cm">// styling.js — 적용 버튼 이벤트</span>
+<span class="cv">_apply</span>() {
+  <span class="cn">var</span> apiKey = <span class="cn">this</span>.shadowRoot.getElementById(<span class="cs">'inp-apikey'</span>).value.trim();
+  <span class="cn">var</span> title  = <span class="cn">this</span>.shadowRoot.getElementById(<span class="cs">'inp-title'</span>).value.trim();
+  <span class="cn">var</span> prompt = <span class="cn">this</span>.shadowRoot.getElementById(<span class="cs">'inp-prompt'</span>).value.trim();
+
+  <span class="cm">// SAC에 property 변경을 알리는 표준 이벤트</span>
+  <span class="cn">this</span>.dispatchEvent(<span class="cn">new</span> CustomEvent(<span class="cs">'propertiesChanged'</span>, {
+    detail: {
+      properties: {
+        apiKey:       apiKey  || <span class="cn">this</span>._apiKey,
+        widgetTitle:  title   || <span class="cn">this</span>._widgetTitle,
+        systemPrompt: prompt  || <span class="cn">this</span>._systemPrompt
+      }
+    },
+    bubbles: <span class="cv">true</span>
+  }));
 }</pre>
     </div>
 
-    <h3 style="font-size:15px; font-weight:700; color:var(--gray-dark); margin: 24px 0 12px;">④ Styling Panel API Key 설정</h3>
-    <p style="font-size:13.5px; color:var(--gray-mid); margin-bottom:14px;">위젯을 스토리에 배치한 후 우측 Styling 탭에서 다음 순서로 설정합니다.</p>
+    <div class="callout warn" style="margin-top:8px;">
+      <span class="callout-title">styling.js property setter 선언 필수</span>
+      SAC가 Styling Panel에 저장된 값을 복원하려면 styling.js 클래스에도 main.js와 <strong>동일한 property명</strong>으로 getter/setter를 선언해야 합니다. 누락 시 위젯을 닫았다 열면 설정값이 초기화됩니다.
+    </div>
+
+    <h3 style="font-size:15px; font-weight:700; color:var(--gray-dark); margin: 24px 0 12px;">⑤ Styling Panel 사용 방법</h3>
     <div class="step-list">
       <div class="step-item">
         <div class="step-num">1</div>
@@ -1362,21 +1496,21 @@ widget.json, main.js, styling.js 3개 파일을 각각 작성해 주세요.</div
         <div class="step-num">2</div>
         <div class="step-body">
           <h4>API Key 입력</h4>
-          <p><code>sk-ant-api03-...</code> 형태의 Anthropic API Key 입력</p>
+          <p><code>sk-ant-api03-...</code> 형태의 Anthropic API Key 입력. 입력 내용은 마스킹됩니다.</p>
         </div>
       </div>
       <div class="step-item">
         <div class="step-num">3</div>
         <div class="step-body">
-          <h4>System Prompt 작성</h4>
-          <p>예: "당신은 재무 분석 전문가입니다. 주어진 데이터를 기반으로 한국어로 분석 의견을 제시해 주세요."</p>
+          <h4>Widget Title / System Prompt 설정</h4>
+          <p>예시 System Prompt: "당신은 SAP Analytics Cloud 재무 데이터 분석 전문가입니다. 한국어로 분석 의견을 제시해 주세요."</p>
         </div>
       </div>
       <div class="step-item">
         <div class="step-num">4</div>
         <div class="step-body">
-          <h4>적용 버튼 클릭</h4>
-          <p>위젯 헤더 타이틀이 변경되면 설정 완료. API Key 입력란이 표시되지 않으면 styling.js 미등록 상태로, 트러블슈팅 탭을 참고하십시오.</p>
+          <h4>[적용] 버튼 클릭</h4>
+          <p>위젯 헤더 타이틀이 변경되면 설정 완료. API Key 입력란이 표시되지 않으면 styling.js 미등록 상태입니다. (트러블슈팅 탭 참고)</p>
         </div>
       </div>
     </div>
