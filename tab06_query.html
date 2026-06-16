@@ -777,9 +777,10 @@
         <div class="anatomy-code"><span style="color:#b392f0;">@Analytics.query</span>: <span style="color:#79b8ff;">true</span>
 <span style="color:#b392f0;">@EndUserText.label</span>: <span style="color:#9ecbff;">'ASPN P&amp;L / B&amp;S Integrated Query'</span>
 <span style="color:#b392f0;">@AccessControl.authorizationCheck</span>: <span style="color:#9ecbff;">#CHECK</span>
-<span style="color:#b392f0;">@VDM.viewType</span>: <span style="color:#9ecbff;">#CONSUMPTION</span>
-<span style="color:#b392f0;">@OData.publish</span>: <span style="color:#79b8ff;">true</span>   <span style="color:#6a737d; font-style:italic;">// OData 서비스 자동 등록 (Tab 09)</span></div>
-        <div class="anatomy-desc"><strong>View 레벨 핵심 Annotation.</strong> <code>@Analytics.query: true</code>가 이 View를 Query View로 선언. <code>@OData.publish: true</code>는 SAC 연결을 위한 OData 서비스 자동 등록 (Tab 09 상세).</div>
+<span style="color:#b392f8;">@VDM.viewType</span>: <span style="color:#9ecbff;">#CONSUMPTION</span>
+<span style="color:#6a737d; font-style:italic;">// @OData.publish: true 는 Fiori 등 OData 외부 노출 목적일 때 사용</span>
+<span style="color:#6a737d; font-style:italic;">// SAC Live Model 연결에는 불필요 — @Analytics.query: true 만으로 충분</span></div>
+        <div class="anatomy-desc"><strong>View 레벨 핵심 Annotation.</strong> <code>@Analytics.query: true</code>가 이 View를 Query View로 선언합니다. SAC Live Model 연결에는 이것만으로 충분하며, <code>@OData.publish: true</code>는 Fiori 등 OData 서비스 외부 노출이 필요할 때만 추가합니다.</div>
       </div>
 
       <div class="anatomy-row">
@@ -860,7 +861,7 @@
             <tr><td>Restricted Measure의 <code>selection</code> dimension 필드명 확인</td><td>필터 미적용 — 전체 금액이 Restricted Measure에 집계</td></tr>
             <tr><td><code>@AccessControl.authorizationCheck: #CHECK</code></td><td>권한 없는 데이터 노출</td></tr>
             <tr><td>DCL(DEFINE ROLE) 작성 완료</td><td>SAC에서 데이터 공백</td></tr>
-            <tr><td><code>@OData.publish: true</code> 또는 수동 OData 서비스 등록</td><td>SAC Live Model Import 불가</td></tr>
+            <tr><td>SAP_COM_0065 Communication Arrangement 생성 (Tab 09)</td><td>SAC Live Connection 설정 불가</td></tr>
           </tbody>
         </table>
       </div>
