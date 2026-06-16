@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tab 03. Dimension View | CDS View Analytics Query</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #003366;
+    --navy-light: #e8edf4;
+    --navy-mid: #c0cfe0;
+    --bg: #f0f3f8;
+    --white: #ffffff;
+    --border: #d0d8e4;
+    --text: #1a1a2e;
+    --text-muted: #5a6478;
+    --warn-bg: #fff8e6;
+    --warn-border: #e6a817;
+    --correct-bg: #e8f5e9;
+    --correct-border: #2e7d32;
+    --font-body: 'Noto Sans KR', sans-serif;
+    --font-heading: 'DM Serif Display', serif;
+    --font-mono: 'JetBrains Mono', 'Noto Sans KR', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-body); background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.7; }
+
+  /* HEADER */
+  .site-header { background: var(--navy); color: var(--white); padding: 0 80px; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 100; }
+  .site-header .logo { font-family: var(--font-heading); font-size: 18px; letter-spacing: 0.04em; }
+  .site-header .module-label { font-size: 13px; color: var(--navy-mid); font-family: var(--font-mono); }
+
+  /* TAB NAV */
+  .tab-nav { background: var(--white); border-bottom: 2px solid var(--border); padding: 0 80px; display: flex; position: sticky; top: 56px; z-index: 99; overflow-x: auto; overflow-y: hidden; }
+  .tab-nav a { display: block; padding: 14px 20px; font-size: 13px; font-weight: 500; color: var(--text-muted); text-decoration: none; white-space: nowrap; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: color 0.2s, border-color 0.2s; }
+  .tab-nav a:hover { color: var(--navy); }
+  .tab-nav a.active { color: var(--navy); border-bottom-color: var(--navy); font-weight: 700; }
+
+  /* WRAPPER */
+  .wrapper { max-width: 1280px; margin: 0 auto; padding: 48px 80px 80px; }
+
+  /* HERO */
+  .hero { background: var(--navy); border-radius: 4px; padding: 48px 56px; margin-bottom: 40px; color: var(--white); }
+  .hero .eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.12em; color: var(--navy-mid); margin-bottom: 16px; text-transform: uppercase; }
+  .hero h1 { font-family: var(--font-heading); font-size: 36px; line-height: 1.25; margin-bottom: 16px; }
+  .hero p { font-size: 15px; color: rgba(255,255,255,0.75); max-width: 680px; line-height: 1.8; }
+  .hero .meta-row { display: flex; gap: 32px; margin-top: 28px; }
+  .hero .meta-item { display: flex; flex-direction: column; gap: 4px; }
+  .hero .meta-label { font-size: 11px; color: var(--navy-mid); text-transform: uppercase; letter-spacing: 0.1em; font-family: var(--font-mono); }
+  .hero .meta-value { font-size: 14px; font-weight: 600; color: var(--white); }
+
+  /* SECTION */
+  .section { margin-bottom: 52px; }
+  .section-title { font-family: var(--font-heading); font-size: 26px; color: var(--navy); margin-bottom: 24px; padding-bottom: 10px; border-bottom: 2px solid var(--navy); }
+  .subsection-title { font-size: 18px; font-weight: 700; color: var(--navy); margin: 32px 0 16px; padding-left: 12px; border-left: 3px solid var(--navy); }
+
+  /* CARD */
+  .card { background: var(--white); border: 1px solid var(--border); border-radius: 4px; padding: 28px 32px; margin-bottom: 16px; }
+  .card h3 { font-size: 16px; font-weight: 700; color: var(--navy); margin-bottom: 10px; }
+  .card p, .card li { font-size: 14px; color: var(--text-muted); line-height: 1.75; }
+  .card ul { padding-left: 20px; }
+  .card ul li { margin-bottom: 6px; }
+
+  /* CALLOUT */
+  .callout { border-left: 4px solid var(--navy); background: var(--navy-light); padding: 16px 20px; border-radius: 0 4px 4px 0; margin-bottom: 16px; }
+  .callout.warn { border-left-color: var(--warn-border); background: var(--warn-bg); }
+  .callout.correct { border-left-color: var(--correct-border); background: var(--correct-bg); }
+  .callout .callout-label { font-family: var(--font-mono); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; color: var(--navy); }
+  .callout.warn .callout-label { color: var(--warn-border); }
+  .callout.correct .callout-label { color: var(--correct-border); }
+  .callout p { font-size: 14px; line-height: 1.7; }
+  .callout code { font-family: var(--font-mono); font-size: 13px; background: rgba(0,0,0,0.06); padding: 1px 5px; border-radius: 2px; }
+
+  /* COMPARE TABLE */
+  .compare-table { width: 100%; border-collapse: collapse; font-size: 14px; background: var(--white); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 16px; }
+  .compare-table th { background: var(--navy); color: var(--white); padding: 12px 16px; text-align: left; font-weight: 600; font-size: 13px; }
+  .compare-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: top; line-height: 1.6; }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:nth-child(even) td { background: var(--bg); }
+  .compare-table .hl { font-weight: 700; color: var(--navy); }
+  .compare-table code { font-family: var(--font-mono); font-size: 12px; background: var(--bg); padding: 1px 5px; border-radius: 2px; border: 1px solid var(--border); }
+  .compare-table th code { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); color: var(--white); }
+
+  /* CODE BLOCK */
+  .code-wrap { background: #0f1923; border-radius: 4px; overflow: hidden; margin-bottom: 16px; font-family: var(--font-mono); }
+  .code-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; background: #1a2738; border-bottom: 1px solid #2a3d52; }
+  .code-lang { font-size: 11px; color: var(--navy-mid); text-transform: uppercase; letter-spacing: 0.1em; }
+  .code-title { font-size: 12px; color: #8ba3bc; }
+  .code-body { padding: 20px 24px; overflow-x: auto; font-size: 13px; line-height: 1.75; color: #cdd6e0; }
+  .code-body pre { white-space: pre; }
+  .code-body .kw  { color: #79b8ff; }
+  .code-body .fn  { color: #b392f0; }
+  .code-body .str { color: #9ecbff; }
+  .code-body .cm  { color: #6a737d; font-style: italic; }
+  .code-body .fd  { color: #ffab70; }
+  .code-body .tp  { color: #85e89d; }
+  .code-body .nb  { color: #f97583; }
+
+  /* ANATOMY DIAGRAM */
+  .anatomy-box {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .anatomy-header {
+    background: var(--navy);
+    color: var(--white);
+    padding: 12px 24px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .anatomy-body { padding: 0; }
+  .anatomy-row {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .anatomy-row:last-child { border-bottom: none; }
+  .anatomy-num {
+    width: 36px;
+    flex-shrink: 0;
+    background: var(--bg);
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 14px;
+    border-right: 1px solid var(--border);
+  }
+  .anatomy-code {
+    flex: 1;
+    padding: 10px 20px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: #cdd6e0;
+    background: #0f1923;
+    line-height: 1.7;
+  }
+  .anatomy-desc {
+    width: 340px;
+    flex-shrink: 0;
+    padding: 10px 16px;
+    background: var(--white);
+    border-left: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+  .anatomy-desc strong { color: var(--navy); }
+
+  /* ASSOC DIAGRAM */
+  .assoc-diagram {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 28px 32px;
+    margin-bottom: 16px;
+  }
+  .assoc-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin-bottom: 20px;
+  }
+  .assoc-row:last-child { margin-bottom: 0; }
+  .assoc-entity {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 16px 18px;
+  }
+  .assoc-entity.main-entity { border-color: var(--navy); background: var(--navy-light); }
+  .assoc-entity .entity-label { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+  .assoc-entity.main-entity .entity-label { color: var(--navy); }
+  .assoc-entity .entity-name { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+  .assoc-entity .entity-ann { font-family: var(--font-mono); font-size: 11px; color: #b392f0; }
+  .assoc-connector {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 16px;
+    gap: 4px;
+  }
+  .assoc-line { width: 40px; height: 2px; background: var(--navy); }
+  .assoc-label { font-family: var(--font-mono); font-size: 10px; color: var(--navy); white-space: nowrap; }
+
+  /* STEP FLOW */
+  .step-flow { display: flex; flex-direction: column; gap: 0; margin-bottom: 16px; }
+  .step-item {
+    display: flex;
+    gap: 20px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    padding: 20px 24px;
+    position: relative;
+  }
+  .step-item:not(:last-child) { border-bottom: none; }
+  .step-item:first-child { border-radius: 4px 4px 0 0; }
+  .step-item:last-child { border-radius: 0 0 4px 4px; }
+  .step-num {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--navy); color: var(--white);
+    font-weight: 700; font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .step-content h4 { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+  .step-content p { font-size: 13px; color: var(--text-muted); line-height: 1.65; }
+  .step-content code { font-family: var(--font-mono); font-size: 12px; background: var(--bg); padding: 1px 5px; border-radius: 2px; border: 1px solid var(--border); }
+
+  /* DRILL TOGGLE */
+  .drill-toggle { background: var(--white); border: 1px solid var(--border); border-radius: 4px; margin-bottom: 10px; overflow: hidden; }
+  .drill-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; cursor: pointer; user-select: none; font-size: 14px; font-weight: 600; color: var(--navy); transition: background 0.15s; }
+  .drill-header:hover { background: var(--navy-light); }
+  .drill-arrow { font-size: 12px; color: var(--text-muted); transition: transform 0.2s; }
+  .drill-body { display: none; padding: 0 20px 20px; border-top: 1px solid var(--border); }
+  .drill-body.open { display: block; }
+  .drill-body p { font-size: 14px; color: var(--text-muted); line-height: 1.7; margin-top: 14px; }
+  .drill-body code { font-family: var(--font-mono); font-size: 12px; background: var(--bg); padding: 1px 5px; border-radius: 2px; border: 1px solid var(--border); }
+
+  /* QUIZ */
+  .quiz-section { background: var(--white); border: 1px solid var(--border); border-radius: 4px; padding: 32px; }
+  .quiz-title { font-family: var(--font-heading); font-size: 20px; color: var(--navy); margin-bottom: 24px; }
+  .quiz-item { margin-bottom: 28px; padding-bottom: 28px; border-bottom: 1px solid var(--border); }
+  .quiz-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .quiz-q { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 14px; line-height: 1.6; }
+  .quiz-q .q-num { display: inline-block; background: var(--navy); color: var(--white); font-family: var(--font-mono); font-size: 11px; padding: 2px 8px; border-radius: 2px; margin-right: 10px; vertical-align: middle; }
+  .quiz-q code { font-family: var(--font-mono); font-size: 13px; background: var(--bg); padding: 1px 6px; border-radius: 2px; border: 1px solid var(--border); }
+  .quiz-options { display: flex; flex-direction: column; gap: 8px; }
+  .quiz-option { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; background: var(--bg); transition: border-color 0.15s, background 0.15s; font-size: 14px; line-height: 1.5; }
+  .quiz-option:hover { border-color: var(--navy); background: var(--navy-light); }
+  .quiz-option.correct-ans { border-color: var(--correct-border) !important; background: var(--correct-bg) !important; }
+  .quiz-option.wrong-ans   { border-color: #c0392b !important; background: #fdecea !important; }
+  .quiz-option .opt-label  { font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--navy); flex-shrink: 0; margin-top: 1px; }
+  .quiz-option code { font-family: var(--font-mono); font-size: 12px; }
+  .quiz-feedback { margin-top: 12px; padding: 12px 16px; border-radius: 4px; font-size: 13px; display: none; line-height: 1.6; }
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback.correct-fb { background: var(--correct-bg); color: #2e7d32; border-left: 3px solid var(--correct-border); }
+  .quiz-feedback.wrong-fb   { background: #fdecea; color: #c0392b; border-left: 3px solid #c0392b; }
+  .quiz-progress { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+  .quiz-progress-bar { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .quiz-progress-fill { height: 100%; background: var(--navy); border-radius: 3px; transition: width 0.4s; }
+  .quiz-score-label { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+
+  /* FOOTER */
+  .module-footer { background: var(--white); border-top: 1px solid var(--border); padding: 24px 80px; display: flex; justify-content: space-between; align-items: center; margin-top: 60px; font-size: 13px; color: var(--text-muted); }
+  .footer-nav { display: flex; gap: 24px; }
+  .footer-nav a { color: var(--navy); text-decoration: none; font-weight: 500; }
+  .footer-nav a:hover { text-decoration: underline; }
+
+  @media (max-width: 900px) {
+    .site-header, .tab-nav, .wrapper, .module-footer { padding-left: 20px; padding-right: 20px; }
+    .hero { padding: 32px 24px; }
+    .anatomy-desc { width: 200px; }
+    .assoc-row { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <span class="logo">ASPN BAC · EDU Portal</span>
+  <span class="module-label">CDS View Analytics Query — A to Z</span>
+</header>
+
+<!-- TAB NAV -->
+<nav class="tab-nav">
+  <a href="tab01_overview.html">01. 개요 &amp; 로드맵</a>
+  <a href="tab02_syntax.html">02. CDS 기초 문법</a>
+  <a href="tab03_dimension.html" class="active">03. Dimension View</a>
+  <a href="tab04_hierarchy.html">04. Hierarchy View</a>
+  <a href="tab05_cube.html">05. Cube View</a>
+  <a href="tab06_query.html">06. Analytics Query View</a>
+  <a href="tab07_table_function.html">07. Table Function &amp; AMDP</a>
+  <a href="tab08_authorization.html">08. 권한 제어</a>
+  <a href="tab09_sac_live.html">09. SAC Live Model 연결</a>
+</nav>
+
+<main class="wrapper">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="eyebrow">Module 03 / Dimension View Design</div>
+    <h1>Dimension View는 Cube의 분석 축을<br>정의하는 마스터 데이터 서술자다</h1>
+    <p>
+      <code style="color:var(--navy-mid); font-family:var(--font-mono);">@Analytics.dataCategory: #DIMENSION</code> 선언부터
+      Text Association, Value Help, Hierarchy 연결까지
+      ASPN Group 시나리오(회사 코드·이익 센터·계정)를 기반으로 완전한 Dimension View를 설계합니다.
+    </p>
+    <div class="meta-row">
+      <div class="meta-item"><span class="meta-label">선수 지식</span><span class="meta-value">Tab 02 완료</span></div>
+      <div class="meta-item"><span class="meta-label">예상 학습 시간</span><span class="meta-value">45분</span></div>
+      <div class="meta-item"><span class="meta-label">핵심 Annotation</span><span class="meta-value">#DIMENSION · Text Assoc · Value Help</span></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       SECTION 1. Dimension View 역할
+  ════════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">1. Dimension View의 역할과 위치</h2>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+      Analytics 아키텍처에서 Dimension View는 <strong>분석 축(Axis)</strong>을 정의합니다.
+      Cube View의 Measure(숫자)를 어떤 기준으로 자르고 볼 것인가—회사 코드별, 계정별, 이익센터별—를 결정하는
+      마스터 데이터 서술자입니다. SAC에서 필터·행·열에 배치되는 항목이 모두 Dimension입니다.
+    </p>
+
+    <!-- 역할 비교 -->
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th style="width:20%">구분</th>
+          <th>Dimension View</th>
+          <th>Cube View</th>
+          <th>Analytics Query View</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>dataCategory</strong></td>
+          <td><code>#DIMENSION</code></td>
+          <td><code>#CUBE</code></td>
+          <td>선언 없음 (<code>@Analytics.query: true</code>)</td>
+        </tr>
+        <tr>
+          <td><strong>데이터 성격</strong></td>
+          <td>마스터 데이터 (코드·이름·속성)</td>
+          <td>트랜잭션 데이터 (금액·수량·건수)</td>
+          <td>Cube 위의 소비 레이어</td>
+        </tr>
+        <tr>
+          <td><strong>핵심 구성요소</strong></td>
+          <td>Text Association, Hierarchy Association, Value Help</td>
+          <td>Measure, Dimension 참조(Foreign Key)</td>
+          <td>Variable, Axis 설정, Calculated Measure</td>
+        </tr>
+        <tr>
+          <td><strong>SAC에서 역할</strong></td>
+          <td>필터·행·열 항목 (Dimension)</td>
+          <td>직접 노출 안 됨 (Query가 Wrap)</td>
+          <td>Live Model의 직접 참조 대상</td>
+        </tr>
+        <tr>
+          <td><strong>ASPN 예시</strong></td>
+          <td>회사 코드, 이익센터, GL 계정, 통화</td>
+          <td>ACDOCA 기반 재무 금액 집계</td>
+          <td>P&amp;L Query, B/S Query</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Cube와 Dimension 관계 다이어그램 -->
+    <div class="assoc-diagram" style="margin-top:24px;">
+      <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.08em;">Cube ↔ Dimension 참조 구조 — ASPN Group</p>
+
+      <!-- Cube 중심 -->
+      <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px; flex-wrap:wrap;">
+        <div style="flex:2; min-width:200px; background:var(--navy); color:var(--white); border-radius:4px; padding:18px 22px;">
+          <div style="font-family:var(--font-mono); font-size:10px; color:var(--navy-mid); margin-bottom:6px;">CUBE VIEW</div>
+          <div style="font-size:15px; font-weight:700;">ZASPN_C_FinancialCube</div>
+          <div style="font-family:var(--font-mono); font-size:11px; color:var(--navy-mid); margin-top:4px;">@Analytics.dataCategory: #CUBE</div>
+          <div style="margin-top:12px; display:flex; flex-wrap:wrap; gap:6px;">
+            <span style="background:rgba(255,255,255,0.12); font-family:var(--font-mono); font-size:10px; padding:3px 8px; border-radius:2px;">key CompanyCode</span>
+            <span style="background:rgba(255,255,255,0.12); font-family:var(--font-mono); font-size:10px; padding:3px 8px; border-radius:2px;">key ProfitCenter</span>
+            <span style="background:rgba(255,255,255,0.12); font-family:var(--font-mono); font-size:10px; padding:3px 8px; border-radius:2px;">key GLAccount</span>
+            <span style="background:rgba(255,255,255,0.12); font-family:var(--font-mono); font-size:10px; padding:3px 8px; border-radius:2px; color:#85e89d;">@DefaultAggregation: #SUM Amount</span>
+          </div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px; align-items:center;">
+          <div style="font-family:var(--font-mono); font-size:10px; color:var(--text-muted);">[0..1]</div>
+          <div style="width:2px; height:60px; background:var(--navy);"></div>
+          <div style="font-family:var(--font-mono); font-size:10px; color:var(--navy);">FK Assoc</div>
+        </div>
+        <div style="flex:3; display:flex; flex-direction:column; gap:10px; min-width:240px;">
+          <div style="background:var(--bg); border:1px solid var(--border); border-radius:4px; padding:12px 16px;">
+            <div style="font-family:var(--font-mono); font-size:10px; color:var(--text-muted); margin-bottom:4px;">DIMENSION VIEW</div>
+            <div style="font-size:13px; font-weight:700; color:var(--navy);">ZASPN_I_CompanyCode</div>
+            <div style="font-family:var(--font-mono); font-size:11px; color:#b392f0;">@Analytics.dataCategory: #DIMENSION</div>
+          </div>
+          <div style="background:var(--bg); border:1px solid var(--border); border-radius:4px; padding:12px 16px;">
+            <div style="font-family:var(--font-mono); font-size:10px; color:var(--text-muted); margin-bottom:4px;">DIMENSION VIEW</div>
+            <div style="font-size:13px; font-weight:700; color:var(--navy);">ZASPN_I_ProfitCenter</div>
+            <div style="font-family:var(--font-mono); font-size:11px; color:#b392f0;">@Analytics.dataCategory: #DIMENSION</div>
+          </div>
+          <div style="background:var(--bg); border:1px solid var(--border); border-radius:4px; padding:12px 16px;">
+            <div style="font-family:var(--font-mono); font-size:10px; color:var(--text-muted); margin-bottom:4px;">DIMENSION VIEW</div>
+            <div style="font-size:13px; font-weight:700; color:var(--navy);">ZASPN_I_GLAccount</div>
+            <div style="font-family:var(--font-mono); font-size:11px; color:#b392f0;">@Analytics.dataCategory: #DIMENSION</div>
+          </div>
+        </div>
+      </div>
+      <div class="callout" style="margin-bottom:0; margin-top:8px;">
+        <div class="callout-label">설계 원칙</div>
+        <p>Cube View의 <strong>키 필드 하나당 Dimension View 하나</strong>가 대응됩니다.
+        Cube에서 <code>@ObjectModel.foreignKey.association</code>으로 Dimension View를 참조하면,
+        SAC가 자동으로 Dimension으로 인식합니다 (Tab 05에서 상세 설명).</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       SECTION 2. 기본 구조 및 핵심 Annotation
+  ════════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">2. Dimension View 기본 구조 및 핵심 Annotation</h2>
+
+    <h3 class="subsection-title">해부 분석 — ZASPN_I_CompanyCode (회사 코드 Dimension)</h3>
+
+    <div class="anatomy-box">
+      <div class="anatomy-header">
+        <span style="font-size:11px; color:var(--navy-mid);">ABAP CDS · DDL</span>
+        <span style="font-size:12px; color:#8ba3bc;">ZASPN_I_CompanyCode — Dimension View 전체 구조</span>
+      </div>
+      <div class="anatomy-body">
+
+        <div class="anatomy-row">
+          <div class="anatomy-num">1</div>
+          <div class="anatomy-code"><span style="color:#b392f0;">@Analytics.dataCategory</span>: <span style="color:#9ecbff;">#DIMENSION</span></div>
+          <div class="anatomy-desc"><strong>핵심 선언.</strong> 이 View가 Dimension임을 Analytics Engine에 알립니다. SAC Live Model이 자동으로 Dimension 목록에 포함시킵니다.</div>
+        </div>
+
+        <div class="anatomy-row">
+          <div class="anatomy-num">2</div>
+          <div class="anatomy-code"><span style="color:#b392f0;">@Analytics.dimensionType</span>: <span style="color:#9ecbff;">#STANDARD</span></div>
+          <div class="anatomy-desc"><strong>Dimension 유형.</strong> #STANDARD(일반), #TIME(시간), #MEASURE_DIMENSION(통화·단위). 시간 Dimension은 SAC 시계열 분석과 연동됩니다.</div>
+        </div>
+
+        <div class="anatomy-row">
+          <div class="anatomy-num">3</div>
+          <div class="anatomy-code"><span style="color:#b392f0;">@EndUserText.label</span>: <span style="color:#9ecbff;">'Company Code'</span></div>
+          <div class="anatomy-desc"><strong>SAC 표시 레이블.</strong> SE63으로 다국어 번역 가능. SAC Dimension 패널에 이 텍스트가 표시됩니다.</div>
+        </div>
+
+        <div class="anatomy-row">
+          <div class="anatomy-num">4</div>
+          <div class="anatomy-code"><span style="color:#b392f0;">@VDM.viewType</span>: <span style="color:#9ecbff;">#BASIC</span></div>
+          <div class="anatomy-desc"><strong>VDM 계층.</strong> 마스터 데이터 Dimension은 주로 #BASIC 또는 #COMPOSITE. Consumption Layer의 Query가 직접 참조하지 않고 Cube를 통해 간접 참조됩니다.</div>
+        </div>
+
+        <div class="anatomy-row">
+          <div class="anatomy-num">5</div>
+          <div class="anatomy-code"><span style="color:#b392f0;">@AccessControl.authorizationCheck</span>: <span style="color:#9ecbff;">#CHECK</span></div>
+          <div class="anatomy-desc"><strong>권한 체크.</strong> Dimension View에도 반드시 #CHECK를 설정합니다. Value Help 조회 시에도 권한 필터가 적용됩니다.</div>
+        </div>
+
+        <div class="anatomy-row">
+          <div class="anatomy-num">6–9</div>
+          <div class="anatomy-code"><span style="color:#79b8ff;">define view entity</span> <span style="color:#ffab70;">ZASPN_I_CompanyCode</span>
+  <span style="color:#79b8ff;">as select from</span> <span style="color:#ffab70;">I_CompanyCode</span> <span style="color:#79b8ff;">as</span> <span style="color:#ffab70;">CC</span>
+
+  <span style="color:#6a737d; font-style:italic;">// Text Association 연결</span>
+  <span style="color:#79b8ff;">association [0..*] to</span> <span style="color:#ffab70;">I_CompanyCodeText</span> <span style="color:#79b8ff;">as</span> <span style="color:#ffab70;">_Text</span>
+    <span style="color:#79b8ff;">on</span>  <span style="color:#ffab70;">$projection</span>.<span style="color:#ffab70;">CompanyCode</span> = <span style="color:#ffab70;">_Text</span>.<span style="color:#ffab70;">CompanyCode</span>
+
+  <span style="color:#6a737d; font-style:italic;">// Hierarchy Association 연결 (Tab 04)</span>
+  <span style="color:#79b8ff;">association [0..1] to</span> <span style="color:#ffab70;">ZASPN_H_CompanyCode</span> <span style="color:#79b8ff;">as</span> <span style="color:#ffab70;">_Hierarchy</span>
+    <span style="color:#79b8ff;">on</span>  <span style="color:#ffab70;">$projection</span>.<span style="color:#ffab70;">CompanyCode</span> = <span class="color:#ffab70;">_Hierarchy</span>.<span style="color:#ffab70;">CompanyCode</span></div>
+          <div class="anatomy-desc"><strong>Association 선언 블록.</strong> Text Association은 <code>[0..*]</code> — 언어별 여러 텍스트 레코드가 존재하기 때문입니다. Hierarchy Association은 Tab 04에서 생성할 Hierarchy View를 참조합니다.</div>
+        </div>
+
+        <div class="anatomy-row">
+          <div class="anatomy-num">10–22</div>
+          <div class="anatomy-code">{
+  <span style="color:#79b8ff;">key</span> <span style="color:#ffab70;">CC</span>.<span style="color:#ffab70;">CompanyCode</span>,
+
+  <span style="color:#6a737d; font-style:italic;">// Text Association 연결 Annotation</span>
+  <span style="color:#b392f0;">@ObjectModel.text.association</span>: <span style="color:#9ecbff;">'_Text'</span>
+      <span style="color:#ffab70;">CC</span>.<span style="color:#ffab70;">CompanyCode</span>          <span style="color:#79b8ff;">as</span> <span style="color:#ffab70;">CompanyCode</span>,
+
+      <span style="color:#ffab70;">CC</span>.<span style="color:#ffab70;">CountryChartOfAccounts</span>,
+      <span style="color:#ffab70;">CC</span>.<span style="color:#ffab70;">Currency</span>,
+      <span style="color:#ffab70;">CC</span>.<span style="color:#ffab70;">FiscalYearVariant</span>,
+
+  <span style="color:#6a737d; font-style:italic;">// Hierarchy Association 노출</span>
+  <span style="color:#b392f0;">@ObjectModel.hierarchyAssociation</span>: <span style="color:#9ecbff;">'_Hierarchy'</span>
+      <span style="color:#ffab70;">_Text</span>,
+      <span style="color:#ffab70;">_Hierarchy</span>
+}</div>
+          <div class="anatomy-desc"><strong>필드 목록.</strong> <code>@ObjectModel.text.association</code>은 텍스트를 어느 Association에서 가져올지 지정합니다. <code>@ObjectModel.hierarchyAssociation</code>은 SAC가 Hierarchy를 인식하는 핵심 Annotation입니다.</div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       SECTION 3. Text Association
+  ════════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">3. Text Association — 마스터 데이터 텍스트 연결</h2>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+      SAC에서 Dimension 값은 코드(<code>1000</code>)가 아닌 텍스트(<code>ASPN Holdings</code>)로 표시되어야 합니다.
+      이를 위해 Dimension View는 텍스트를 보관하는 Text View와 Association으로 연결하고,
+      <code>@ObjectModel.text.association</code>으로 어느 Association이 텍스트 소스인지 선언합니다.
+    </p>
+
+    <h3 class="subsection-title">Text View — SAP 표준 사용 vs. 커스텀 작성</h3>
+
+    <div class="callout correct" style="margin-bottom:16px;">
+      <div class="callout-label">SAP 표준 Text View 우선 사용</div>
+      <p>SAP S/4HANA는 주요 마스터 데이터에 표준 Text View를 이미 제공합니다.
+      <code>I_CompanyCodeText</code>, <code>I_GLAccountText</code>, <code>I_ProfitCenterText</code> 등이 대표적입니다.
+      <strong>커스텀 Dimension View를 만들 때 이 표준 Text View를 Association 소스로 직접 참조하는 것이 권장 패턴입니다.</strong>
+      커스텀 Text View는 Z-테이블 기반 커스텀 마스터 데이터에만 직접 작성합니다.
+      </p>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-lang">ABAP CDS</span>
+        <span class="code-title">권장 패턴 — SAP 표준 I_CompanyCodeText 직접 참조</span>
+      </div>
+      <div class="code-body"><pre><span class="cm">// 권장: SAP 표준 Text View를 Association 소스로 직접 참조</span>
+<span class="cm">// I_CompanyCodeText 는 SAP 제공 표준 View (Language·CompanyCode key, @Semantics.text 이미 선언됨)</span>
+<span class="kw">association [0..*] to</span> <span class="fd">I_CompanyCodeText</span> <span class="kw">as</span> <span class="fd">_Text</span>
+    <span class="kw">on</span> <span class="fd">$projection</span>.<span class="fd">CompanyCode</span> = <span class="fd">_Text</span>.<span class="fd">CompanyCode</span></pre></div>
+    </div>
+
+    <h3 class="subsection-title">커스텀 Text View 직접 작성이 필요한 경우</h3>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:16px;">
+      Z-테이블 기반 커스텀 마스터 데이터처럼 SAP 표준 Text View가 없을 때만 직접 작성합니다.
+      이 경우 아래 4가지 규칙을 반드시 준수합니다.
+    </p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-lang">ABAP CDS</span>
+        <span class="code-title">커스텀 Text View 작성 패턴 — 4가지 필수 규칙 포함</span>
+      </div>
+      <div class="code-body"><pre><span class="cm">// 커스텀 Text View: Z-테이블 기반 마스터 데이터에만 적용</span>
+<span class="fn">@ObjectModel.dataCategory</span>: <span class="str">#TEXT</span>          <span class="cm">// ① #DIMENSION 아닌 #TEXT 선언</span>
+<span class="fn">@EndUserText.label</span>: <span class="str">'Company Code Text'</span>
+
+<span class="kw">define view entity</span> <span class="fd">ZASPN_I_CompanyCodeText</span>
+  <span class="kw">as select from</span> <span class="fd">ZASPN_T_CompanyText</span> <span class="kw">as</span> <span class="fd">T</span>
+{
+  <span class="kw">key</span> <span class="fd">T</span>.<span class="fd">SPRAS</span>  <span class="kw">as</span> <span class="fd">Language</span>,    <span class="cm">// ② Language를 반드시 key에 포함</span>
+  <span class="kw">key</span> <span class="fd">T</span>.<span class="fd">BUKRS</span>  <span class="kw">as</span> <span class="fd">CompanyCode</span>,
+
+  <span class="cm">// ③ @Semantics.text: true — 텍스트 필드임을 Analytics Engine에 선언</span>
+  <span class="fn">@Semantics.text</span>: <span class="kw">true</span>
+  <span class="fn">@EndUserText.label</span>: <span class="str">'Company Name'</span>
+      <span class="fd">T</span>.<span class="fd">BUTXT</span>  <span class="kw">as</span> <span class="fd">CompanyCodeName</span>
+  <span class="cm">// ④ Text Association Cardinality는 [0..*] — 언어 수만큼 레코드 존재</span>
+}</pre></div>
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-label">커스텀 Text View 4가지 필수 규칙</div>
+      <p>
+        ① View 레벨에 <strong><code>@ObjectModel.dataCategory: #TEXT</code></strong>를 선언합니다. <code>#DIMENSION</code>이 아닙니다.<br>
+        ② <strong>Language 필드가 반드시 key</strong>여야 합니다. 언어 코드가 key에 없으면 SAC에서 텍스트가 중복 표시됩니다.<br>
+        ③ 실제 텍스트 필드에 <strong><code>@Semantics.text: true</code></strong>를 선언해야 SAC가 해당 필드를 텍스트로 인식합니다.<br>
+        ④ Dimension View에서 이 Text View로의 Association Cardinality는 <strong><code>[0..*]</code></strong>으로 선언합니다.
+      </p>
+    </div>
+
+    <h3 class="subsection-title">Dimension View에서 Text Association 선언 — 전체 패턴</h3>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-lang">ABAP CDS</span>
+        <span class="code-title">ZASPN_I_CompanyCode — Text Association 완성 패턴</span>
+      </div>
+      <div class="code-body"><pre><span class="fn">@Analytics.dataCategory</span>: <span class="str">#DIMENSION</span>
+<span class="fn">@Analytics.dimensionType</span>: <span class="str">#STANDARD</span>
+<span class="fn">@EndUserText.label</span>: <span class="str">'Company Code'</span>
+<span class="fn">@AccessControl.authorizationCheck</span>: <span class="str">#CHECK</span>
+<span class="fn">@VDM.viewType</span>: <span class="str">#BASIC</span>
+
+<span class="kw">define view entity</span> <span class="fd">ZASPN_I_CompanyCode</span>
+  <span class="kw">as select from</span> <span class="fd">I_CompanyCode</span> <span class="kw">as</span> <span class="fd">CC</span>
+
+  <span class="cm">// ① Text Association: Cardinality [0..*] — 언어별 다중 레코드</span>
+  <span class="kw">association [0..*] to</span> <span class="fd">ZASPN_I_CompanyCodeText</span> <span class="kw">as</span> <span class="fd">_Text</span>
+    <span class="kw">on</span> <span class="fd">$projection</span>.<span class="fd">CompanyCode</span> = <span class="fd">_Text</span>.<span class="fd">CompanyCode</span>
+
+{
+  <span class="cm">// ② @ObjectModel.text.association: 텍스트 소스 Association 지정</span>
+  <span class="fn">@ObjectModel.text.association</span>: <span class="str">'_Text'</span>
+  <span class="kw">key</span> <span class="fd">CC</span>.<span class="fd">CompanyCode</span>,
+
+      <span class="fd">CC</span>.<span class="fd">Currency</span>          <span class="kw">as</span> <span class="fd">CompanyCodeCurrency</span>,
+      <span class="fd">CC</span>.<span class="fd">FiscalYearVariant</span>,
+      <span class="fd">CC</span>.<span class="fd">CountryChartOfAccounts</span>,
+
+  <span class="cm">// ③ Association을 필드로 노출 — SAC가 텍스트를 자동 조회</span>
+      <span class="fd">_Text</span>
+}</pre></div>
+    </div>
+
+    <div class="callout correct">
+      <div class="callout-label">ASPN Group — 다국어 시나리오</div>
+      <p>ASPN Europe(법인 코드 3000)은 영어·독일어 텍스트가 모두 필요합니다.
+      Text View의 Language key 덕분에 SAC 사용자 언어 설정에 따라 자동으로 적절한 텍스트가 표시됩니다.
+      <code>BUTXT: 'ASPN Europe GmbH'</code>(독일어), <code>'ASPN Europe Ltd'</code>(영어)가 언어 코드로 구분되어 저장됩니다.</p>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       SECTION 4. Value Help
+  ════════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">4. Value Help — SAC 필터 선택 목록 연결</h2>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+      SAC에서 Dimension을 필터로 사용할 때, 사용자가 값을 직접 입력하는 대신
+      드롭다운 목록에서 선택할 수 있도록 하는 것이 Value Help입니다.
+      Dimension View에 <code>@Consumption.valueHelpDefinition</code>을 선언하면
+      Fiori 및 SAC 필터 화면에 선택 목록이 자동 제공됩니다.
+    </p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-lang">ABAP CDS</span>
+        <span class="code-title">Value Help 선언 — 이익센터 Dimension (ZASPN_I_ProfitCenter)</span>
+      </div>
+      <div class="code-body"><pre><span class="fn">@Analytics.dataCategory</span>: <span class="str">#DIMENSION</span>
+<span class="fn">@EndUserText.label</span>: <span class="str">'Profit Center'</span>
+<span class="fn">@AccessControl.authorizationCheck</span>: <span class="str">#CHECK</span>
+
+<span class="kw">define view entity</span> <span class="fd">ZASPN_I_ProfitCenter</span>
+  <span class="kw">as select from</span> <span class="fd">I_ProfitCenter</span> <span class="kw">as</span> <span class="fd">PC</span>
+
+  <span class="kw">association [0..*] to</span> <span class="fd">I_ProfitCenterText</span> <span class="kw">as</span> <span class="fd">_Text</span>
+    <span class="kw">on</span>  <span class="fd">$projection</span>.<span class="fd">ControllingArea</span> = <span class="fd">_Text</span>.<span class="fd">ControllingArea</span>
+    <span class="kw">and</span> <span class="fd">$projection</span>.<span class="fd">ProfitCenter</span>    = <span class="fd">_Text</span>.<span class="fd">ProfitCenter</span>
+    <span class="kw">and</span> <span class="fd">$projection</span>.<span class="fd">ValidityEndDate</span> = <span class="fd">_Text</span>.<span class="fd">ValidityEndDate</span>
+
+{
+  <span class="cm">// Value Help 선언: 이 Dimension 자신을 Value Help 소스로 지정</span>
+  <span class="fn">@Consumption.valueHelpDefinition</span>: [{
+      entity: {
+          name: <span class="str">'ZASPN_I_ProfitCenter'</span>,   <span class="cm">// Value Help 제공 View (자기 자신)</span>
+          element: <span class="str">'ProfitCenter'</span>           <span class="cm">// 매핑할 필드명</span>
+      }
+  }]
+  <span class="fn">@ObjectModel.text.association</span>: <span class="str">'_Text'</span>
+  <span class="kw">key</span> <span class="fd">PC</span>.<span class="fd">ControllingArea</span>,
+  <span class="kw">key</span> <span class="fd">PC</span>.<span class="fd">ProfitCenter</span>,
+  <span class="kw">key</span> <span class="fd">PC</span>.<span class="fd">ValidityEndDate</span>,
+
+      <span class="fd">PC</span>.<span class="fd">ProfitCenterIsBlocked</span>,
+      <span class="fd">PC</span>.<span class="fd">Segment</span>,
+      <span class="fd">PC</span>.<span class="fd">CompanyCode</span>,
+
+      <span class="fd">_Text</span>
+}
+<span class="cm">// WHERE 절: 유효 기간 내 이익센터만 표시</span>
+<span class="kw">where</span> <span class="fd">PC</span>.<span class="fd">ValidityEndDate</span> >= <span class="fd">$session</span>.<span class="fd">system_date</span>
+  <span class="kw">and</span> <span class="fd">PC</span>.<span class="fd">ProfitCenterIsBlocked</span> = <span class="str">''</span></pre></div>
+    </div>
+
+    <div class="callout">
+      <div class="callout-label">$session.system_date</div>
+      <p>CDS 내장 세션 변수입니다. 런타임 시점의 시스템 날짜를 반환합니다.
+      유효 기간 필터(<code>ValidityEndDate >= $session.system_date</code>)에 활용하여
+      만료된 마스터 데이터를 Value Help 목록에서 자동 제외합니다.</p>
+    </div>
+
+    <div class="drill-toggle">
+      <div class="drill-header" onclick="toggleDrill(this)">
+        <span>📋 외부 Value Help — 별도 Search Help View를 참조하는 패턴</span>
+        <span class="drill-arrow">▼</span>
+      </div>
+      <div class="drill-body">
+        <p>자기 자신을 Value Help 소스로 쓰는 것 외에, 별도로 설계된 Search Help View를 참조할 수도 있습니다.</p>
+        <div class="code-wrap" style="margin-top:14px;">
+          <div class="code-header"><span class="code-lang">ABAP CDS</span><span class="code-title">외부 Value Help 참조 패턴</span></div>
+          <div class="code-body"><pre><span class="cm">// Query View의 파라미터 필드에서 외부 Value Help 참조</span>
+<span class="fn">@Consumption.valueHelpDefinition</span>: [{
+    entity: {
+        name: <span class="str">'ZASPN_I_ProfitCenter'</span>,  <span class="cm">// 외부 Dimension View 참조</span>
+        element: <span class="str">'ProfitCenter'</span>
+    },
+    additionalBinding: [{
+        localElement: <span class="str">'ControllingArea'</span>,   <span class="cm">// 추가 필터 바인딩</span>
+        element: <span class="str">'ControllingArea'</span>
+    }]
+}]
+<span class="fd">P_ProfitCenter</span> : <span class="tp">prctr</span></pre></div>
+        </div>
+        <p><code>additionalBinding</code>을 통해 상위 필터(예: ControllingArea)와 연동하면 선택 목록이 자동으로 좁혀집니다. ASPN Group에서 Korea 관리 회계 영역의 이익센터만 필터링하는 데 활용합니다.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       SECTION 5. GL 계정 Dimension 완성 예시
+  ════════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">5. 완성 예시 — ZASPN_I_GLAccount (GL 계정 Dimension)</h2>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+      ASPN Holdings의 연결재무제표 분석에서 가장 핵심적인 Dimension인 GL 계정 Dimension을
+      Text Association · Value Help · 계층 연결 포인트를 모두 포함하여 완성합니다.
+    </p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-lang">ABAP CDS</span>
+        <span class="code-title">ZASPN_I_GLAccount — 완성형 GL 계정 Dimension View</span>
+      </div>
+      <div class="code-body"><pre><span class="cm">// ── View 레벨 Annotation ──</span>
+<span class="fn">@Analytics.dataCategory</span>: <span class="str">#DIMENSION</span>
+<span class="fn">@Analytics.dimensionType</span>: <span class="str">#STANDARD</span>
+<span class="fn">@EndUserText.label</span>: <span class="str">'GL Account'</span>
+<span class="fn">@EndUserText.quickInfo</span>: <span class="str">'ASPN Group GL Account Dimension'</span>
+<span class="fn">@AccessControl.authorizationCheck</span>: <span class="str">#CHECK</span>
+<span class="fn">@VDM.viewType</span>: <span class="str">#BASIC</span>
+<span class="fn">@ObjectModel.representativeKey</span>: <span class="str">'GLAccount'</span>  <span class="cm">// 대표 키 필드 명시</span>
+
+<span class="kw">define view entity</span> <span class="fd">ZASPN_I_GLAccount</span>
+  <span class="kw">as select from</span> <span class="fd">I_GLAccountInChartOfAccounts</span> <span class="kw">as</span> <span class="fd">GL</span>
+
+  <span class="cm">// ① Text Association — 언어별 계정 명칭</span>
+  <span class="kw">association [0..*] to</span> <span class="fd">I_GLAccountText</span> <span class="kw">as</span> <span class="fd">_Text</span>
+    <span class="kw">on</span>  <span class="fd">$projection</span>.<span class="fd">ChartOfAccounts</span> = <span class="fd">_Text</span>.<span class="fd">ChartOfAccounts</span>
+    <span class="kw">and</span> <span class="fd">$projection</span>.<span class="fd">GLAccount</span>       = <span class="fd">_Text</span>.<span class="fd">GLAccount</span>
+
+  <span class="cm">// ② Hierarchy Association — 계정 계층 (Tab 04에서 생성)</span>
+  <span class="kw">association [0..1] to</span> <span class="fd">ZASPN_H_GLAccountHierarchy</span> <span class="kw">as</span> <span class="fd">_Hierarchy</span>
+    <span class="kw">on</span>  <span class="fd">$projection</span>.<span class="fd">ChartOfAccounts</span> = <span class="fd">_Hierarchy</span>.<span class="fd">ChartOfAccounts</span>
+    <span class="kw">and</span> <span class="fd">$projection</span>.<span class="fd">GLAccount</span>       = <span class="fd">_Hierarchy</span>.<span class="fd">GLAccount</span>
+
+{
+  <span class="cm">// ── 키 필드 ──</span>
+  <span class="fn">@ObjectModel.text.association</span>: <span class="str">'_Text'</span>
+  <span class="kw">key</span> <span class="fd">GL</span>.<span class="fd">ChartOfAccounts</span>,
+
+  <span class="fn">@ObjectModel.text.association</span>: <span class="str">'_Text'</span>
+  <span class="fn">@Consumption.valueHelpDefinition</span>: [{
+      entity: { name: <span class="str">'ZASPN_I_GLAccount'</span>, element: <span class="str">'GLAccount'</span> },
+      additionalBinding: [{
+          localElement: <span class="str">'ChartOfAccounts'</span>, element: <span class="str">'ChartOfAccounts'</span>
+      }]
+  }]
+  <span class="kw">key</span> <span class="fd">GL</span>.<span class="fd">GLAccount</span>,
+
+  <span class="cm">// ── 속성 필드 ──</span>
+  <span class="fn">@EndUserText.label</span>: <span class="str">'Account Type'</span>
+      <span class="fd">GL</span>.<span class="fd">GLAccountType</span>,          <span class="cm">// X:B/S, Y:P&L 구분 — ASPN 재무분석 핵심</span>
+
+      <span class="fd">GL</span>.<span class="fd">AccountIsMarkedForDeletion</span>,
+      <span class="fd">GL</span>.<span class="fd">IsBalanceSheetAccount</span>,
+
+  <span class="cm">// ── ASPN 커스텀 분류 필드 ──</span>
+  <span class="fn">@EndUserText.label</span>: <span class="str">'ASPN FS Item'</span>
+  <span class="kw">case</span> <span class="fd">GL</span>.<span class="fd">GLAccountType</span>
+    <span class="kw">when</span> <span class="str">'X'</span> <span class="kw">then</span> <span class="str">'Balance Sheet'</span>
+    <span class="kw">when</span> <span class="str">'Y'</span> <span class="kw">then</span> <span class="str">'Income Statement'</span>
+    <span class="kw">else</span>          <span class="str">'Other'</span>
+  <span class="kw">end</span>                              <span class="kw">as</span> <span class="fd">FinancialStatementType</span>,
+
+  <span class="cm">// ── Association 노출 ──</span>
+  <span class="fn">@ObjectModel.hierarchyAssociation</span>: <span class="str">'_Hierarchy'</span>
+      <span class="fd">_Text</span>,
+      <span class="fd">_Hierarchy</span>
+}
+<span class="kw">where</span> <span class="fd">GL</span>.<span class="fd">AccountIsMarkedForDeletion</span> = <span class="str">''</span>   <span class="cm">// 삭제 표시 계정 제외</span></pre></div>
+    </div>
+
+    <div class="callout correct">
+      <div class="callout-label">설계 포인트 — GLAccountType 분류</div>
+      <p>ASPN Holdings의 연결재무제표는 B/S와 P&amp;L을 구분 분석해야 합니다.
+      <code>GLAccountType = 'X'</code>(재무상태표 계정)와 <code>'Y'</code>(손익계산서 계정) 구분이
+      GL 계정 Dimension에 포함되어야 SAC에서 재무제표 유형별 필터가 가능합니다.
+      이 필드는 Cube View의 Restricted Measure 설계(Tab 06)에서도 핵심으로 활용됩니다.</p>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       SECTION 6. Dimension View 설계 프로세스
+  ════════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">6. Dimension View 설계 단계별 프로세스</h2>
+
+    <div class="step-flow">
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h4>분석 축(Dimension) 목록 확정</h4>
+          <p>Cube View에서 사용할 키 필드 목록을 먼저 정의합니다.
+          각 키 필드가 하나의 Dimension으로 대응됩니다.
+          ASPN Group 예시: <code>CompanyCode</code>, <code>FiscalYear</code>, <code>FiscalPeriod</code>,
+          <code>GLAccount</code>, <code>ProfitCenter</code>, <code>CostCenter</code>, <code>Currency</code> 등.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h4>소스 테이블 / Interface View 확인</h4>
+          <p>SAP 표준 Interface View(<code>I_CompanyCode</code>, <code>I_ProfitCenter</code> 등)를
+          소스로 활용합니다. 표준 View가 없는 경우 Z 커스텀 테이블을 직접 참조합니다.
+          표준 View 재사용은 SAP 업그레이드 대응력을 높입니다.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h4>Text View 확인 및 생성</h4>
+          <p>표준 Text View(<code>I_CompanyCodeText</code>, <code>I_GLAccountText</code>)가 있으면 그대로 사용합니다.
+          커스텀 Dimension의 경우 <code>@ObjectModel.dataCategory: #TEXT</code> + <code>@Semantics.text: true</code>로
+          별도 Text View를 작성합니다. Language 필드를 반드시 <code>key</code>에 포함합니다.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <h4>Dimension View 작성</h4>
+          <p><code>@Analytics.dataCategory: #DIMENSION</code> 선언 → Text Association + <code>@ObjectModel.text.association</code>
+          → Value Help 선언(<code>@Consumption.valueHelpDefinition</code>) → Hierarchy Association 포인트 예약(Tab 04)
+          → 필요 속성 필드 추가 → WHERE 절로 유효 레코드 필터.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <h4>DCL(Access Control) 작성</h4>
+          <p>Dimension View에도 반드시 DCL을 작성합니다. Value Help 조회 시에도 권한 필터가 동작하여
+          권한 없는 마스터 데이터가 선택 목록에 표시되지 않습니다. DCL 작성은 Tab 08에서 상세히 다룹니다.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">6</div>
+        <div class="step-content">
+          <h4>Cube View에서 Foreign Key Association으로 참조</h4>
+          <p>Cube View에서 <code>@ObjectModel.foreignKey.association: '_CompanyCode'</code>로 이 Dimension View를
+          참조합니다. SAC가 이 연결을 통해 Dimension을 자동 인식합니다 (Tab 05에서 계속).</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 설계 체크리스트 -->
+    <div class="drill-toggle" style="margin-top:24px;">
+      <div class="drill-header" onclick="toggleDrill(this)">
+        <span>✅ Dimension View 배포 전 품질 체크리스트</span>
+        <span class="drill-arrow">▼</span>
+      </div>
+      <div class="drill-body">
+        <table class="compare-table" style="margin-top:14px;">
+          <thead><tr><th>확인 항목</th><th>확인 방법</th><th>미비 시 증상</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><code>@Analytics.dataCategory: #DIMENSION</code> 선언</td>
+              <td>ADT 소스 코드 확인</td>
+              <td>SAC에서 Dimension으로 인식 안 됨</td>
+            </tr>
+            <tr>
+              <td>Text Association Cardinality <code>[0..*]</code></td>
+              <td>ADT Association 선언 확인</td>
+              <td>SAC에서 텍스트 중복 표시</td>
+            </tr>
+            <tr>
+              <td><code>@Semantics.text: true</code> Text View에 선언</td>
+              <td>Text View 소스 확인</td>
+              <td>SAC에서 텍스트 필드 미인식</td>
+            </tr>
+            <tr>
+              <td>Language 필드가 Text View의 key</td>
+              <td>Text View key 필드 확인</td>
+              <td>다국어 텍스트 오류 또는 누락</td>
+            </tr>
+            <tr>
+              <td><code>@AccessControl.authorizationCheck: #CHECK</code></td>
+              <td>View 레벨 Annotation 확인</td>
+              <td>Value Help에 권한 외 데이터 노출</td>
+            </tr>
+            <tr>
+              <td>DCL(DEFINE ROLE) 작성 완료</td>
+              <td>DCL 오브젝트 존재 확인</td>
+              <td>데이터 공백 또는 전체 노출</td>
+            </tr>
+            <tr>
+              <td>WHERE 절 유효성 필터</td>
+              <td>실행 결과 레코드 확인</td>
+              <td>만료/삭제 마스터 데이터가 Value Help에 표시</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       QUIZ
+  ════════════════════════════════════════ -->
+  <section class="section">
+    <div class="quiz-section">
+      <h3 class="quiz-title">확인 퀴즈 — Tab 03</h3>
+      <div class="quiz-progress">
+        <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="progressFill" style="width:0%"></div></div>
+        <span class="quiz-score-label" id="scoreLabel">0 / 4 완료</span>
+      </div>
+
+      <!-- Q1 -->
+      <div class="quiz-item">
+        <div class="quiz-q">
+          <span class="q-num">Q1</span>
+          Dimension View에서 Text Association의 Cardinality를 <code>[0..1]</code>로 설정했습니다. SAC에서 어떤 현상이 발생합니까?
+        </div>
+        <div class="quiz-options" id="q1">
+          <div class="quiz-option" onclick="answer('q1',this,false,'q1-fb','텍스트가 전혀 표시되지 않는 것이 아닙니다. 한 언어의 텍스트는 표시될 수 있지만 다국어 처리에서 문제가 발생합니다.')">
+            <span class="opt-label">A</span> SAC에서 텍스트가 전혀 표시되지 않는다
+          </div>
+          <div class="quiz-option" onclick="answer('q1',this,true,'q1-fb','정답입니다. Text View에는 언어별로 여러 레코드가 존재합니다. Cardinality를 [0..1]로 제한하면 최대 1개 언어의 텍스트만 반환되며, 다국어 환경에서 특정 언어 텍스트가 누락되거나 중복 표시 오류가 발생합니다. Text Association은 반드시 [0..*]이어야 합니다.')">
+            <span class="opt-label">B</span> 다국어 환경에서 텍스트 누락 또는 오류가 발생한다
+          </div>
+          <div class="quiz-option" onclick="answer('q1',this,false,'q1-fb','SAC Live Model 연결 자체는 실패하지 않습니다. 텍스트 표시 문제로 나타납니다.')">
+            <span class="opt-label">C</span> SAC Live Model 연결이 실패한다
+          </div>
+          <div class="quiz-option" onclick="answer('q1',this,false,'q1-fb','Value Help는 Text Association Cardinality와 직접적인 관련이 없습니다.')">
+            <span class="opt-label">D</span> Value Help 목록이 비어 표시된다
+          </div>
+        </div>
+        <div class="quiz-feedback" id="q1-fb"></div>
+      </div>
+
+      <!-- Q2 -->
+      <div class="quiz-item">
+        <div class="quiz-q">
+          <span class="q-num">Q2</span>
+          ASPN_I_GLAccount Dimension View를 설계할 때,
+          <code>@ObjectModel.text.association: '_Text'</code>를 어느 위치에 선언합니까?
+        </div>
+        <div class="quiz-options" id="q2">
+          <div class="quiz-option" onclick="answer('q2',this,false,'q2-fb','Text View의 텍스트 필드에는 @Semantics.text: true를 선언합니다. @ObjectModel.text.association은 Dimension View에 선언합니다.')">
+            <span class="opt-label">A</span> Text View의 텍스트 필드(<code>GLAccountName</code>)에
+          </div>
+          <div class="quiz-option" onclick="answer('q2',this,false,'q2-fb','View 레벨 Annotation 블록(define view entity 위)에는 dataCategory, VDM.viewType 등을 선언합니다. text.association은 필드 레벨에 선언합니다.')">
+            <span class="opt-label">B</span> Dimension View의 View 레벨 Annotation 블록에
+          </div>
+          <div class="quiz-option" onclick="answer('q2',this,true,'q2-fb','정답입니다. @ObjectModel.text.association은 Dimension View의 key 필드 바로 위에 필드 레벨 Annotation으로 선언합니다. 이를 통해 해당 key 필드의 텍스트 소스가 _Text Association임을 Analytics Engine에 알립니다.')">
+            <span class="opt-label">C</span> Dimension View의 key 필드(<code>GLAccount</code>) 위에 필드 레벨 Annotation으로
+          </div>
+          <div class="quiz-option" onclick="answer('q2',this,false,'q2-fb','Association 선언 블록(on 조건 위)에는 Annotation을 선언하지 않습니다. Association 자체에 대한 Annotation은 필드 목록의 노출 위치에 선언합니다.')">
+            <span class="opt-label">D</span> Association 선언부(<code>association [0..*] to ...</code>) 위에
+          </div>
+        </div>
+        <div class="quiz-feedback" id="q2-fb"></div>
+      </div>
+
+      <!-- Q3 -->
+      <div class="quiz-item">
+        <div class="quiz-q">
+          <span class="q-num">Q3</span>
+          ASPN Europe의 이익센터 Dimension을 SAC 필터에서 사용할 때,
+          만료된 이익센터가 선택 목록에 나타나지 않도록 하려면 어디에 어떤 처리가 필요합니까?
+        </div>
+        <div class="quiz-options" id="q3">
+          <div class="quiz-option" onclick="answer('q3',this,false,'q3-fb','SAC Live Model 설정에는 필터 옵션이 없습니다. 소스인 CDS View에서 처리해야 합니다.')">
+            <span class="opt-label">A</span> SAC Live Model 설정에서 만료 기간 필터를 추가한다
+          </div>
+          <div class="quiz-option" onclick="answer('q3',this,false,'q3-fb','DCL은 권한 기반 행 필터입니다. 유효 기간 필터는 CDS View의 WHERE 절이 적절합니다.')">
+            <span class="opt-label">B</span> DCL(Access Control)의 WHERE 조건으로 처리한다
+          </div>
+          <div class="quiz-option" onclick="answer('q3',this,true,'q3-fb','정답입니다. Dimension View의 WHERE 절에 ValidityEndDate >= $session.system_date 조건을 추가합니다. $session.system_date는 CDS 내장 세션 변수로 런타임 시스템 날짜를 반환하며, 이를 통해 만료된 이익센터가 자동으로 Value Help 목록과 필터에서 제외됩니다.')">
+            <span class="opt-label">C</span> Dimension View의 WHERE 절에 <code>ValidityEndDate &gt;= $session.system_date</code> 조건을 추가한다
+          </div>
+          <div class="quiz-option" onclick="answer('q3',this,false,'q3-fb','@Consumption.filter는 필터 선택 방식(단일/다중)을 제어하지, 데이터 유효성을 필터링하지 않습니다.')">
+            <span class="opt-label">D</span> <code>@Consumption.filter.selectionType: #SINGLE</code>로 설정한다
+          </div>
+        </div>
+        <div class="quiz-feedback" id="q3-fb"></div>
+      </div>
+
+      <!-- Q4 -->
+      <div class="quiz-item">
+        <div class="quiz-q">
+          <span class="q-num">Q4</span>
+          ZASPN_I_GLAccount에서 <code>@ObjectModel.hierarchyAssociation: '_Hierarchy'</code>를 선언하는 목적은?
+        </div>
+        <div class="quiz-options" id="q4">
+          <div class="quiz-option" onclick="answer('q4',this,false,'q4-fb','SQL JOIN 실행은 Association 지연 평가와 관련이 있습니다. hierarchyAssociation Annotation은 SAC 인식을 위한 선언입니다.')">
+            <span class="opt-label">A</span> Hierarchy View와의 SQL JOIN을 즉시 실행하기 위해
+          </div>
+          <div class="quiz-option" onclick="answer('q4',this,false,'q4-fb','Value Help와 Hierarchy는 별개입니다. Value Help는 @Consumption.valueHelpDefinition으로 선언합니다.')">
+            <span class="opt-label">B</span> GL 계정의 Value Help 목록에 계층 구조를 표시하기 위해
+          </div>
+          <div class="quiz-option" onclick="answer('q4',this,true,'q4-fb','정답입니다. @ObjectModel.hierarchyAssociation은 SAC가 이 Dimension에 Hierarchy가 연결되어 있음을 인식하게 합니다. SAC Live Model에서 해당 Dimension을 계층적으로 드릴다운(예: 계정 그룹 → 계정)하려면 이 Annotation이 반드시 선언되어야 합니다. 실제 Hierarchy View는 Tab 04에서 생성합니다.')">
+            <span class="opt-label">C</span> SAC가 이 Dimension에 Hierarchy가 연결되어 있음을 인식하게 하기 위해
+          </div>
+          <div class="quiz-option" onclick="answer('q4',this,false,'q4-fb','DCL 권한 체크와 hierarchyAssociation은 관련이 없습니다.')">
+            <span class="opt-label">D</span> DCL Access Control에서 계층 기반 권한 필터를 적용하기 위해
+          </div>
+        </div>
+        <div class="quiz-feedback" id="q4-fb"></div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="module-footer">
+  <span>ASPN BAC EDU Portal · CDS View Analytics Query A to Z</span>
+  <div class="footer-nav">
+    <a href="tab02_syntax.html">← Tab 02. CDS 기초 문법</a>
+    <a href="tab04_hierarchy.html">다음: Tab 04. Hierarchy View →</a>
+  </div>
+</footer>
+
+<script>
+  let answered = {};
+  const total = 4;
+
+  function answer(qId, el, isCorrect, fbId, msg) {
+    if (answered[qId]) return;
+    answered[qId] = true;
+    const opts = document.getElementById(qId).querySelectorAll('.quiz-option');
+    opts.forEach(o => { o.style.pointerEvents = 'none'; o.style.opacity = '0.7'; });
+    el.style.opacity = '1';
+    el.classList.add(isCorrect ? 'correct-ans' : 'wrong-ans');
+    const fb = document.getElementById(fbId);
+    fb.textContent = (isCorrect ? '✓ ' : '✗ ') + msg;
+    fb.className = 'quiz-feedback show ' + (isCorrect ? 'correct-fb' : 'wrong-fb');
+    updateProgress();
+  }
+
+  function updateProgress() {
+    const done = Object.keys(answered).length;
+    document.getElementById('progressFill').style.width = (done / total * 100) + '%';
+    document.getElementById('scoreLabel').textContent = done + ' / ' + total + ' 완료';
+  }
+
+  function toggleDrill(header) {
+    const body = header.nextElementSibling;
+    const arrow = header.querySelector('.drill-arrow');
+    body.classList.toggle('open');
+    arrow.style.transform = body.classList.contains('open') ? 'rotate(180deg)' : '';
+  }
+</script>
+
+</body>
+</html>

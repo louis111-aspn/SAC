@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tab 01. 개요 및 학습 로드맵 | CDS View Analytics Query</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #003366;
+    --navy-light: #e8edf4;
+    --navy-mid: #c0cfe0;
+    --bg: #f0f3f8;
+    --white: #ffffff;
+    --border: #d0d8e4;
+    --text: #1a1a2e;
+    --text-muted: #5a6478;
+    --warn-bg: #fff8e6;
+    --warn-border: #e6a817;
+    --correct-bg: #e8f5e9;
+    --correct-border: #2e7d32;
+    --font-body: 'Noto Sans KR', sans-serif;
+    --font-heading: 'DM Serif Display', serif;
+    --font-mono: 'JetBrains Mono', 'Noto Sans KR', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  /* ── HEADER ── */
+  .site-header {
+    background: var(--navy);
+    color: var(--white);
+    padding: 0 80px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .site-header .logo {
+    font-family: var(--font-heading);
+    font-size: 18px;
+    letter-spacing: 0.04em;
+  }
+  .site-header .module-label {
+    font-size: 13px;
+    color: var(--navy-mid);
+    font-family: var(--font-mono);
+  }
+
+  /* ── STICKY NAV TABS ── */
+  .tab-nav {
+    background: var(--white);
+    border-bottom: 2px solid var(--border);
+    padding: 0 80px;
+    display: flex;
+    gap: 0;
+    position: sticky;
+    top: 56px;
+    z-index: 99;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  .tab-nav a {
+    display: block;
+    padding: 14px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-decoration: none;
+    white-space: nowrap;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .tab-nav a:hover { color: var(--navy); }
+  .tab-nav a.active {
+    color: var(--navy);
+    border-bottom-color: var(--navy);
+    font-weight: 700;
+  }
+
+  /* ── MAIN WRAPPER ── */
+  .wrapper {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 48px 80px 80px;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--navy);
+    border-radius: 4px;
+    padding: 48px 56px;
+    margin-bottom: 40px;
+    color: var(--white);
+  }
+  .hero .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    color: var(--navy-mid);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+  }
+  .hero h1 {
+    font-family: var(--font-heading);
+    font-size: 36px;
+    line-height: 1.25;
+    margin-bottom: 16px;
+  }
+  .hero p {
+    font-size: 15px;
+    color: rgba(255,255,255,0.75);
+    max-width: 680px;
+    line-height: 1.8;
+  }
+  .hero .meta-row {
+    display: flex;
+    gap: 32px;
+    margin-top: 28px;
+  }
+  .hero .meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .hero .meta-label {
+    font-size: 11px;
+    color: var(--navy-mid);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-family: var(--font-mono);
+  }
+  .hero .meta-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--white);
+  }
+
+  /* ── SECTION ── */
+  .section { margin-bottom: 48px; }
+  .section-title {
+    font-family: var(--font-heading);
+    font-size: 26px;
+    color: var(--navy);
+    margin-bottom: 24px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--navy);
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 28px 32px;
+    margin-bottom: 16px;
+  }
+  .card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 10px;
+  }
+  .card p, .card li {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.75;
+  }
+  .card ul { padding-left: 20px; }
+  .card ul li { margin-bottom: 4px; }
+
+  /* ── CALLOUT ── */
+  .callout {
+    border-left: 4px solid var(--navy);
+    background: var(--navy-light);
+    padding: 16px 20px;
+    border-radius: 0 4px 4px 0;
+    margin-bottom: 16px;
+  }
+  .callout.warn {
+    border-left-color: var(--warn-border);
+    background: var(--warn-bg);
+  }
+  .callout.correct {
+    border-left-color: var(--correct-border);
+    background: var(--correct-bg);
+  }
+  .callout .callout-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+    color: var(--navy);
+  }
+  .callout.warn .callout-label { color: var(--warn-border); }
+  .callout.correct .callout-label { color: var(--correct-border); }
+  .callout p { font-size: 14px; line-height: 1.7; }
+
+  /* ── COMPARISON TABLE ── */
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .compare-table th {
+    background: var(--navy);
+    color: var(--white);
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .compare-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: top;
+    line-height: 1.6;
+  }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:nth-child(even) td { background: var(--bg); }
+  .compare-table .highlight { font-weight: 700; color: var(--navy); }
+  .compare-table th code { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: var(--white); font-family: var(--font-mono); font-size: 11px; padding: 1px 5px; border-radius: 2px; }
+
+  /* ── VDM LAYER DIAGRAM ── */
+  .vdm-diagram {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-bottom: 16px;
+  }
+  .vdm-layer {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px 28px;
+    border: 1px solid var(--border);
+    background: var(--white);
+    position: relative;
+  }
+  .vdm-layer:not(:last-child) { border-bottom: none; }
+  .vdm-layer:first-child { border-radius: 4px 4px 0 0; }
+  .vdm-layer:last-child { border-radius: 0 0 4px 4px; }
+  .vdm-layer.active-layer { background: var(--navy-light); border-color: var(--navy); }
+  .vdm-layer.active-layer .layer-num { background: var(--navy); color: var(--white); }
+  .vdm-badge {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 2px;
+    font-weight: 600;
+    background: var(--navy-light);
+    color: var(--navy);
+    border: 1px solid var(--navy-mid);
+    white-space: nowrap;
+  }
+  .vdm-badge.accent { background: var(--navy); color: var(--white); border-color: var(--navy); }
+  .layer-num {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--border);
+    color: var(--text-muted);
+    font-weight: 700;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .layer-content { flex: 1; }
+  .layer-content h4 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 4px;
+  }
+  .layer-content p { font-size: 13px; color: var(--text-muted); }
+  .layer-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .arrow-connector {
+    text-align: center;
+    color: var(--navy);
+    font-size: 20px;
+    padding: 4px 0;
+    background: var(--bg);
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+  }
+
+  /* ── FLOW DIAGRAM (SAC 연결 흐름) ── */
+  .flow-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  overflow-y: hidden;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 28px 32px;
+  }
+  .flow-box {
+    flex: 1;
+    min-width: 120px;
+    text-align: center;
+    padding: 16px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+  }
+  .flow-box.navy-box {
+    background: var(--navy);
+    color: var(--white);
+    border-color: var(--navy);
+  }
+  .flow-box .flow-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+    color: var(--text-muted);
+  }
+  .flow-box.navy-box .flow-label { color: var(--navy-mid); }
+  .flow-box .flow-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--navy);
+    line-height: 1.4;
+  }
+  .flow-box.navy-box .flow-title { color: var(--white); }
+  .flow-box .flow-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+  .flow-box.navy-box .flow-sub { color: rgba(255,255,255,0.6); }
+  .flow-arrow {
+    color: var(--navy);
+    font-size: 20px;
+    padding: 0 8px;
+    flex-shrink: 0;
+    font-weight: 700;
+  }
+
+  /* ── ROADMAP GRID ── */
+  .roadmap-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .roadmap-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px 24px;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    position: relative;
+  }
+  .roadmap-card:hover {
+    border-color: var(--navy);
+    box-shadow: 0 2px 12px rgba(0,51,102,0.08);
+  }
+  .roadmap-card.current {
+    border-color: var(--navy);
+    background: var(--navy-light);
+  }
+  .roadmap-card.current::before {
+    content: '현재 위치';
+    position: absolute;
+    top: -1px;
+    right: -1px;
+    background: var(--navy);
+    color: var(--white);
+    font-size: 10px;
+    font-family: var(--font-mono);
+    padding: 3px 8px;
+    border-radius: 0 4px 0 4px;
+    letter-spacing: 0.05em;
+  }
+  .roadmap-card .tab-num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  .roadmap-card h4 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 6px;
+    line-height: 1.35;
+  }
+  .roadmap-card p {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+  .roadmap-card .tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 10px;
+  }
+  .tag {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 2px 7px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--text-muted);
+  }
+
+  /* ── QUIZ ── */
+  .quiz-section {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 32px;
+  }
+  .quiz-title {
+    font-family: var(--font-heading);
+    font-size: 20px;
+    color: var(--navy);
+    margin-bottom: 24px;
+  }
+  .quiz-item {
+    margin-bottom: 28px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+  }
+  .quiz-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .quiz-q {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 14px;
+    line-height: 1.6;
+  }
+  .quiz-q .q-num {
+    display: inline-block;
+    background: var(--navy);
+    color: var(--white);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 2px;
+    margin-right: 10px;
+    vertical-align: middle;
+  }
+  .quiz-options { display: flex; flex-direction: column; gap: 8px; }
+  .quiz-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    background: var(--bg);
+    transition: border-color 0.15s, background 0.15s;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .quiz-option:hover { border-color: var(--navy); background: var(--navy-light); }
+  .quiz-option.correct-ans { border-color: var(--correct-border) !important; background: var(--correct-bg) !important; }
+  .quiz-option.wrong-ans { border-color: #c0392b !important; background: #fdecea !important; }
+  .quiz-option .opt-label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--navy);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .quiz-feedback {
+    margin-top: 12px;
+    padding: 12px 16px;
+    border-radius: 4px;
+    font-size: 13px;
+    display: none;
+    line-height: 1.6;
+  }
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback.correct-fb { background: var(--correct-bg); color: #2e7d32; border-left: 3px solid var(--correct-border); }
+  .quiz-feedback.wrong-fb { background: #fdecea; color: #c0392b; border-left: 3px solid #c0392b; }
+  .quiz-progress {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .quiz-progress-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .quiz-progress-fill {
+    height: 100%;
+    background: var(--navy);
+    border-radius: 3px;
+    transition: width 0.4s;
+  }
+  .quiz-score-label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  /* ── FOOTER ── */
+  .module-footer {
+    background: var(--white);
+    border-top: 1px solid var(--border);
+    padding: 24px 80px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 60px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .footer-nav { display: flex; gap: 24px; }
+  .footer-nav a {
+    color: var(--navy);
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .footer-nav a:hover { text-decoration: underline; }
+
+  @media (max-width: 900px) {
+    .site-header, .tab-nav, .wrapper, .module-footer { padding-left: 20px; padding-right: 20px; }
+    .roadmap-grid { grid-template-columns: 1fr 1fr; }
+    .flow-row { flex-wrap: wrap; }
+    .hero { padding: 32px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SITE HEADER -->
+<header class="site-header">
+  <span class="logo">ASPN BAC · EDU Portal</span>
+  <span class="module-label">CDS View Analytics Query — A to Z</span>
+</header>
+
+<!-- TAB NAV -->
+<nav class="tab-nav">
+  <a href="tab01_overview.html" class="active">01. 개요 &amp; 로드맵</a>
+  <a href="tab02_syntax.html">02. CDS 기초 문법</a>
+  <a href="tab03_dimension.html">03. Dimension View</a>
+  <a href="tab04_hierarchy.html">04. Hierarchy View</a>
+  <a href="tab05_cube.html">05. Cube View</a>
+  <a href="tab06_query.html">06. Analytics Query View</a>
+  <a href="tab07_table_function.html">07. Table Function &amp; AMDP</a>
+  <a href="tab08_authorization.html">08. 권한 제어</a>
+  <a href="tab09_sac_live.html">09. SAC Live Model 연결</a>
+</nav>
+
+<!-- MAIN -->
+<main class="wrapper">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="eyebrow">Module 01 / Overview &amp; Roadmap</div>
+    <h1>Analytics Query CDS View는<br>SAC Live Model의 핵심 데이터 계층이다</h1>
+    <p>
+      이 모듈은 CDS View의 개념적 위치와 SAP VDM 계층 구조를 이해하고,
+      Tab 02~09에서 진행할 전체 학습 여정을 조망합니다.
+      ASPN Group 픽션 시나리오를 통해 실제 프로젝트 맥락에서 각 개념을 학습합니다.
+    </p>
+    <div class="meta-row">
+      <div class="meta-item">
+        <span class="meta-label">대상</span>
+        <span class="meta-value">주니어~시니어 컨설턴트</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">예상 학습 시간</span>
+        <span class="meta-value">30분</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">픽션 시나리오</span>
+        <span class="meta-value">ASPN Group</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 1: CDS VIEW란 -->
+  <section class="section">
+    <h2 class="section-title">1. CDS View란 무엇인가</h2>
+
+    <div class="callout">
+      <div class="callout-label">정의</div>
+      <p>CDS(Core Data Services) View는 ABAP Dictionary View를 대체하는 <strong>데이터 모델링 언어</strong>입니다.
+      SQL 기반 DDL(Data Definition Language)로 작성하며, Annotation을 통해 의미(Semantics)와 동작(Behavior)을 선언적으로 정의합니다.</p>
+    </div>
+
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th style="width:22%">구분</th>
+          <th>ABAP Dictionary View</th>
+          <th>CDS View (DDIC-based)</th>
+          <th class="highlight">CDS View Entity (권장)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>선언 위치</strong></td>
+          <td>SE11 / DDIC</td>
+          <td>ABAP Development Tools (ADT)</td>
+          <td class="highlight">ADT — .ddls 파일</td>
+        </tr>
+        <tr>
+          <td><strong>구문</strong></td>
+          <td>GUI 기반</td>
+          <td>DEFINE VIEW … AS SELECT</td>
+          <td class="highlight">DEFINE VIEW ENTITY … AS SELECT</td>
+        </tr>
+        <tr>
+          <td><strong>Association</strong></td>
+          <td>불가</td>
+          <td>가능</td>
+          <td class="highlight">가능 + 향상된 타입 안정성</td>
+        </tr>
+        <tr>
+          <td><strong>Annotation</strong></td>
+          <td>불가</td>
+          <td>가능</td>
+          <td class="highlight">가능 (전체 지원)</td>
+        </tr>
+        <tr>
+          <td><strong>SAC Live 연결</strong></td>
+          <td>불가</td>
+          <td>제한적</td>
+          <td class="highlight">✓ 완전 지원</td>
+        </tr>
+        <tr>
+          <td><strong>Access Control (DCL)</strong></td>
+          <td>불가</td>
+          <td>가능</td>
+          <td class="highlight">✓ 완전 지원</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn" style="margin-top:16px">
+      <div class="callout-label">주의</div>
+      <p>신규 개발 시 ABAP Dictionary View 또는 구형 <code>DEFINE VIEW</code> 구문 사용은 지양합니다.
+      SAP는 <strong>DEFINE VIEW ENTITY</strong> 방식을 표준으로 권장합니다.</p>
+    </div>
+
+    <!-- SUBSECTION: CDS View vs CDS View Entity -->
+    <h3 style="font-size:18px; font-weight:700; color:var(--navy); margin:36px 0 16px; padding-left:12px; border-left:3px solid var(--navy);">
+      CDS View vs. CDS View Entity — 핵심 차이점
+    </h3>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:16px;">
+      두 구문은 외형이 유사하지만 <strong>키 명시 방식, 타입 안정성, Cardinality 강제 여부</strong>에서 본질적 차이가 있습니다.
+      현장에서는 신규 Consumption Layer를 <code>DEFINE VIEW ENTITY</code>로 개발하면서,
+      SAP 표준 Interface View(<code>I_*</code>)를 Association 소스로 혼용하는 패턴이 일반적입니다.
+    </p>
+
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th style="width:26%">항목</th>
+          <th>CDS View<br><code style="font-size:11px;">DEFINE VIEW … AS SELECT</code></th>
+          <th class="highlight">CDS View Entity<br><code style="font-size:11px;">DEFINE VIEW ENTITY … AS SELECT</code></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>도입 시점</strong></td>
+          <td>SAP NetWeaver 7.40</td>
+          <td class="highlight">SAP S/4HANA 1909+</td>
+        </tr>
+        <tr>
+          <td><strong>키(Key) 정의</strong></td>
+          <td>명시적 선언 불필요<br><span style="font-size:12px;color:var(--text-muted)">→ 암묵적으로 처리됨</span></td>
+          <td class="highlight"><code>key</code> 키워드로 명시 필수<br><span style="font-size:12px;color:var(--navy)">→ 데이터 모델 명확성 보장</span></td>
+        </tr>
+        <tr>
+          <td><strong>타입 안정성</strong></td>
+          <td>암묵적 타입 상속<br><span style="font-size:12px;color:var(--text-muted)">컴파일 타임 오류 미감지</span></td>
+          <td class="highlight">엄격한 타입 명시<br><span style="font-size:12px;color:var(--navy)">컴파일 타임 타입 불일치 오류 감지</span></td>
+        </tr>
+        <tr>
+          <td><strong>Cardinality 강제</strong></td>
+          <td>선언 가능하나 검증 없음</td>
+          <td class="highlight"><code>[0..1]</code>, <code>[1..1]</code> 등 강제 검증</td>
+        </tr>
+        <tr>
+          <td><strong>@AbapCatalog.sqlViewName</strong></td>
+          <td>필수 (DDIC SQL View 생성)</td>
+          <td class="highlight">불필요<br><span style="font-size:12px;color:var(--navy)">DDIC View 자동 생성 없음</span></td>
+        </tr>
+        <tr>
+          <td><strong>NULL 처리</strong></td>
+          <td>암묵적 허용</td>
+          <td class="highlight">명시적 제어 가능</td>
+        </tr>
+        <tr>
+          <td><strong>표준 SAP View 혼용</strong></td>
+          <td>—</td>
+          <td class="highlight">✓ 기존 <code>DEFINE VIEW</code> 기반 표준 View를 Association 소스로 참조 가능</td>
+        </tr>
+        <tr>
+          <td><strong>SAP 권장 여부</strong></td>
+          <td>레거시 — 신규 개발 비권장</td>
+          <td class="highlight">✓ 표준 — 신규 개발 권장</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout correct" style="margin-top:16px">
+      <div class="callout-label">현장 패턴 — ASPN Group 프로젝트</div>
+      <p>ASPN Holdings의 재무분석 Query View 개발 시, SAP 표준 Interface View인
+      <code>I_JournalEntryItem</code>(DEFINE VIEW 기반)을 Association 소스로 참조하면서,
+      신규 Cube·Query View는 <code>DEFINE VIEW ENTITY</code>로 작성합니다.
+      두 구문의 혼용은 허용되며, 이것이 S/4HANA 프로젝트의 표준 접근 방식입니다.</p>
+    </div>
+  </section>
+
+  <!-- SECTION 2: VDM 계층 -->
+  <section class="section">
+    <h2 class="section-title">2. S/4HANA Virtual Data Model (VDM) 계층 구조</h2>
+
+    <p style="margin-bottom:20px; font-size:14px; color:var(--text-muted)">
+      SAP S/4HANA의 VDM은 데이터를 목적에 따라 3계층으로 분리합니다.
+      Analytics Query CDS View는 최상위 Consumption Layer에 위치하며, 하위 계층의 데이터를 집약·가공하여 SAC에 노출합니다.
+    </p>
+
+    <div class="vdm-diagram">
+      <div class="vdm-layer">
+        <div class="layer-num">1</div>
+        <div class="layer-content">
+          <h4>Raw / Basic Interface Layer — 원천 데이터</h4>
+          <p>데이터베이스 테이블을 직접 참조합니다. 비즈니스 의미 부여 없이 Raw 컬럼을 노출합니다.</p>
+          <div class="layer-tags">
+            <span class="vdm-badge">I_* prefix</span>
+            <span class="vdm-badge">@VDM.viewType: #BASIC</span>
+            <span class="vdm-badge">ACDOCA, BKPF, BSEG</span>
+          </div>
+        </div>
+      </div>
+      <div class="arrow-connector">↓</div>
+      <div class="vdm-layer">
+        <div class="layer-num">2</div>
+        <div class="layer-content">
+          <h4>Interface / Composite Layer — 비즈니스 의미 부여</h4>
+          <p>여러 Basic View를 조합하여 비즈니스 엔티티(전표, 원가요소 등)를 구성합니다. Reuse 가능한 공통 구조를 제공합니다.</p>
+          <div class="layer-tags">
+            <span class="vdm-badge">I_*, R_* prefix</span>
+            <span class="vdm-badge">@VDM.viewType: #COMPOSITE</span>
+            <span class="vdm-badge">@VDM.viewType: #TRANSACTIONAL</span>
+          </div>
+        </div>
+      </div>
+      <div class="arrow-connector">↓</div>
+      <div class="vdm-layer active-layer">
+        <div class="layer-num" style="background:var(--navy);color:var(--white);">3</div>
+        <div class="layer-content">
+          <h4>Consumption Layer — Analytics Query (이 모듈의 핵심)</h4>
+          <p>UI, Fiori, SAC, OData 등 최종 소비자에게 데이터를 노출합니다.
+          Cube View → Analytics Query View 구조로 SAC Live Model에 연결됩니다.</p>
+          <div class="layer-tags">
+            <span class="vdm-badge accent">C_* prefix</span>
+            <span class="vdm-badge accent">@Analytics.query: true</span>
+            <span class="vdm-badge accent">@Analytics.dataCategory: #CUBE</span>
+            <span class="vdm-badge accent">@VDM.viewType: #CONSUMPTION</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout correct" style="margin-top:16px">
+      <div class="callout-label">ASPN Group 시나리오 예시</div>
+      <p>ASPN Holdings의 연결재무제표 분석을 위해 <strong>ACDOCA(원천)</strong> → <strong>I_JournalEntryItem(Interface)</strong> → <strong>C_FinancialStatementCube(Cube)</strong> → <strong>C_FinancialStatementQuery(Query)</strong> 계층으로 구성합니다. SAC Live Model은 Query View만 직접 참조합니다.</p>
+    </div>
+  </section>
+
+  <!-- SECTION 3: SAC 연결 흐름 -->
+  <section class="section">
+    <h2 class="section-title">3. SAC Live Model 연결 흐름 개요</h2>
+
+    <p style="margin-bottom:20px; font-size:14px; color:var(--text-muted)">
+      Analytics Query CDS View가 SAC Live Model로 소비되기까지의 전체 경로입니다.
+      Tab 03~09에서 각 구성요소를 순차적으로 학습합니다.
+    </p>
+
+    <div class="flow-row">
+      <div class="flow-box">
+        <div class="flow-label">Source</div>
+        <div class="flow-title">DB Tables</div>
+        <div class="flow-sub">ACDOCA, T-Tables</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">
+        <div class="flow-label">Tab 03</div>
+        <div class="flow-title">Dimension View</div>
+        <div class="flow-sub">#DIMENSION + Text Assoc</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">
+        <div class="flow-label">Tab 04</div>
+        <div class="flow-title">Hierarchy View</div>
+        <div class="flow-sub">DEFINE HIERARCHY</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">
+        <div class="flow-label">Tab 05</div>
+        <div class="flow-title">Cube View</div>
+        <div class="flow-sub">#CUBE + Measures</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">
+        <div class="flow-label">Tab 06</div>
+        <div class="flow-title">Query View</div>
+        <div class="flow-sub">@Analytics.query: true</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">
+        <div class="flow-label">Tab 08~09</div>
+        <div class="flow-title">Auth + OData</div>
+        <div class="flow-sub">DCL / SAP_COM_0065</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box navy-box">
+        <div class="flow-label">Target</div>
+        <div class="flow-title">SAC Live Model</div>
+        <div class="flow-sub">Dimension · Measure 자동 매핑</div>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:16px">
+      <div class="callout-label">Tab 07 — CDS Table Function &amp; AMDP</div>
+      <p>복잡한 루프·분기 로직이 필요한 경우(예: 기간별 잔액 계산, BW 마이그레이션 데이터 변환),
+      ABAP 클래스 기반의 <strong>CDS Table Function + AMDP</strong>를 활용하여 Cube View의 소스로 사용할 수 있습니다.
+      일반 CDS View로는 표현 불가능한 복잡 로직을 HANA 레이어에서 처리합니다.</p>
+    </div>
+  </section>
+
+  <!-- SECTION 4: 학습 로드맵 -->
+  <section class="section">
+    <h2 class="section-title">4. 전체 학습 로드맵</h2>
+
+    <div class="roadmap-grid">
+      <a href="tab01_overview.html" class="roadmap-card current">
+        <div class="tab-num">Tab 01</div>
+        <h4>개요 및 학습 로드맵</h4>
+        <p>CDS View 개념, VDM 계층, SAC 연결 흐름 전체 조망</p>
+        <div class="tag-row">
+          <span class="tag">VDM</span>
+          <span class="tag">개요</span>
+          <span class="tag">로드맵</span>
+        </div>
+      </a>
+      <a href="tab02_syntax.html" class="roadmap-card">
+        <div class="tab-num">Tab 02</div>
+        <h4>CDS 기초 문법 — SQL 대비 차이점</h4>
+        <p>DDL 구조, Association vs. JOIN, Built-in Function, 주요 제약사항</p>
+        <div class="tag-row">
+          <span class="tag">DDL</span>
+          <span class="tag">Association</span>
+          <span class="tag">Annotation</span>
+        </div>
+      </a>
+      <a href="tab03_dimension.html" class="roadmap-card">
+        <div class="tab-num">Tab 03</div>
+        <h4>Dimension View 설계</h4>
+        <p>#DIMENSION, Text Association, Value Help, 마스터 데이터 서술자 구성</p>
+        <div class="tag-row">
+          <span class="tag">#DIMENSION</span>
+          <span class="tag">Text Assoc</span>
+          <span class="tag">Value Help</span>
+        </div>
+      </a>
+      <a href="tab04_hierarchy.html" class="roadmap-card">
+        <div class="tab-num">Tab 04</div>
+        <h4>Hierarchy View 설계</h4>
+        <p>Parent-Child / Level-Based Hierarchy, DEFINE HIERARCHY, SAC 표시 동작</p>
+        <div class="tag-row">
+          <span class="tag">DEFINE HIERARCHY</span>
+          <span class="tag">Parent-Child</span>
+        </div>
+      </a>
+      <a href="tab05_cube.html" class="roadmap-card">
+        <div class="tab-num">Tab 05</div>
+        <h4>Cube View 설계</h4>
+        <p>#CUBE, Measure 선언, Dimension 참조, Unit/Currency Semantics</p>
+        <div class="tag-row">
+          <span class="tag">#CUBE</span>
+          <span class="tag">Measure</span>
+          <span class="tag">@Semantics</span>
+        </div>
+      </a>
+      <a href="tab06_query.html" class="roadmap-card">
+        <div class="tab-num">Tab 06</div>
+        <h4>Analytics Query View 설계</h4>
+        <p>@Analytics.query, Variable, Restricted/Calculated Measure, Axis 설정</p>
+        <div class="tag-row">
+          <span class="tag">@Analytics.query</span>
+          <span class="tag">Variable</span>
+          <span class="tag">Axis</span>
+        </div>
+      </a>
+      <a href="tab07_table_function.html" class="roadmap-card">
+        <div class="tab-num">Tab 07</div>
+        <h4>Table Function &amp; AMDP</h4>
+        <p>DEFINE TABLE FUNCTION, ABAP 클래스 구현, IF_AMDP_MARKER_HDB, 활용 시나리오</p>
+        <div class="tag-row">
+          <span class="tag">AMDP</span>
+          <span class="tag">Table Function</span>
+          <span class="tag">HANA</span>
+        </div>
+      </a>
+      <a href="tab08_authorization.html" class="roadmap-card">
+        <div class="tab-num">Tab 08</div>
+        <h4>CDS View 권한 제어</h4>
+        <p>DCL, DEFINE ROLE, PFCG 연동, Access Control 상속, SAC Technical User 설계</p>
+        <div class="tag-row">
+          <span class="tag">DCL</span>
+          <span class="tag">PFCG</span>
+          <span class="tag">@MappingRole</span>
+        </div>
+      </a>
+      <a href="tab09_sac_live.html" class="roadmap-card">
+        <div class="tab-num">Tab 09</div>
+        <h4>SAC Live Model 연결 및 운영</h4>
+        <p>OData 노출, SAP_COM_0065, Live Connection, Dimension·Measure 매핑 검증, 운영 이슈</p>
+        <div class="tag-row">
+          <span class="tag">SAP_COM_0065</span>
+          <span class="tag">Live Model</span>
+          <span class="tag">OData</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- SECTION 5: ASPN GROUP 시나리오 소개 -->
+  <section class="section">
+    <h2 class="section-title">5. ASPN Group 픽션 시나리오</h2>
+
+    <div class="card">
+      <h3>시나리오 개요</h3>
+      <p>본 교육 전반에 걸쳐 <strong>ASPN Group</strong>의 SAP S/4HANA 구축 프로젝트를 픽션 시나리오로 사용합니다.
+      실습 예시와 퀴즈는 모두 아래 그룹 구조를 기반으로 합니다.</p>
+    </div>
+
+    <table class="compare-table" style="margin-top:0">
+      <thead>
+        <tr>
+          <th>법인</th>
+          <th>역할</th>
+          <th>통화</th>
+          <th>회계기준</th>
+          <th>지분율</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="highlight">ASPN Holdings</td>
+          <td>연결 지배회사 (Parent)</td>
+          <td>KRW</td>
+          <td>IFRS</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td class="highlight">ASPN Korea</td>
+          <td>종속회사</td>
+          <td>KRW</td>
+          <td>K-GAAP</td>
+          <td>80%</td>
+        </tr>
+        <tr>
+          <td class="highlight">ASPN Europe</td>
+          <td>종속회사</td>
+          <td>EUR</td>
+          <td>IFRS</td>
+          <td>100%</td>
+        </tr>
+        <tr>
+          <td class="highlight">ASPN Tech</td>
+          <td>관계회사 (Associate)</td>
+          <td>KRW</td>
+          <td>IFRS</td>
+          <td>30%</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout" style="margin-top:16px">
+      <div class="callout-label">환율 기준 (픽션)</div>
+      <p>EUR 취득시점 1,200 / 20X1년 평균 1,350 / 20X1년 말 1,400 / 20X2년 말 1,500 (KRW/EUR)</p>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section class="section">
+    <div class="quiz-section">
+      <h3 class="quiz-title">확인 퀴즈 — Tab 01</h3>
+      <div class="quiz-progress">
+        <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="progressFill" style="width:0%"></div></div>
+        <span class="quiz-score-label" id="scoreLabel">0 / 3 완료</span>
+      </div>
+
+      <!-- Q1 -->
+      <div class="quiz-item">
+        <div class="quiz-q"><span class="q-num">Q1</span> SAP VDM에서 Analytics Query CDS View가 위치하는 계층은?</div>
+        <div class="quiz-options" id="q1">
+          <div class="quiz-option" onclick="answer('q1',this,false,'q1-fb','Raw / Basic Interface Layer는 DB 테이블을 직접 참조하는 원천 계층입니다.')">
+            <span class="opt-label">A</span> Raw / Basic Interface Layer
+          </div>
+          <div class="quiz-option" onclick="answer('q1',this,false,'q1-fb','Interface / Composite Layer는 비즈니스 의미를 부여하는 중간 계층입니다.')">
+            <span class="opt-label">B</span> Interface / Composite Layer
+          </div>
+          <div class="quiz-option" onclick="answer('q1',this,true,'q1-fb','정답입니다. Analytics Query CDS View는 최상위 Consumption Layer에 위치하며, SAC와 같은 최종 소비자에게 데이터를 노출합니다.')">
+            <span class="opt-label">C</span> Consumption Layer
+          </div>
+          <div class="quiz-option" onclick="answer('q1',this,false,'q1-fb','Persistence Layer는 VDM 공식 분류에 포함되지 않습니다.')">
+            <span class="opt-label">D</span> Persistence Layer
+          </div>
+        </div>
+        <div class="quiz-feedback" id="q1-fb"></div>
+      </div>
+
+      <!-- Q2 -->
+      <div class="quiz-item">
+        <div class="quiz-q"><span class="q-num">Q2</span> SAC Live Model에서 직접 참조하는 CDS View 유형은?</div>
+        <div class="quiz-options" id="q2">
+          <div class="quiz-option" onclick="answer('q2',this,false,'q2-fb','Dimension View는 마스터 데이터 서술자로, SAC가 직접 참조하는 대상이 아닙니다. Query View를 통해 간접 참조됩니다.')">
+            <span class="opt-label">A</span> Dimension View (#DIMENSION)
+          </div>
+          <div class="quiz-option" onclick="answer('q2',this,false,'q2-fb','Cube View는 Measure를 집약하는 계층이지만, SAC는 그 위의 Query View를 직접 참조합니다.')">
+            <span class="opt-label">B</span> Cube View (#CUBE)
+          </div>
+          <div class="quiz-option" onclick="answer('q2',this,true,'q2-fb','정답입니다. @Analytics.query: true Annotation이 선언된 Analytics Query View가 SAC Live Model의 직접 참조 대상입니다.')">
+            <span class="opt-label">C</span> Analytics Query View (@Analytics.query: true)
+          </div>
+          <div class="quiz-option" onclick="answer('q2',this,false,'q2-fb','Basic Interface View는 원천 계층으로 SAC Live Model과 직접 연결되지 않습니다.')">
+            <span class="opt-label">D</span> Basic Interface View
+          </div>
+        </div>
+        <div class="quiz-feedback" id="q2-fb"></div>
+      </div>
+
+      <!-- Q3 -->
+      <div class="quiz-item">
+        <div class="quiz-q"><span class="q-num">Q3</span> ASPN Group에서 ASPN Europe의 재무데이터를 분석할 때, CDS View 설계 시 가장 먼저 고려해야 할 통화·회계 특성은?</div>
+        <div class="quiz-options" id="q3">
+          <div class="quiz-option" onclick="answer('q3',this,false,'q3-fb','K-GAAP는 ASPN Korea의 회계기준입니다. ASPN Europe은 IFRS를 사용합니다.')">
+            <span class="opt-label">A</span> KRW 기능통화 / K-GAAP
+          </div>
+          <div class="quiz-option" onclick="answer('q3',this,true,'q3-fb','정답입니다. ASPN Europe은 EUR 기능통화 / IFRS 기준을 사용합니다. Cube View의 @Semantics.amount.currencyCode 및 환율 Annotation 설계 시 이 점을 반드시 반영해야 합니다.')">
+            <span class="opt-label">B</span> EUR 기능통화 / IFRS
+          </div>
+          <div class="quiz-option" onclick="answer('q3',this,false,'q3-fb','USD는 ASPN Group 어떤 법인의 기능통화도 아닙니다.')">
+            <span class="opt-label">C</span> USD 기능통화 / IFRS
+          </div>
+          <div class="quiz-option" onclick="answer('q3',this,false,'q3-fb','KRW / IFRS는 ASPN Holdings(지배회사)의 특성입니다.')">
+            <span class="opt-label">D</span> KRW 기능통화 / IFRS
+          </div>
+        </div>
+        <div class="quiz-feedback" id="q3-fb"></div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="module-footer">
+  <span>ASPN BAC EDU Portal · CDS View Analytics Query A to Z</span>
+  <div class="footer-nav">
+    <span style="color:var(--border)">← 이전 탭 없음</span>
+    <a href="tab02_syntax.html">다음: Tab 02. CDS 기초 문법 →</a>
+  </div>
+</footer>
+
+<script>
+  let answered = {};
+  const total = 3;
+
+  function answer(qId, el, isCorrect, fbId, msg) {
+    if (answered[qId]) return;
+    answered[qId] = true;
+
+    const opts = document.getElementById(qId).querySelectorAll('.quiz-option');
+    opts.forEach(o => {
+      o.style.pointerEvents = 'none';
+      o.style.opacity = '0.7';
+    });
+    el.style.opacity = '1';
+    el.classList.add(isCorrect ? 'correct-ans' : 'wrong-ans');
+
+    const fb = document.getElementById(fbId);
+    fb.textContent = (isCorrect ? '✓ ' : '✗ ') + msg;
+    fb.className = 'quiz-feedback show ' + (isCorrect ? 'correct-fb' : 'wrong-fb');
+
+    updateProgress();
+  }
+
+  function updateProgress() {
+    const done = Object.keys(answered).length;
+    document.getElementById('progressFill').style.width = (done / total * 100) + '%';
+    document.getElementById('scoreLabel').textContent = done + ' / ' + total + ' 완료';
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tab 04. Hierarchy View | CDS View Analytics Query</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #003366;
+    --navy-light: #e8edf4;
+    --navy-mid: #c0cfe0;
+    --bg: #f0f3f8;
+    --white: #ffffff;
+    --border: #d0d8e4;
+    --text: #1a1a2e;
+    --text-muted: #5a6478;
+    --warn-bg: #fff8e6;
+    --warn-border: #e6a817;
+    --correct-bg: #e8f5e9;
+    --correct-border: #2e7d32;
+    --font-body: 'Noto Sans KR', sans-serif;
+    --font-heading: 'DM Serif Display', serif;
+    --font-mono: 'JetBrains Mono', 'Noto Sans KR', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-body); background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.7; }
+
+  .site-header { background: var(--navy); color: var(--white); padding: 0 80px; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 100; }
+  .site-header .logo { font-family: var(--font-heading); font-size: 18px; letter-spacing: 0.04em; }
+  .site-header .module-label { font-size: 13px; color: var(--navy-mid); font-family: var(--font-mono); }
+
+  .tab-nav { background: var(--white); border-bottom: 2px solid var(--border); padding: 0 80px; display: flex; position: sticky; top: 56px; z-index: 99; overflow-x: auto; overflow-y: hidden; }
+  .tab-nav a { display: block; padding: 14px 20px; font-size: 13px; font-weight: 500; color: var(--text-muted); text-decoration: none; white-space: nowrap; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: color 0.2s, border-color 0.2s; }
+  .tab-nav a:hover { color: var(--navy); }
+  .tab-nav a.active { color: var(--navy); border-bottom-color: var(--navy); font-weight: 700; }
+
+  .wrapper { max-width: 1280px; margin: 0 auto; padding: 48px 80px 80px; }
+
+  .hero { background: var(--navy); border-radius: 4px; padding: 48px 56px; margin-bottom: 40px; color: var(--white); }
+  .hero .eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.12em; color: var(--navy-mid); margin-bottom: 16px; text-transform: uppercase; }
+  .hero h1 { font-family: var(--font-heading); font-size: 36px; line-height: 1.25; margin-bottom: 16px; }
+  .hero p { font-size: 15px; color: rgba(255,255,255,0.75); max-width: 680px; line-height: 1.8; }
+  .hero .meta-row { display: flex; gap: 32px; margin-top: 28px; flex-wrap: wrap; }
+  .hero .meta-item { display: flex; flex-direction: column; gap: 4px; }
+  .hero .meta-label { font-size: 11px; color: var(--navy-mid); text-transform: uppercase; letter-spacing: 0.1em; font-family: var(--font-mono); }
+  .hero .meta-value { font-size: 14px; font-weight: 600; color: var(--white); }
+
+  .section { margin-bottom: 52px; }
+  .section-title { font-family: var(--font-heading); font-size: 26px; color: var(--navy); margin-bottom: 24px; padding-bottom: 10px; border-bottom: 2px solid var(--navy); }
+  .subsection-title { font-size: 18px; font-weight: 700; color: var(--navy); margin: 32px 0 16px; padding-left: 12px; border-left: 3px solid var(--navy); }
+
+  .card { background: var(--white); border: 1px solid var(--border); border-radius: 4px; padding: 28px 32px; margin-bottom: 16px; }
+  .card h3 { font-size: 16px; font-weight: 700; color: var(--navy); margin-bottom: 10px; }
+  .card p, .card li { font-size: 14px; color: var(--text-muted); line-height: 1.75; }
+  .card ul { padding-left: 20px; }
+  .card ul li { margin-bottom: 6px; }
+
+  .callout { border-left: 4px solid var(--navy); background: var(--navy-light); padding: 16px 20px; border-radius: 0 4px 4px 0; margin-bottom: 16px; }
+  .callout.warn { border-left-color: var(--warn-border); background: var(--warn-bg); }
+  .callout.correct { border-left-color: var(--correct-border); background: var(--correct-bg); }
+  .callout .callout-label { font-family: var(--font-mono); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; color: var(--navy); }
+  .callout.warn .callout-label { color: var(--warn-border); }
+  .callout.correct .callout-label { color: var(--correct-border); }
+  .callout p { font-size: 14px; line-height: 1.7; }
+  .callout code { font-family: var(--font-mono); font-size: 13px; background: rgba(0,0,0,0.06); padding: 1px 5px; border-radius: 2px; }
+
+  .compare-table { width: 100%; border-collapse: collapse; font-size: 14px; background: var(--white); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 16px; }
+  .compare-table th { background: var(--navy); color: var(--white); padding: 12px 16px; text-align: left; font-weight: 600; font-size: 13px; }
+  .compare-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: top; line-height: 1.6; }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:nth-child(even) td { background: var(--bg); }
+  .compare-table .hl { font-weight: 700; color: var(--navy); }
+  .compare-table code { font-family: var(--font-mono); font-size: 12px; background: var(--bg); padding: 1px 5px; border-radius: 2px; border: 1px solid var(--border); }
+  .compare-table th code { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); color: var(--white); }
+
+  .code-wrap { background: #0f1923; border-radius: 4px; overflow: hidden; margin-bottom: 16px; font-family: var(--font-mono); }
+  .code-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; background: #1a2738; border-bottom: 1px solid #2a3d52; }
+  .code-lang { font-size: 11px; color: var(--navy-mid); text-transform: uppercase; letter-spacing: 0.1em; }
+  .code-title { font-size: 12px; color: #8ba3bc; }
+  .code-body { padding: 20px 24px; overflow-x: auto; font-size: 13px; line-height: 1.75; color: #cdd6e0; }
+  .code-body pre { white-space: pre; }
+  .code-body .kw  { color: #79b8ff; }
+  .code-body .fn  { color: #b392f0; }
+  .code-body .str { color: #9ecbff; }
+  .code-body .cm  { color: #6a737d; font-style: italic; }
+  .code-body .fd  { color: #ffab70; }
+  .code-body .tp  { color: #85e89d; }
+  .code-body .nb  { color: #f97583; }
+
+  /* HIERARCHY TREE VISUAL */
+  .hier-tree {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 28px 32px;
+    margin-bottom: 16px;
+    font-family: var(--font-mono);
+  }
+  .hier-tree-title {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 20px;
+  }
+  .hier-node {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 3px;
+    margin-bottom: 4px;
+    font-size: 13px;
+  }
+  .hier-node.level-0 { background: var(--navy); color: var(--white); }
+  .hier-node.level-1 { background: var(--navy-light); color: var(--navy); margin-left: 28px; border: 1px solid var(--navy-mid); }
+  .hier-node.level-2 { background: var(--bg); color: var(--text); margin-left: 56px; border: 1px solid var(--border); }
+  .hier-node.level-3 { background: var(--bg); color: var(--text-muted); margin-left: 84px; border: 1px solid var(--border); font-size: 12px; }
+  .hier-badge { font-size: 10px; padding: 2px 6px; border-radius: 2px; font-weight: 600; margin-left: auto; flex-shrink: 0; }
+  .hier-badge.root { background: rgba(255,255,255,0.2); color: var(--white); }
+  .hier-badge.node { background: var(--navy); color: var(--white); }
+  .hier-badge.leaf { background: var(--border); color: var(--text-muted); }
+  .hier-indent { color: var(--text-muted); font-size: 13px; }
+
+  /* TYPE COMPARISON GRID */
+  .type-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .type-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .type-card-head {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .type-card-head.pc { background: var(--navy); color: var(--white); }
+  .type-card-head.lb { background: var(--navy-light); color: var(--navy); }
+  .type-card-title { font-size: 15px; font-weight: 700; }
+  .type-card-sub { font-family: var(--font-mono); font-size: 11px; opacity: 0.75; }
+  .type-card-body { padding: 16px 20px; }
+  .type-row { display: flex; gap: 10px; font-size: 13px; margin-bottom: 8px; }
+  .type-row:last-child { margin-bottom: 0; }
+  .type-key { color: var(--text-muted); min-width: 90px; flex-shrink: 0; font-size: 12px; }
+  .type-val { color: var(--text); font-weight: 500; line-height: 1.5; }
+  .type-val code { font-family: var(--font-mono); font-size: 11px; background: var(--bg); padding: 1px 5px; border-radius: 2px; border: 1px solid var(--border); }
+
+  /* ANATOMY BOX */
+  .anatomy-box { background: var(--white); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 16px; }
+  .anatomy-header { background: var(--navy); color: var(--white); padding: 12px 24px; font-family: var(--font-mono); font-size: 13px; display: flex; align-items: center; gap: 12px; }
+  .anatomy-row { display: flex; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .anatomy-row:last-child { border-bottom: none; }
+  .anatomy-num { width: 48px; flex-shrink: 0; background: var(--bg); color: var(--text-muted); font-family: var(--font-mono); font-size: 11px; display: flex; align-items: flex-start; justify-content: center; padding-top: 14px; border-right: 1px solid var(--border); }
+  .anatomy-code { flex: 1; padding: 12px 20px; font-family: var(--font-mono); font-size: 13px; color: #cdd6e0; background: #0f1923; line-height: 1.7; overflow-x: auto; }
+  .anatomy-desc { width: 320px; flex-shrink: 0; padding: 12px 16px; background: var(--white); border-left: 1px solid var(--border); font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+  .anatomy-desc strong { color: var(--navy); }
+  .anatomy-desc code { font-family: var(--font-mono); font-size: 11px; background: var(--bg); padding: 1px 4px; border-radius: 2px; border: 1px solid var(--border); }
+
+  /* STEP FLOW */
+  .step-flow { display: flex; flex-direction: column; gap: 0; margin-bottom: 16px; }
+  .step-item { display: flex; gap: 20px; background: var(--white); border: 1px solid var(--border); padding: 20px 24px; }
+  .step-item:not(:last-child) { border-bottom: none; }
+  .step-item:first-child { border-radius: 4px 4px 0 0; }
+  .step-item:last-child { border-radius: 0 0 4px 4px; }
+  .step-num { width: 32px; height: 32px; border-radius: 50%; background: var(--navy); color: var(--white); font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+  .step-content h4 { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+  .step-content p { font-size: 13px; color: var(--text-muted); line-height: 1.65; }
+  .step-content code { font-family: var(--font-mono); font-size: 12px; background: var(--bg); padding: 1px 5px; border-radius: 2px; border: 1px solid var(--border); }
+
+  /* DRILL */
+  .drill-toggle { background: var(--white); border: 1px solid var(--border); border-radius: 4px; margin-bottom: 10px; overflow: hidden; }
+  .drill-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; cursor: pointer; user-select: none; font-size: 14px; font-weight: 600; color: var(--navy); transition: background 0.15s; }
+  .drill-header:hover { background: var(--navy-light); }
+  .drill-arrow { font-size: 12px; color: var(--text-muted); transition: transform 0.2s; }
+  .drill-body { display: none; padding: 0 20px 20px; border-top: 1px solid var(--border); }
+  .drill-body.open { display: block; }
+  .drill-body p { font-size: 14px; color: var(--text-muted); line-height: 1.7; margin-top: 14px; }
+  .drill-body code { font-family: var(--font-mono); font-size: 12px; background: var(--bg); padding: 1px 5px; border-radius: 2px; border: 1px solid var(--border); }
+
+  /* QUIZ */
+  .quiz-section { background: var(--white); border: 1px solid var(--border); border-radius: 4px; padding: 32px; }
+  .quiz-title { font-family: var(--font-heading); font-size: 20px; color: var(--navy); margin-bottom: 24px; }
+  .quiz-item { margin-bottom: 28px; padding-bottom: 28px; border-bottom: 1px solid var(--border); }
+  .quiz-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .quiz-q { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 14px; line-height: 1.6; }
+  .quiz-q .q-num { display: inline-block; background: var(--navy); color: var(--white); font-family: var(--font-mono); font-size: 11px; padding: 2px 8px; border-radius: 2px; margin-right: 10px; vertical-align: middle; }
+  .quiz-q code { font-family: var(--font-mono); font-size: 13px; background: var(--bg); padding: 1px 6px; border-radius: 2px; border: 1px solid var(--border); }
+  .quiz-options { display: flex; flex-direction: column; gap: 8px; }
+  .quiz-option { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; background: var(--bg); transition: border-color 0.15s, background 0.15s; font-size: 14px; line-height: 1.5; }
+  .quiz-option:hover { border-color: var(--navy); background: var(--navy-light); }
+  .quiz-option.correct-ans { border-color: var(--correct-border) !important; background: var(--correct-bg) !important; }
+  .quiz-option.wrong-ans   { border-color: #c0392b !important; background: #fdecea !important; }
+  .quiz-option .opt-label  { font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--navy); flex-shrink: 0; margin-top: 1px; }
+  .quiz-option code { font-family: var(--font-mono); font-size: 12px; }
+  .quiz-feedback { margin-top: 12px; padding: 12px 16px; border-radius: 4px; font-size: 13px; display: none; line-height: 1.6; }
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback.correct-fb { background: var(--correct-bg); color: #2e7d32; border-left: 3px solid var(--correct-border); }
+  .quiz-feedback.wrong-fb   { background: #fdecea; color: #c0392b; border-left: 3px solid #c0392b; }
+  .quiz-progress { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+  .quiz-progress-bar { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .quiz-progress-fill { height: 100%; background: var(--navy); border-radius: 3px; transition: width 0.4s; }
+  .quiz-score-label { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+
+  .module-footer { background: var(--white); border-top: 1px solid var(--border); padding: 24px 80px; display: flex; justify-content: space-between; align-items: center; margin-top: 60px; font-size: 13px; color: var(--text-muted); }
+  .footer-nav { display: flex; gap: 24px; }
+  .footer-nav a { color: var(--navy); text-decoration: none; font-weight: 500; }
+  .footer-nav a:hover { text-decoration: underline; }
+
+  @media (max-width: 900px) {
+    .site-header, .tab-nav, .wrapper, .module-footer { padding-left: 20px; padding-right: 20px; }
+    .hero { padding: 32px 24px; }
+    .type-grid { grid-template-columns: 1fr; }
+    .anatomy-desc { width: 180px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <span class="logo">ASPN BAC · EDU Portal</span>
+  <span class="module-label">CDS View Analytics Query — A to Z</span>
+</header>
+
+<nav class="tab-nav">
+  <a href="tab01_overview.html">01. 개요 &amp; 로드맵</a>
+  <a href="tab02_syntax.html">02. CDS 기초 문법</a>
+  <a href="tab03_dimension.html">03. Dimension View</a>
+  <a href="tab04_hierarchy.html" class="active">04. Hierarchy View</a>
+  <a href="tab05_cube.html">05. Cube View</a>
+  <a href="tab06_query.html">06. Analytics Query View</a>
+  <a href="tab07_table_function.html">07. Table Function &amp; AMDP</a>
+  <a href="tab08_authorization.html">08. 권한 제어</a>
+  <a href="tab09_sac_live.html">09. SAC Live Model 연결</a>
+</nav>
+
+<main class="wrapper">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="eyebrow">Module 04 / Hierarchy View Design</div>
+    <h1>Hierarchy View는 SAC 드릴다운의<br>구조적 뼈대를 정의한다</h1>
+    <p>
+      Parent-Child와 Level-Based 두 가지 Hierarchy 유형의 차이를 이해하고,
+      <code style="color:var(--navy-mid); font-family:var(--font-mono);">DEFINE HIERARCHY</code> 구문으로
+      ASPN Group의 이익센터 및 GL 계정 계층을 완성합니다.
+      Tab 03에서 예약한 <code style="color:var(--navy-mid); font-family:var(--font-mono);">_Hierarchy</code> Association과 연결하는 전 과정을 다룹니다.
+    </p>
+    <div class="meta-row">
+      <div class="meta-item"><span class="meta-label">선수 지식</span><span class="meta-value">Tab 03 완료</span></div>
+      <div class="meta-item"><span class="meta-label">예상 학습 시간</span><span class="meta-value">40분</span></div>
+      <div class="meta-item"><span class="meta-label">핵심 구문</span><span class="meta-value">DEFINE HIERARCHY · SIBLING ORDER</span></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       SECTION 1. Hierarchy 개요
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">1. CDS Hierarchy 개요</h2>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+      CDS Hierarchy는 <code>DEFINE HIERARCHY</code>라는 별도 DDL 구문으로 정의합니다.
+      일반 CDS View가 아니라 <strong>독립적인 오브젝트 유형</strong>이며, 파일 확장자도 <strong>.ddlx</strong>를 사용합니다.
+      Dimension View의 <code>@ObjectModel.hierarchyAssociation</code>과 연결되어
+      SAC에서 드릴다운·롤업 분석을 가능하게 합니다.
+    </p>
+
+    <!-- ASPN 계층 예시 트리 -->
+    <h3 class="subsection-title">ASPN Group — 이익센터 계층 구조 예시</h3>
+
+    <div class="hier-tree">
+      <div class="hier-tree-title">ASPN Profit Center Hierarchy — 3단계 구조</div>
+
+      <div class="hier-node level-0">
+        <span>ASPN_ALL</span>
+        <span style="font-size:11px; opacity:0.7; margin-left:8px;">ASPN Group 전체</span>
+        <span class="hier-badge root">ROOT</span>
+      </div>
+
+      <div class="hier-node level-1">
+        <span style="color:var(--text-muted); margin-right:4px;">└─</span>
+        <span>ASPN_KR</span>
+        <span style="font-size:11px; color:var(--text-muted); margin-left:8px;">Korea Region (ASPN Korea + Holdings)</span>
+        <span class="hier-badge node">NODE</span>
+      </div>
+      <div class="hier-node level-2">
+        <span style="color:var(--text-muted); margin-right:4px;">└─</span>
+        <span>PC_1010</span>
+        <span style="font-size:11px; color:var(--text-muted); margin-left:8px;">영업본부</span>
+        <span class="hier-badge leaf">LEAF</span>
+      </div>
+      <div class="hier-node level-2">
+        <span style="color:var(--text-muted); margin-right:4px;">└─</span>
+        <span>PC_1020</span>
+        <span style="font-size:11px; color:var(--text-muted); margin-left:8px;">관리본부</span>
+        <span class="hier-badge leaf">LEAF</span>
+      </div>
+      <div class="hier-node level-2">
+        <span style="color:var(--text-muted); margin-right:4px;">└─</span>
+        <span>PC_1030</span>
+        <span style="font-size:11px; color:var(--text-muted); margin-left:8px;">IT본부</span>
+        <span class="hier-badge leaf">LEAF</span>
+      </div>
+
+      <div class="hier-node level-1">
+        <span style="color:var(--text-muted); margin-right:4px;">└─</span>
+        <span>ASPN_EU</span>
+        <span style="font-size:11px; color:var(--text-muted); margin-left:8px;">Europe Region (ASPN Europe)</span>
+        <span class="hier-badge node">NODE</span>
+      </div>
+      <div class="hier-node level-2">
+        <span style="color:var(--text-muted); margin-right:4px;">└─</span>
+        <span>PC_3010</span>
+        <span style="font-size:11px; color:var(--text-muted); margin-left:8px;">Sales Europe</span>
+        <span class="hier-badge leaf">LEAF</span>
+      </div>
+      <div class="hier-node level-2">
+        <span style="color:var(--text-muted); margin-right:4px;">└─</span>
+        <span>PC_3020</span>
+        <span style="font-size:11px; color:var(--text-muted); margin-left:8px;">Operations Europe</span>
+        <span class="hier-badge leaf">LEAF</span>
+      </div>
+    </div>
+
+    <div class="callout">
+      <div class="callout-label">SAC 드릴다운 동작</div>
+      <p>SAC에서 이익센터 Dimension을 행에 배치하면 위 계층 구조로 드릴다운이 가능합니다.
+      <strong>ASPN_ALL → ASPN_KR / ASPN_EU → 개별 이익센터</strong> 순으로 집계가 자동으로 롤업·드릴다운됩니다.
+      이 동작을 가능하게 하는 것이 DEFINE HIERARCHY로 정의된 Hierarchy View입니다.</p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 2. 두 가지 유형 비교
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">2. Parent-Child vs. Level-Based Hierarchy</h2>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+      CDS Hierarchy는 데이터 저장 구조에 따라 두 가지 유형으로 나뉩니다.
+      ASPN Group 프로젝트에서 어떤 유형을 선택할지는 마스터 데이터 테이블 구조를 먼저 확인해야 합니다.
+    </p>
+
+    <div class="type-grid">
+      <!-- Parent-Child -->
+      <div class="type-card">
+        <div class="type-card-head pc">
+          <div>
+            <div class="type-card-title">Parent-Child Hierarchy</div>
+            <div class="type-card-sub">각 노드가 부모 노드 ID를 보유</div>
+          </div>
+        </div>
+        <div class="type-card-body">
+          <div class="type-row"><span class="type-key">구조</span><span class="type-val">각 레코드에 <code>ParentNode</code> 필드. 깊이 제한 없음</span></div>
+          <div class="type-row"><span class="type-key">유연성</span><span class="type-val">높음 — 런타임에 계층 구조 변경 가능</span></div>
+          <div class="type-row"><span class="type-key">SAP 표준</span><span class="type-val">이익센터(SETHEADER/SETLEAF), GL 계정 그룹(SKA1→SKAT) 등 대부분의 SAP 마스터 데이터</span></div>
+          <div class="type-row"><span class="type-key">CDS 구문</span><span class="type-val"><code>PARENT CHILD HIERARCHY</code></span></div>
+          <div class="type-row"><span class="type-key">깊이</span><span class="type-val">가변적 (데이터에 따라 N레벨)</span></div>
+          <div class="type-row"><span class="type-key">ASPN 활용</span><span class="type-val">이익센터 계층, GL 계정 계층</span></div>
+        </div>
+      </div>
+      <!-- Level-Based -->
+      <div class="type-card">
+        <div class="type-card-head lb">
+          <div>
+            <div class="type-card-title">Level-Based Hierarchy</div>
+            <div class="type-card-sub">각 레코드에 레벨별 필드가 고정 존재</div>
+          </div>
+        </div>
+        <div class="type-card-body">
+          <div class="type-row"><span class="type-key">구조</span><span class="type-val">레벨 수가 고정. <code>Level1</code>, <code>Level2</code>… 컬럼 분리</span></div>
+          <div class="type-row"><span class="type-key">유연성</span><span class="type-val">낮음 — 레벨 추가 시 스키마 변경 필요</span></div>
+          <div class="type-row"><span class="type-key">SAP 표준</span><span class="type-val">시간 Dimension(연→분기→월→일), 고정 조직 계층</span></div>
+          <div class="type-row"><span class="type-key">CDS 구문</span><span class="type-val"><code>LEVEL HIERARCHY</code></span></div>
+          <div class="type-row"><span class="type-key">깊이</span><span class="type-val">고정적 (설계 시 결정)</span></div>
+          <div class="type-row"><span class="type-key">ASPN 활용</span><span class="type-val">회계연도→분기→월 시간 계층</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-label">선택 기준</div>
+      <p>마스터 데이터 테이블에 <strong>ParentNode(부모 ID) 필드가 있으면 Parent-Child</strong>,
+      레벨별 컬럼이 고정 분리되어 있으면 Level-Based를 사용합니다.
+      SAP S/4HANA의 이익센터, GL 계정, 코스트센터는 대부분 Parent-Child 구조입니다.
+      시간 Dimension은 Level-Based가 표준입니다.</p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 3. DEFINE HIERARCHY 구문
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">3. DEFINE HIERARCHY 구문 상세</h2>
+
+    <h3 class="subsection-title">Parent-Child Hierarchy — ZASPN_H_ProfitCenter</h3>
+
+    <div class="anatomy-box">
+      <div class="anatomy-header">
+        <span style="font-size:11px; color:var(--navy-mid);">ABAP CDS · DDLX</span>
+        <span style="font-size:12px; color:#8ba3bc;">ZASPN_H_ProfitCenter — Parent-Child Hierarchy 해부</span>
+      </div>
+
+      <div class="anatomy-row">
+        <div class="anatomy-num">1–3</div>
+        <div class="anatomy-code"><span style="color:#b392f0;">@EndUserText.label</span>: <span style="color:#9ecbff;">'ASPN Profit Center Hierarchy'</span>
+<span style="color:#b392f0;">@Hierarchy.parentChild.recursion.handling</span>: <span style="color:#9ecbff;">#FAIL</span>
+<span style="color:#b392f0;">@AccessControl.authorizationCheck</span>: <span style="color:#9ecbff;">#NOT_REQUIRED</span></div>
+        <div class="anatomy-desc"><strong>Hierarchy 레벨 Annotation.</strong> <code>#FAIL</code>: 순환 참조 발생 시 오류. <code>#IGNORE</code>: 순환 무시. Hierarchy 자체의 AccessControl은 소스 Dimension View에서 제어하므로 <code>#NOT_REQUIRED</code>가 일반적입니다.</div>
+      </div>
+
+      <div class="anatomy-row">
+        <div class="anatomy-num">4–6</div>
+        <div class="anatomy-code"><span style="color:#79b8ff;">define hierarchy</span> <span style="color:#ffab70;">ZASPN_H_ProfitCenter</span>
+  <span style="color:#79b8ff;">as parent child hierarchy</span> (
+    <span style="color:#79b8ff;">source</span> <span style="color:#ffab70;">ZASPN_I_ProfitCenterNode</span>  <span style="color:#6a737d; font-style:italic;">// 노드 데이터 소스 View</span></div>
+        <div class="anatomy-desc"><strong>Hierarchy 선언.</strong> <code>as parent child hierarchy</code>로 유형을 지정합니다. <code>source</code>는 계층 노드 데이터를 제공하는 CDS View — 일반 View Entity 또는 Table Function 모두 가능합니다.</div>
+      </div>
+
+      <div class="anatomy-row">
+        <div class="anatomy-num">7–10</div>
+        <div class="anatomy-code">    <span style="color:#79b8ff;">child to parent association</span> <span style="color:#ffab70;">_Parent</span>  <span style="color:#6a737d; font-style:italic;">// 부모 연결 Association</span>
+    <span style="color:#79b8ff;">start where</span> <span style="color:#ffab70;">ParentProfitCenter</span> <span style="color:#79b8ff;">is initial</span>  <span style="color:#6a737d; font-style:italic;">// 루트 조건</span>
+    <span style="color:#6a737d; font-style:italic;">// 또는: start where IsRoot = 'X'</span>
+  )</div>
+        <div class="anatomy-desc"><strong>핵심 구성.</strong> <code>child to parent association</code>: 자식→부모 방향 Association 이름. <code>start where … is initial</code>: 부모 ID가 비어 있는 노드를 루트(최상위)로 지정합니다.</div>
+      </div>
+
+      <div class="anatomy-row">
+        <div class="anatomy-num">11–18</div>
+        <div class="anatomy-code">{
+  <span style="color:#79b8ff;">node</span> {
+    <span style="color:#ffab70;">ControllingArea</span>,
+    <span style="color:#ffab70;">ProfitCenter</span>,
+    <span style="color:#ffab70;">ParentProfitCenter</span>   <span style="color:#6a737d; font-style:italic;">// 부모 ID 필드</span>
+  }
+  <span style="color:#79b8ff;">siblings order by</span> <span style="color:#ffab70;">ProfitCenter</span> <span style="color:#79b8ff;">ascending</span>  <span style="color:#6a737d; font-style:italic;">// 동일 레벨 정렬</span>
+}</div>
+        <div class="anatomy-desc"><strong>node 블록.</strong> 계층 노드가 보유해야 할 필드 목록. 키 필드 + 부모 ID 필드가 필수. <code>siblings order by</code>: 같은 부모를 가진 노드들의 표시 순서 — SAC에서 계층 표시 순서에 직접 영향합니다.</div>
+      </div>
+
+    </div>
+
+    <!-- 소스 View — ProfitCenterNode -->
+    <h3 class="subsection-title">Hierarchy 소스 View — ZASPN_I_ProfitCenterNode</h3>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:16px;">
+      DEFINE HIERARCHY의 <code>source</code>는 계층 노드 데이터를 제공하는 일반 CDS View입니다.
+      SAP 표준 이익센터 계층 테이블(SETHEADER, SETLEAF)을 조합하거나,
+      커스텀 계층 테이블을 소스로 사용합니다.
+    </p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-lang">ABAP CDS</span>
+        <span class="code-title">ZASPN_I_ProfitCenterNode — 계층 노드 소스 View</span>
+      </div>
+      <div class="code-body"><pre><span class="cm">// 계층 노드 View: #DIMENSION이 아닌 일반 View</span>
+<span class="fn">@EndUserText.label</span>: <span class="str">'ASPN Profit Center Hierarchy Node'</span>
+<span class="fn">@AccessControl.authorizationCheck</span>: <span class="str">#NOT_REQUIRED</span>
+
+<span class="kw">define view entity</span> <span class="fd">ZASPN_I_ProfitCenterNode</span>
+  <span class="kw">as select from</span> <span class="fd">ZASPN_T_PCHierarchy</span> <span class="kw">as</span> <span class="fd">Node</span>  <span class="cm">// 커스텀 계층 테이블</span>
+
+  <span class="cm">// child → parent 방향 Self-Association</span>
+  <span class="kw">association [0..1] to</span> <span class="fd">ZASPN_I_ProfitCenterNode</span> <span class="kw">as</span> <span class="fd">_Parent</span>
+    <span class="kw">on</span>  <span class="fd">$projection</span>.<span class="fd">ControllingArea</span>    = <span class="fd">_Parent</span>.<span class="fd">ControllingArea</span>
+    <span class="kw">and</span> <span class="fd">$projection</span>.<span class="fd">ParentProfitCenter</span> = <span class="fd">_Parent</span>.<span class="fd">ProfitCenter</span>
+
+{
+  <span class="kw">key</span> <span class="fd">Node</span>.<span class="fd">ControllingArea</span>,
+  <span class="kw">key</span> <span class="fd">Node</span>.<span class="fd">ProfitCenter</span>,
+
+      <span class="fd">Node</span>.<span class="fd">ParentProfitCenter</span>,   <span class="cm">// 부모 ID — DEFINE HIERARCHY의 핵심</span>
+      <span class="fd">Node</span>.<span class="fd">HierarchyLevel</span>,       <span class="cm">// 레벨 정보 (선택)</span>
+      <span class="fd">Node</span>.<span class="fd">HierarchyNode</span>,        <span class="cm">// 노드 이름/코드</span>
+      <span class="fd">Node</span>.<span class="fd">ValidityStartDate</span>,
+      <span class="fd">Node</span>.<span class="fd">ValidityEndDate</span>,
+
+      <span class="fd">_Parent</span>   <span class="cm">// DEFINE HIERARCHY에서 참조할 Association 노출</span>
+}
+<span class="kw">where</span> <span class="fd">Node</span>.<span class="fd">ValidityEndDate</span> >= <span class="fd">$session</span>.<span class="fd">system_date</span></pre></div>
+    </div>
+
+    <div class="callout">
+      <div class="callout-label">Self-Association 패턴</div>
+      <p>Parent-Child Hierarchy 소스 View는 <strong>자기 자신을 참조하는 Self-Association</strong>(<code>_Parent</code>)을 선언합니다.
+      이 Association이 DEFINE HIERARCHY의 <code>child to parent association _Parent</code>에서 참조됩니다.
+      Association ON 조건은 <strong>현재 노드의 ParentProfitCenter = 부모 노드의 ProfitCenter</strong>가 핵심입니다.</p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 4. Level-Based Hierarchy
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">4. Level-Based Hierarchy — 시간 Dimension 예시</h2>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+      ASPN Group의 시간 분석 계층(회계연도 → 분기 → 월)은 Level-Based Hierarchy로 구성합니다.
+      각 레코드에 레벨 필드가 고정되어 있어 구조가 단순하고 성능이 안정적입니다.
+    </p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-lang">ABAP CDS · DDLX</span>
+        <span class="code-title">ZASPN_H_FiscalCalendar — Level-Based 시간 Hierarchy</span>
+      </div>
+      <div class="code-body"><pre><span class="fn">@EndUserText.label</span>: <span class="str">'ASPN Fiscal Calendar Hierarchy'</span>
+<span class="fn">@Analytics.hierarchyRootNode</span>: <span class="str">'0000'</span>   <span class="cm">// 가상 루트 노드 값</span>
+
+<span class="kw">define hierarchy</span> <span class="fd">ZASPN_H_FiscalCalendar</span>
+  <span class="kw">as level hierarchy</span> (
+    <span class="kw">source</span> <span class="fd">ZASPN_I_FiscalCalendarNode</span>
+
+    <span class="cm">// 레벨 정의: 상위 → 하위 순서로 선언</span>
+    <span class="kw">hierarchy levels</span> (
+      <span class="fd">FiscalYear</span>    <span class="kw">as level</span> <span class="nb">1</span>,     <span class="cm">// 최상위 레벨: 회계연도</span>
+      <span class="fd">FiscalQuarter</span> <span class="kw">as level</span> <span class="nb">2</span>,     <span class="cm">// 중간 레벨: 분기</span>
+      <span class="fd">FiscalPeriod</span>  <span class="kw">as level</span> <span class="nb">3</span>      <span class="cm">// 최하위 레벨: 회계기간(월)</span>
+    )
+  )
+{
+  <span class="kw">node</span> {
+    <span class="fd">FiscalYear</span>,
+    <span class="fd">FiscalQuarter</span>,
+    <span class="fd">FiscalPeriod</span>
+  }
+  <span class="kw">siblings order by</span> <span class="fd">FiscalPeriod</span> <span class="kw">ascending</span>
+}</pre></div>
+    </div>
+
+    <div class="callout">
+      <div class="callout-label">@Analytics.hierarchyRootNode</div>
+      <p>Level-Based Hierarchy에서 <code>@Analytics.hierarchyRootNode</code>는
+      가상 루트 노드의 값을 지정합니다. SAC가 최상위 집계 레벨을 인식하는 데 사용됩니다.
+      Parent-Child에서는 <code>start where … is initial</code>로 루트를 지정하므로 이 Annotation이 필요하지 않습니다.</p>
+    </div>
+
+    <!-- Level-Based Source View -->
+    <div class="drill-toggle">
+      <div class="drill-header" onclick="toggleDrill(this)">
+        <span>📋 Level-Based 소스 View 구조 예시 — ZASPN_I_FiscalCalendarNode</span>
+        <span class="drill-arrow">▼</span>
+      </div>
+      <div class="drill-body">
+        <div class="code-wrap" style="margin-top:14px;">
+          <div class="code-header"><span class="code-lang">ABAP CDS</span><span class="code-title">시간 계층 노드 소스 View</span></div>
+          <div class="code-body"><pre><span class="fn">@EndUserText.label</span>: <span class="str">'ASPN Fiscal Calendar Node'</span>
+<span class="fn">@AccessControl.authorizationCheck</span>: <span class="str">#NOT_REQUIRED</span>
+
+<span class="kw">define view entity</span> <span class="fd">ZASPN_I_FiscalCalendarNode</span>
+  <span class="kw">as select from</span> <span class="fd">T009B</span> <span class="kw">as</span> <span class="fd">Cal</span>   <span class="cm">// SAP 회계 기간 테이블</span>
+    <span class="kw">inner join</span> <span class="fd">ZASPN_T_FiscalQuarter</span> <span class="kw">as</span> <span class="fd">Q</span>
+      <span class="kw">on</span> <span class="fd">Cal</span>.<span class="fd">PERIV</span> = <span class="fd">Q</span>.<span class="fd">FiscalYearVariant</span>
+     <span class="kw">and</span> <span class="fd">Cal</span>.<span class="fd">BUMON</span> = <span class="fd">Q</span>.<span class="fd">FiscalPeriod</span>
+{
+  <span class="kw">key</span> <span class="fd">Cal</span>.<span class="fd">GJAHR</span>  <span class="kw">as</span> <span class="fd">FiscalYear</span>,
+  <span class="kw">key</span> <span class="fd">Q</span>.<span class="fd">FiscalQuarter</span>,
+  <span class="kw">key</span> <span class="fd">Cal</span>.<span class="fd">BUMON</span>  <span class="kw">as</span> <span class="fd">FiscalPeriod</span>
+}
+<span class="kw">where</span> <span class="fd">Cal</span>.<span class="fd">PERIV</span> = <span class="str">'K4'</span>   <span class="cm">// ASPN 회계연도 변형</span></pre></div>
+        </div>
+        <p>Level-Based 소스 View는 Self-Association이 필요 없습니다. 각 레코드에 모든 레벨 필드(<code>FiscalYear</code>, <code>FiscalQuarter</code>, <code>FiscalPeriod</code>)가 존재하기 때문입니다. 레벨 간 부모-자식 관계는 DEFINE HIERARCHY의 <code>hierarchy levels</code> 선언으로 자동 결정됩니다.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 5. Dimension View 연결
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">5. Dimension View와 Hierarchy View 연결</h2>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+      Tab 03에서 <code>ZASPN_I_ProfitCenter</code>에 <code>_Hierarchy</code> Association 포인트를 예약했습니다.
+      이제 DEFINE HIERARCHY로 생성한 <code>ZASPN_H_ProfitCenter</code>를 그 Association에 연결합니다.
+      연결 구조 전체를 아래 코드로 최종 완성합니다.
+    </p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-lang">ABAP CDS</span>
+        <span class="code-title">ZASPN_I_ProfitCenter — Hierarchy Association 최종 연결</span>
+      </div>
+      <div class="code-body"><pre><span class="fn">@Analytics.dataCategory</span>: <span class="str">#DIMENSION</span>
+<span class="fn">@EndUserText.label</span>: <span class="str">'Profit Center'</span>
+<span class="fn">@AccessControl.authorizationCheck</span>: <span class="str">#CHECK</span>
+
+<span class="kw">define view entity</span> <span class="fd">ZASPN_I_ProfitCenter</span>
+  <span class="kw">as select from</span> <span class="fd">I_ProfitCenter</span> <span class="kw">as</span> <span class="fd">PC</span>
+
+  <span class="cm">// Text Association (Tab 03에서 이미 선언)</span>
+  <span class="kw">association [0..*] to</span> <span class="fd">I_ProfitCenterText</span> <span class="kw">as</span> <span class="fd">_Text</span>
+    <span class="kw">on</span>  <span class="fd">$projection</span>.<span class="fd">ControllingArea</span> = <span class="fd">_Text</span>.<span class="fd">ControllingArea</span>
+    <span class="kw">and</span> <span class="fd">$projection</span>.<span class="fd">ProfitCenter</span>    = <span class="fd">_Text</span>.<span class="fd">ProfitCenter</span>
+    <span class="kw">and</span> <span class="fd">$projection</span>.<span class="fd">ValidityEndDate</span> = <span class="fd">_Text</span>.<span class="fd">ValidityEndDate</span>
+
+  <span class="cm">// ★ Hierarchy Association: DEFINE HIERARCHY 오브젝트 참조</span>
+  <span class="kw">association [0..1] to</span> <span class="fd">ZASPN_H_ProfitCenter</span> <span class="kw">as</span> <span class="fd">_Hierarchy</span>
+    <span class="kw">on</span>  <span class="fd">$projection</span>.<span class="fd">ControllingArea</span> = <span class="fd">_Hierarchy</span>.<span class="fd">ControllingArea</span>
+    <span class="kw">and</span> <span class="fd">$projection</span>.<span class="fd">ProfitCenter</span>    = <span class="fd">_Hierarchy</span>.<span class="fd">ProfitCenter</span>
+
+{
+  <span class="fn">@ObjectModel.text.association</span>: <span class="str">'_Text'</span>
+  <span class="kw">key</span> <span class="fd">PC</span>.<span class="fd">ControllingArea</span>,
+
+  <span class="fn">@ObjectModel.text.association</span>: <span class="str">'_Text'</span>
+  <span class="fn">@Consumption.valueHelpDefinition</span>: [{ entity: {
+      name: <span class="str">'ZASPN_I_ProfitCenter'</span>, element: <span class="str">'ProfitCenter'</span>
+  }}]
+  <span class="kw">key</span> <span class="fd">PC</span>.<span class="fd">ProfitCenter</span>,
+  <span class="kw">key</span> <span class="fd">PC</span>.<span class="fd">ValidityEndDate</span>,
+
+      <span class="fd">PC</span>.<span class="fd">Segment</span>,
+      <span class="fd">PC</span>.<span class="fd">CompanyCode</span>,
+
+      <span class="fd">_Text</span>,
+
+  <span class="cm">  // ★ @ObjectModel.hierarchyAssociation — SAC가 Hierarchy 인식</span>
+  <span class="fn">  @ObjectModel.hierarchyAssociation</span>: <span class="str">'_Hierarchy'</span>
+      <span class="fd">_Hierarchy</span>
+}
+<span class="kw">where</span> <span class="fd">PC</span>.<span class="fd">ValidityEndDate</span> >= <span class="fd">$session</span>.<span class="fd">system_date</span></pre></div>
+    </div>
+
+    <!-- 전체 연결 구조 요약 -->
+    <h3 class="subsection-title">전체 오브젝트 연결 구조 요약</h3>
+
+    <div style="background:var(--white); border:1px solid var(--border); border-radius:4px; padding:28px 32px; margin-bottom:16px;">
+      <div style="display:flex; flex-direction:column; gap:0;">
+
+        <div style="display:flex; align-items:center; gap:16px; padding:14px 20px; background:var(--navy); color:var(--white); border-radius:4px 4px 0 0; font-family:var(--font-mono); font-size:13px;">
+          <span style="opacity:0.6; font-size:10px;">DDLX</span>
+          <span style="font-weight:700;">ZASPN_H_ProfitCenter</span>
+          <span style="opacity:0.7; font-size:11px; margin-left:8px;">define hierarchy … as parent child hierarchy</span>
+          <span style="margin-left:auto; font-size:10px; opacity:0.6;">Hierarchy View (.ddlx)</span>
+        </div>
+
+        <div style="text-align:center; padding:6px; background:var(--bg); border-left:1px solid var(--border); border-right:1px solid var(--border); font-size:12px; color:var(--navy); font-family:var(--font-mono);">
+          ↑ source: ZASPN_I_ProfitCenterNode
+        </div>
+
+        <div style="display:flex; align-items:center; gap:16px; padding:14px 20px; background:var(--navy-light); border:1px solid var(--navy-mid); border-top:none; font-family:var(--font-mono); font-size:13px;">
+          <span style="opacity:0.6; font-size:10px;">DDLS</span>
+          <span style="font-weight:700; color:var(--navy);">ZASPN_I_ProfitCenterNode</span>
+          <span style="color:var(--text-muted); font-size:11px; margin-left:8px;">Self-Association _Parent 포함</span>
+          <span style="margin-left:auto; font-size:10px; color:var(--text-muted);">Hierarchy 소스 View</span>
+        </div>
+
+        <div style="text-align:center; padding:6px; background:var(--bg); border-left:1px solid var(--border); border-right:1px solid var(--border); font-size:12px; color:var(--navy); font-family:var(--font-mono);">
+          ↑ association [0..1] to ZASPN_H_ProfitCenter as _Hierarchy
+        </div>
+
+        <div style="display:flex; align-items:center; gap:16px; padding:14px 20px; background:var(--bg); border:1px solid var(--border); border-top:none; border-radius:0 0 4px 4px; font-family:var(--font-mono); font-size:13px;">
+          <span style="opacity:0.6; font-size:10px;">DDLS</span>
+          <span style="font-weight:700; color:var(--navy);">ZASPN_I_ProfitCenter</span>
+          <span style="color:var(--text-muted); font-size:11px; margin-left:8px;">@Analytics.dataCategory: #DIMENSION</span>
+          <span style="margin-left:auto; font-size:10px; color:var(--text-muted);">Dimension View (Tab 03)</span>
+        </div>
+
+      </div>
+
+      <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border); display:flex; gap:24px; font-size:13px; flex-wrap:wrap;">
+        <div><span style="font-family:var(--font-mono); font-size:11px; color:var(--text-muted);">SAC가 인식하는 Annotation</span><br>
+        <code style="font-family:var(--font-mono); font-size:12px; background:var(--bg); padding:2px 6px; border:1px solid var(--border); border-radius:2px; color:var(--navy);">@ObjectModel.hierarchyAssociation: '_Hierarchy'</code></div>
+        <div><span style="font-family:var(--font-mono); font-size:11px; color:var(--text-muted);">파일 유형</span><br>
+        <span style="font-size:13px; color:var(--text);">Hierarchy View → <strong>.ddlx</strong> &nbsp;|&nbsp; 나머지 → <strong>.ddls</strong></span></div>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-label">주의 — .ddlx 파일 유형</div>
+      <p>DEFINE HIERARCHY는 일반 CDS View(<code>.ddls</code>)와 다른 <strong><code>.ddlx</code></strong> 파일로 생성합니다.
+      ADT에서 New → Other ABAP Repository Objects → Core Data Services → <strong>Hierarchy</strong>를 선택해야 합니다.
+      <code>.ddls</code> 파일에 <code>define hierarchy</code>를 작성하면 활성화 오류가 발생합니다.</p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 6. SAC 동작 및 주의사항
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">6. SAC에서 Hierarchy 동작 방식 및 주의사항</h2>
+
+    <div class="step-flow">
+      <div class="step-item">
+        <div class="step-num">①</div>
+        <div class="step-content">
+          <h4>SAC Live Model Import 시 Hierarchy 자동 인식</h4>
+          <p>SAC가 Query View를 Live Model로 Import할 때,
+          <code>@ObjectModel.hierarchyAssociation</code>이 선언된 Dimension을 자동으로 계층형 Dimension으로 인식합니다.
+          별도 SAC 설정 없이 Hierarchy가 활성화됩니다.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">②</div>
+        <div class="step-content">
+          <h4>드릴다운 집계는 Analytics Engine이 처리</h4>
+          <p>SAC에서 계층 노드를 클릭해 드릴다운할 때,
+          하위 노드 집계는 SAP Analytics Engine(HANA 레이어)이 자동으로 수행합니다.
+          CDS View에 집계 로직을 별도로 작성할 필요가 없습니다.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">③</div>
+        <div class="step-content">
+          <h4>SIBLING ORDER — SAC 표시 순서 제어</h4>
+          <p>DEFINE HIERARCHY의 <code>siblings order by</code>가 SAC에서 계층 노드 표시 순서를 결정합니다.
+          선언하지 않으면 순서가 불규칙합니다. ASPN Group에서는 이익센터 코드 오름차순,
+          GL 계정 코드 오름차순으로 설정합니다.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">④</div>
+        <div class="step-content">
+          <h4>Hierarchy 유효성 — 유효 기간 관리</h4>
+          <p>소스 View의 WHERE 절(<code>ValidityEndDate >= $session.system_date</code>)로
+          만료 노드를 제외해야 SAC에서 올바른 계층이 표시됩니다.
+          유효 기간 관리를 누락하면 이미 조직이 변경된 이익센터가 계속 계층에 노출됩니다.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">⑤</div>
+        <div class="step-content">
+          <h4>순환 참조(Cycle) 방지</h4>
+          <p><code>@Hierarchy.parentChild.recursion.handling: #FAIL</code> 설정을 권장합니다.
+          데이터 오류로 A의 부모가 B이고 B의 부모가 A인 순환이 발생하면
+          <code>#FAIL</code> 설정 시 즉시 오류로 노출되어 조기 감지가 가능합니다.
+          <code>#IGNORE</code>는 순환을 무시하므로 데이터 품질 이슈를 숨길 수 있습니다.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 체크리스트 -->
+    <div class="drill-toggle" style="margin-top:8px;">
+      <div class="drill-header" onclick="toggleDrill(this)">
+        <span>✅ Hierarchy View 배포 전 체크리스트</span>
+        <span class="drill-arrow">▼</span>
+      </div>
+      <div class="drill-body">
+        <table class="compare-table" style="margin-top:14px;">
+          <thead><tr><th>확인 항목</th><th>미비 시 증상</th></tr></thead>
+          <tbody>
+            <tr><td>파일 유형이 <code>.ddlx</code> (Hierarchy 오브젝트)</td><td>활성화 오류</td></tr>
+            <tr><td>소스 View에 Self-Association(<code>_Parent</code>) 선언</td><td>Parent-Child 관계 미인식</td></tr>
+            <tr><td><code>start where … is initial</code> 루트 조건 확인</td><td>루트 노드 없음 / 전체 계층 미표시</td></tr>
+            <tr><td><code>siblings order by</code> 선언</td><td>SAC에서 노드 순서 불규칙</td></tr>
+            <tr><td>Dimension View에 <code>@ObjectModel.hierarchyAssociation</code></td><td>SAC에서 Hierarchy 미인식</td></tr>
+            <tr><td>소스 View WHERE 절 유효 기간 필터</td><td>만료 노드 계층에 노출</td></tr>
+            <tr><td>순환 참조 설정 <code>#FAIL</code></td><td>데이터 오류 미감지</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       QUIZ
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <div class="quiz-section">
+      <h3 class="quiz-title">확인 퀴즈 — Tab 04</h3>
+      <div class="quiz-progress">
+        <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="progressFill" style="width:0%"></div></div>
+        <span class="quiz-score-label" id="scoreLabel">0 / 4 완료</span>
+      </div>
+
+      <!-- Q1 -->
+      <div class="quiz-item">
+        <div class="quiz-q">
+          <span class="q-num">Q1</span>
+          ASPN Group의 이익센터 계층을 DEFINE HIERARCHY로 구현할 때 적합한 유형은?
+          마스터 데이터 테이블에는 <code>ProfitCenter</code>와 <code>ParentProfitCenter</code> 필드가 존재합니다.
+        </div>
+        <div class="quiz-options" id="q1">
+          <div class="quiz-option" onclick="answer('q1',this,false,'q1-fb','Level-Based Hierarchy는 레벨별 컬럼이 고정 분리된 구조에 사용합니다. 이 경우 ParentProfitCenter 필드가 있으므로 Parent-Child가 적합합니다.')">
+            <span class="opt-label">A</span> Level-Based Hierarchy — <code>as level hierarchy</code>
+          </div>
+          <div class="quiz-option" onclick="answer('q1',this,true,'q1-fb','정답입니다. ParentProfitCenter 필드(부모 ID)가 존재하므로 Parent-Child Hierarchy를 사용합니다. 소스 View에 Self-Association(_Parent)을 선언하고 DEFINE HIERARCHY의 child to parent association으로 연결합니다.')">
+            <span class="opt-label">B</span> Parent-Child Hierarchy — <code>as parent child hierarchy</code>
+          </div>
+          <div class="quiz-option" onclick="answer('q1',this,false,'q1-fb','External Hierarchy는 CDS DEFINE HIERARCHY 유형이 아닙니다.')">
+            <span class="opt-label">C</span> External Hierarchy
+          </div>
+          <div class="quiz-option" onclick="answer('q1',this,false,'q1-fb','두 유형을 동시에 선언할 수 없습니다. 하나의 DEFINE HIERARCHY는 하나의 유형만 선택합니다.')">
+            <span class="opt-label">D</span> 두 유형을 모두 선언하여 혼용한다
+          </div>
+        </div>
+        <div class="quiz-feedback" id="q1-fb"></div>
+      </div>
+
+      <!-- Q2 -->
+      <div class="quiz-item">
+        <div class="quiz-q">
+          <span class="q-num">Q2</span>
+          DEFINE HIERARCHY 파일을 ADT에서 생성할 때 올바른 파일 유형은?
+        </div>
+        <div class="quiz-options" id="q2">
+          <div class="quiz-option" onclick="answer('q2',this,false,'q2-fb','.ddls는 일반 CDS View Entity 파일입니다. Hierarchy는 별도 파일 유형을 사용합니다.')">
+            <span class="opt-label">A</span> <code>.ddls</code> — Data Definition Language Source
+          </div>
+          <div class="quiz-option" onclick="answer('q2',this,true,'q2-fb','정답입니다. DEFINE HIERARCHY는 .ddlx 파일로 생성합니다. ADT에서 New → Other ABAP Repository Objects → Core Data Services → Hierarchy를 선택해야 합니다. .ddls 파일에 작성하면 활성화 오류가 발생합니다.')">
+            <span class="opt-label">B</span> <code>.ddlx</code> — Data Definition Language Extension
+          </div>
+          <div class="quiz-option" onclick="answer('q2',this,false,'q2-fb','.dcl은 Data Control Language로, DCL Access Control 파일에 사용합니다.')">
+            <span class="opt-label">C</span> <code>.dcl</code> — Data Control Language
+          </div>
+          <div class="quiz-option" onclick="answer('q2',this,false,'q2-fb','.amdp는 ABAP Managed Database Procedure 파일 유형이 아닙니다. AMDP는 ABAP 클래스로 구현합니다.')">
+            <span class="opt-label">D</span> <code>.amdp</code> — ABAP Managed Database Procedure
+          </div>
+        </div>
+        <div class="quiz-feedback" id="q2-fb"></div>
+      </div>
+
+      <!-- Q3 -->
+      <div class="quiz-item">
+        <div class="quiz-q">
+          <span class="q-num">Q3</span>
+          SAC에서 이익센터 Dimension을 계층형으로 드릴다운하려면
+          Dimension View(<code>ZASPN_I_ProfitCenter</code>)에 반드시 선언해야 하는 Annotation은?
+        </div>
+        <div class="quiz-options" id="q3">
+          <div class="quiz-option" onclick="answer('q3',this,false,'q3-fb','@Analytics.dataCategory: #DIMENSION은 이 View가 Dimension임을 선언하는 것으로, Hierarchy 연결과는 별개입니다.')">
+            <span class="opt-label">A</span> <code>@Analytics.dataCategory: #DIMENSION</code>
+          </div>
+          <div class="quiz-option" onclick="answer('q3',this,false,'q3-fb','@ObjectModel.text.association은 텍스트 소스 Association을 지정합니다. Hierarchy 인식과는 다릅니다.')">
+            <span class="opt-label">B</span> <code>@ObjectModel.text.association: '_Text'</code>
+          </div>
+          <div class="quiz-option" onclick="answer('q3',this,false,'q3-fb','@Hierarchy.parentChild.recursion.handling은 DEFINE HIERARCHY(.ddlx) 파일의 View 레벨 Annotation 블록에 선언합니다. Dimension View에 선언하는 Annotation이 아닙니다.')">
+            <span class="opt-label">C</span> <code>@Hierarchy.parentChild.recursion.handling: #FAIL</code>
+          </div>
+          <div class="quiz-option" onclick="answer('q3',this,true,'q3-fb','정답입니다. @ObjectModel.hierarchyAssociation: \'_Hierarchy\'를 Dimension View의 필드 목록에서 _Hierarchy Association 노출 위에 선언해야 SAC가 이 Dimension에 Hierarchy가 연결되어 있음을 인식합니다. 이 Annotation 없이는 SAC에서 계층 드릴다운이 불가능합니다.')">
+            <span class="opt-label">D</span> <code>@ObjectModel.hierarchyAssociation: '_Hierarchy'</code>
+          </div>
+        </div>
+        <div class="quiz-feedback" id="q3-fb"></div>
+      </div>
+
+      <!-- Q4 -->
+      <div class="quiz-item">
+        <div class="quiz-q">
+          <span class="q-num">Q4</span>
+          Parent-Child Hierarchy 소스 View에서 <code>start where ParentProfitCenter is initial</code>의 의미는?
+        </div>
+        <div class="quiz-options" id="q4">
+          <div class="quiz-option" onclick="answer('q4',this,false,'q4-fb','이익센터 코드가 비어 있는 레코드를 찾는 것이 아닙니다. ParentProfitCenter(부모 ID) 필드가 비어 있는 조건입니다.')">
+            <span class="opt-label">A</span> ProfitCenter(이익센터 코드) 필드가 비어 있는 레코드를 루트로 지정
+          </div>
+          <div class="quiz-option" onclick="answer('q4',this,true,'q4-fb','정답입니다. is initial은 ABAP에서 초기값(빈 값)을 의미합니다. ParentProfitCenter가 비어 있다는 것은 이 노드의 부모가 없다는 의미이므로, 이 노드가 계층의 최상위(루트)가 됩니다. ASPN Group 예시에서 ASPN_ALL 노드의 ParentProfitCenter가 비어 있어 루트가 됩니다.')">
+            <span class="opt-label">B</span> ParentProfitCenter(부모 ID) 필드가 비어 있는 노드 — 부모가 없는 최상위 루트 노드로 지정
+          </div>
+          <div class="quiz-option" onclick="answer('q4',this,false,'q4-fb','HierarchyLevel 필드와 is initial 조건은 관련이 없습니다.')">
+            <span class="opt-label">C</span> HierarchyLevel 값이 0인 노드를 루트로 지정
+          </div>
+          <div class="quiz-option" onclick="answer('q4',this,false,'q4-fb','ValidityStartDate와 is initial 조건은 관련이 없습니다.')">
+            <span class="opt-label">D</span> ValidityStartDate가 비어 있는 노드를 루트로 지정
+          </div>
+        </div>
+        <div class="quiz-feedback" id="q4-fb"></div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer class="module-footer">
+  <span>ASPN BAC EDU Portal · CDS View Analytics Query A to Z</span>
+  <div class="footer-nav">
+    <a href="tab03_dimension.html">← Tab 03. Dimension View</a>
+    <a href="tab05_cube.html">다음: Tab 05. Cube View →</a>
+  </div>
+</footer>
+
+<script>
+  let answered = {};
+  const total = 4;
+
+  function answer(qId, el, isCorrect, fbId, msg) {
+    if (answered[qId]) return;
+    answered[qId] = true;
+    const opts = document.getElementById(qId).querySelectorAll('.quiz-option');
+    opts.forEach(o => { o.style.pointerEvents = 'none'; o.style.opacity = '0.7'; });
+    el.style.opacity = '1';
+    el.classList.add(isCorrect ? 'correct-ans' : 'wrong-ans');
+    const fb = document.getElementById(fbId);
+    fb.textContent = (isCorrect ? '✓ ' : '✗ ') + msg;
+    fb.className = 'quiz-feedback show ' + (isCorrect ? 'correct-fb' : 'wrong-fb');
+    updateProgress();
+  }
+
+  function updateProgress() {
+    const done = Object.keys(answered).length;
+    document.getElementById('progressFill').style.width = (done / total * 100) + '%';
+    document.getElementById('scoreLabel').textContent = done + ' / ' + total + ' 완료';
+  }
+
+  function toggleDrill(header) {
+    const body = header.nextElementSibling;
+    const arrow = header.querySelector('.drill-arrow');
+    body.classList.toggle('open');
+    arrow.style.transform = body.classList.contains('open') ? 'rotate(180deg)' : '';
+  }
+</script>
+
+</body>
+</html>

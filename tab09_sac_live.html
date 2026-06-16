@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tab 09. SAC Live Model 연결 | CDS View Analytics Query</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #003366;
+    --navy-light: #e8edf4;
+    --navy-mid: #c0cfe0;
+    --bg: #f0f3f8;
+    --white: #ffffff;
+    --border: #d0d8e4;
+    --text: #1a1a2e;
+    --text-muted: #5a6478;
+    --warn-bg: #fff8e6;
+    --warn-border: #e6a817;
+    --correct-bg: #e8f5e9;
+    --correct-border: #2e7d32;
+    --font-body: 'Noto Sans KR', sans-serif;
+    --font-heading: 'DM Serif Display', serif;
+    --font-mono: 'JetBrains Mono', 'Noto Sans KR', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-body); background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.7; }
+
+  .site-header { background: var(--navy); color: var(--white); padding: 0 80px; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 100; }
+  .site-header .logo { font-family: var(--font-heading); font-size: 18px; letter-spacing: 0.04em; }
+  .site-header .module-label { font-size: 13px; color: var(--navy-mid); font-family: var(--font-mono); }
+
+  .tab-nav { background: var(--white); border-bottom: 2px solid var(--border); padding: 0 80px; display: flex; position: sticky; top: 56px; z-index: 99; overflow-x: auto; overflow-y: hidden; }
+  .tab-nav a { display: block; padding: 14px 20px; font-size: 13px; font-weight: 500; color: var(--text-muted); text-decoration: none; white-space: nowrap; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: color 0.2s, border-color 0.2s; }
+  .tab-nav a:hover { color: var(--navy); }
+  .tab-nav a.active { color: var(--navy); border-bottom-color: var(--navy); font-weight: 700; }
+
+  .wrapper { max-width: 1280px; margin: 0 auto; padding: 48px 80px 80px; }
+
+  .hero { background: var(--navy); border-radius: 4px; padding: 48px 56px; margin-bottom: 40px; color: var(--white); }
+  .hero .eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.12em; color: var(--navy-mid); margin-bottom: 16px; text-transform: uppercase; }
+  .hero h1 { font-family: var(--font-heading); font-size: 36px; line-height: 1.25; margin-bottom: 16px; }
+  .hero p { font-size: 15px; color: rgba(255,255,255,0.75); max-width: 680px; line-height: 1.8; }
+  .hero .meta-row { display: flex; gap: 32px; margin-top: 28px; flex-wrap: wrap; }
+  .hero .meta-item { display: flex; flex-direction: column; gap: 4px; }
+  .hero .meta-label { font-size: 11px; color: var(--navy-mid); text-transform: uppercase; letter-spacing: 0.1em; font-family: var(--font-mono); }
+  .hero .meta-value { font-size: 14px; font-weight: 600; color: var(--white); }
+
+  .section { margin-bottom: 52px; }
+  .section-title { font-family: var(--font-heading); font-size: 26px; color: var(--navy); margin-bottom: 24px; padding-bottom: 10px; border-bottom: 2px solid var(--navy); }
+  .subsection-title { font-size: 18px; font-weight: 700; color: var(--navy); margin: 32px 0 16px; padding-left: 12px; border-left: 3px solid var(--navy); }
+
+  .callout { border-left: 4px solid var(--navy); background: var(--navy-light); padding: 16px 20px; border-radius: 0 4px 4px 0; margin-bottom: 16px; }
+  .callout.warn { border-left-color: var(--warn-border); background: var(--warn-bg); }
+  .callout.correct { border-left-color: var(--correct-border); background: var(--correct-bg); }
+  .callout .callout-label { font-family: var(--font-mono); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; color: var(--navy); }
+  .callout.warn .callout-label { color: var(--warn-border); }
+  .callout.correct .callout-label { color: var(--correct-border); }
+  .callout p { font-size: 14px; line-height: 1.7; }
+  .callout code { font-family: var(--font-mono); font-size: 13px; background: rgba(0,0,0,0.06); padding: 1px 5px; border-radius: 2px; }
+
+  .compare-table { width: 100%; border-collapse: collapse; font-size: 14px; background: var(--white); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 16px; }
+  .compare-table th { background: var(--navy); color: var(--white); padding: 12px 16px; text-align: left; font-weight: 600; font-size: 13px; }
+  .compare-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: top; line-height: 1.6; }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:nth-child(even) td { background: var(--bg); }
+  .compare-table .hl { font-weight: 700; color: var(--navy); }
+  .compare-table code { font-family: var(--font-mono); font-size: 12px; background: var(--bg); padding: 1px 5px; border-radius: 2px; border: 1px solid var(--border); }
+  .compare-table th code { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); color: var(--white); }
+
+  .code-wrap { background: #0f1923; border-radius: 4px; overflow: hidden; margin-bottom: 16px; }
+  .code-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; background: #1a2738; border-bottom: 1px solid #2a3d52; }
+  .code-lang { font-size: 11px; color: var(--navy-mid); text-transform: uppercase; letter-spacing: 0.1em; }
+  .code-title { font-size: 12px; color: #8ba3bc; }
+  .code-body { padding: 20px 24px; overflow-x: auto; font-size: 13px; line-height: 1.75; color: #cdd6e0; font-family: var(--font-mono); }
+  .code-body pre { white-space: pre; }
+  .code-body .kw  { color: #79b8ff; }
+  .code-body .fn  { color: #b392f0; }
+  .code-body .str { color: #9ecbff; }
+  .code-body .cm  { color: #6a737d; font-style: italic; }
+  .code-body .fd  { color: #ffab70; }
+  .code-body .tp  { color: #85e89d; }
+  .code-body .nb  { color: #f97583; }
+
+  /* FULL FLOW DIAGRAM */
+  .full-flow {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 28px 32px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+  overflow-y: hidden;
+  }
+  .flow-track {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    min-width: 900px;
+  }
+  .flow-node {
+    flex: 1;
+    text-align: center;
+    padding: 16px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    min-width: 110px;
+  }
+  .flow-node.navy { background: var(--navy); color: var(--white); border-color: var(--navy); }
+  .flow-node.active { background: var(--navy-light); border-color: var(--navy); }
+  .flow-node .fn-tab { font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 5px; }
+  .flow-node .fn-tab.light { color: var(--navy-mid); }
+  .flow-node .fn-tab.muted { color: var(--text-muted); }
+  .flow-node .fn-name { font-size: 12px; font-weight: 700; line-height: 1.3; }
+  .flow-node.navy .fn-name { color: var(--white); }
+  .flow-node.active .fn-name { color: var(--navy); }
+  .flow-node .fn-sub { font-family: var(--font-mono); font-size: 10px; margin-top: 4px; opacity: 0.7; line-height: 1.4; }
+  .flow-arrow { display: flex; align-items: center; justify-content: center; color: var(--navy); font-weight: 700; font-size: 16px; padding: 0 4px; flex-shrink: 0; }
+
+  /* STEP FLOW */
+  .step-flow { display: flex; flex-direction: column; margin-bottom: 16px; }
+  .step-item { display: flex; gap: 20px; background: var(--white); border: 1px solid var(--border); padding: 20px 24px; }
+  .step-item:not(:last-child) { border-bottom: none; }
+  .step-item:first-child { border-radius: 4px 4px 0 0; }
+  .step-item:last-child { border-radius: 0 0 4px 4px; }
+  .step-num { width: 32px; height: 32px; border-radius: 50%; background: var(--navy); color: var(--white); font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+  .step-content h4 { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+  .step-content p { font-size: 13px; color: var(--text-muted); line-height: 1.65; }
+  .step-content code { font-family: var(--font-mono); font-size: 12px; background: var(--bg); padding: 1px 5px; border-radius: 2px; border: 1px solid var(--border); }
+
+  /* ISSUE CARDS */
+  .issue-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .issue-card { background: var(--white); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+  .issue-head { padding: 12px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+  .issue-head.err { background: #fdecea; }
+  .issue-head.warn { background: var(--warn-bg); }
+  .issue-icon { font-size: 16px; flex-shrink: 0; }
+  .issue-title { font-size: 14px; font-weight: 700; }
+  .issue-head.err .issue-title { color: #c0392b; }
+  .issue-head.warn .issue-title { color: var(--warn-border); }
+  .issue-body { padding: 14px 18px; font-size: 13px; color: var(--text-muted); line-height: 1.7; }
+  .issue-body strong { color: var(--navy); }
+  .issue-body code { font-family: var(--font-mono); font-size: 11px; background: var(--bg); padding: 1px 4px; border-radius: 2px; border: 1px solid var(--border); }
+  .issue-cause { margin-top: 8px; padding: 8px 12px; background: var(--bg); border-radius: 3px; font-size: 12px; }
+  .issue-cause .ic-label { font-weight: 700; color: var(--navy); margin-bottom: 2px; }
+
+  /* COMM CARD */
+  .comm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .comm-card { background: var(--white); border: 1px solid var(--border); border-radius: 4px; padding: 20px 22px; }
+  .comm-card h4 { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
+  .comm-card p { font-size: 13px; color: var(--text-muted); line-height: 1.65; }
+  .comm-card code { font-family: var(--font-mono); font-size: 11px; background: var(--bg); padding: 1px 4px; border-radius: 2px; border: 1px solid var(--border); }
+
+  /* VALIDATE TABLE */
+  .validate-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .validate-block { background: var(--white); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+  .validate-head { padding: 12px 18px; font-size: 13px; font-weight: 700; border-bottom: 1px solid var(--border); }
+  .validate-head.pass { background: var(--correct-bg); color: #2e7d32; }
+  .validate-head.fail { background: #fdecea; color: #c0392b; }
+  .validate-body { padding: 14px 18px; font-size: 13px; color: var(--text-muted); line-height: 1.7; }
+  .validate-body code { font-family: var(--font-mono); font-size: 11px; background: var(--bg); padding: 1px 4px; border-radius: 2px; border: 1px solid var(--border); }
+
+  /* DRILL */
+  .drill-toggle { background: var(--white); border: 1px solid var(--border); border-radius: 4px; margin-bottom: 10px; overflow: hidden; }
+  .drill-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; cursor: pointer; user-select: none; font-size: 14px; font-weight: 600; color: var(--navy); transition: background 0.15s; }
+  .drill-header:hover { background: var(--navy-light); }
+  .drill-arrow { font-size: 12px; color: var(--text-muted); transition: transform 0.2s; }
+  .drill-body { display: none; padding: 0 20px 20px; border-top: 1px solid var(--border); }
+  .drill-body.open { display: block; }
+  .drill-body p { font-size: 14px; color: var(--text-muted); line-height: 1.7; margin-top: 14px; }
+  .drill-body code { font-family: var(--font-mono); font-size: 12px; background: var(--bg); padding: 1px 5px; border-radius: 2px; border: 1px solid var(--border); }
+
+  /* QUIZ */
+  .quiz-section { background: var(--white); border: 1px solid var(--border); border-radius: 4px; padding: 32px; }
+  .quiz-title { font-family: var(--font-heading); font-size: 20px; color: var(--navy); margin-bottom: 24px; }
+  .quiz-item { margin-bottom: 28px; padding-bottom: 28px; border-bottom: 1px solid var(--border); }
+  .quiz-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .quiz-q { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 14px; line-height: 1.6; }
+  .quiz-q .q-num { display: inline-block; background: var(--navy); color: var(--white); font-family: var(--font-mono); font-size: 11px; padding: 2px 8px; border-radius: 2px; margin-right: 10px; vertical-align: middle; }
+  .quiz-q code { font-family: var(--font-mono); font-size: 13px; background: var(--bg); padding: 1px 6px; border-radius: 2px; border: 1px solid var(--border); }
+  .quiz-options { display: flex; flex-direction: column; gap: 8px; }
+  .quiz-option { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; background: var(--bg); transition: border-color 0.15s, background 0.15s; font-size: 14px; line-height: 1.5; }
+  .quiz-option:hover { border-color: var(--navy); background: var(--navy-light); }
+  .quiz-option.correct-ans { border-color: var(--correct-border) !important; background: var(--correct-bg) !important; }
+  .quiz-option.wrong-ans   { border-color: #c0392b !important; background: #fdecea !important; }
+  .quiz-option .opt-label  { font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--navy); flex-shrink: 0; margin-top: 1px; }
+  .quiz-feedback { margin-top: 12px; padding: 12px 16px; border-radius: 4px; font-size: 13px; display: none; line-height: 1.6; }
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback.correct-fb { background: var(--correct-bg); color: #2e7d32; border-left: 3px solid var(--correct-border); }
+  .quiz-feedback.wrong-fb   { background: #fdecea; color: #c0392b; border-left: 3px solid #c0392b; }
+  .quiz-progress { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+  .quiz-progress-bar { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .quiz-progress-fill { height: 100%; background: var(--navy); border-radius: 3px; transition: width 0.4s; }
+  .quiz-score-label { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+
+  /* COMPLETE BADGE */
+  .complete-banner {
+    background: var(--navy);
+    color: var(--white);
+    border-radius: 4px;
+    padding: 32px 40px;
+    text-align: center;
+    margin-bottom: 0;
+  }
+  .complete-banner h3 { font-family: var(--font-heading); font-size: 28px; margin-bottom: 12px; }
+  .complete-banner p { font-size: 14px; color: rgba(255,255,255,0.75); line-height: 1.8; max-width: 600px; margin: 0 auto; }
+  .complete-banner .module-links { display: flex; gap: 12px; justify-content: center; margin-top: 24px; flex-wrap: wrap; }
+  .complete-banner .module-links a { background: rgba(255,255,255,0.15); color: var(--white); text-decoration: none; padding: 8px 16px; border-radius: 3px; font-family: var(--font-mono); font-size: 12px; transition: background 0.2s; }
+  .complete-banner .module-links a:hover { background: rgba(255,255,255,0.28); }
+
+  .module-footer { background: var(--white); border-top: 1px solid var(--border); padding: 24px 80px; display: flex; justify-content: space-between; align-items: center; margin-top: 60px; font-size: 13px; color: var(--text-muted); }
+  .footer-nav { display: flex; gap: 24px; }
+  .footer-nav a { color: var(--navy); text-decoration: none; font-weight: 500; }
+  .footer-nav a:hover { text-decoration: underline; }
+
+  @media (max-width: 900px) {
+    .site-header, .tab-nav, .wrapper, .module-footer { padding-left: 20px; padding-right: 20px; }
+    .hero { padding: 32px 24px; }
+    .issue-grid { grid-template-columns: 1fr; }
+    .comm-grid { grid-template-columns: 1fr; }
+    .validate-grid { grid-template-columns: 1fr; }
+    .flow-track { min-width: 700px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <span class="logo">ASPN BAC · EDU Portal</span>
+  <span class="module-label">CDS View Analytics Query — A to Z</span>
+</header>
+
+<nav class="tab-nav">
+  <a href="tab01_overview.html">01. 개요 &amp; 로드맵</a>
+  <a href="tab02_syntax.html">02. CDS 기초 문법</a>
+  <a href="tab03_dimension.html">03. Dimension View</a>
+  <a href="tab04_hierarchy.html">04. Hierarchy View</a>
+  <a href="tab05_cube.html">05. Cube View</a>
+  <a href="tab06_query.html">06. Analytics Query View</a>
+  <a href="tab07_table_function.html">07. Table Function &amp; AMDP</a>
+  <a href="tab08_authorization.html">08. 권한 제어</a>
+  <a href="tab09_sac_live.html" class="active">09. SAC Live Model 연결</a>
+</nav>
+
+<main class="wrapper">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="eyebrow">Module 09 / SAC Live Model Connection &amp; Operations</div>
+    <h1>OData 노출부터 Live Model Import,<br>운영 이슈 대응까지 — 최종 연결을 완성한다</h1>
+    <p>
+      Tab 03~08에서 완성한 CDS View 스택을 SAC Live Model로 실제 연결합니다.
+      <code style="color:var(--navy-mid); font-family:var(--font-mono);">SAP_COM_0065</code> Communication Arrangement 설정,
+      OData 서비스 등록, Live Model Import, Dimension·Measure 매핑 검증,
+      그리고 현장에서 자주 발생하는 운영 이슈 패턴과 해결책을 다룹니다.
+    </p>
+    <div class="meta-row">
+      <div class="meta-item"><span class="meta-label">선수 지식</span><span class="meta-value">Tab 01~08 완료</span></div>
+      <div class="meta-item"><span class="meta-label">예상 학습 시간</span><span class="meta-value">45분</span></div>
+      <div class="meta-item"><span class="meta-label">핵심 설정</span><span class="meta-value">SAP_COM_0065 · OData · Live Connection</span></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       SECTION 1. 전체 연결 흐름
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">1. 전체 연결 흐름 — CDS View에서 SAC까지</h2>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+      이 모듈은 Tab 01에서 소개한 전체 흐름의 마지막 단계입니다.
+      아래 다이어그램에서 현재 Tab 09가 담당하는 영역을 확인합니다.
+    </p>
+
+    <div class="full-flow">
+      <p style="font-family:var(--font-mono); font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:20px;">End-to-End 연결 흐름 — ASPN Group</p>
+      <div class="flow-track">
+        <div class="flow-node">
+          <div class="fn-tab muted">Tab 03–04</div>
+          <div class="fn-name">Dimension<br>+ Hierarchy</div>
+          <div class="fn-sub">#DIMENSION<br>DEFINE HIERARCHY</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <div class="fn-tab muted">Tab 05 (07)</div>
+          <div class="fn-name">Cube View<br>(+ AMDP)</div>
+          <div class="fn-sub">#CUBE<br>FK Association</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <div class="fn-tab muted">Tab 06</div>
+          <div class="fn-name">Query View</div>
+          <div class="fn-sub">@Analytics.query<br>Variable · Axis</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <div class="fn-tab muted">Tab 08</div>
+          <div class="fn-name">DCL<br>권한 제어</div>
+          <div class="fn-sub">DEFINE ROLE<br>PFCG</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node active">
+          <div class="fn-tab muted" style="color:var(--navy);">Tab 09 ①</div>
+          <div class="fn-name">OData<br>서비스 등록</div>
+          <div class="fn-sub">@OData.publish<br>(Public Cloud: Fiori 앱)<br>(On-Premise: /IWFND/)</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node active">
+          <div class="fn-tab muted" style="color:var(--navy);">Tab 09 ②</div>
+          <div class="fn-name">SAP_COM<br>_0065</div>
+          <div class="fn-sub">Communication<br>Arrangement</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node active">
+          <div class="fn-tab muted" style="color:var(--navy);">Tab 09 ③</div>
+          <div class="fn-name">SAC<br>Live Model</div>
+          <div class="fn-sub">Import<br>Dimension·Measure</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node navy">
+          <div class="fn-tab light">TARGET</div>
+          <div class="fn-name">SAC<br>Analytics</div>
+          <div class="fn-sub">Story · Dashboard<br>Predictive</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <div class="callout-label">SAP_COM_0065 vs. Datasphere</div>
+      <p>
+        <strong>SAP_COM_0065</strong>: S/4HANA Public Cloud에서 SAC를 HANA Live Connection으로 직접 연결하는 Communication Scenario. Datasphere 없이 CDS View를 SAC에 직접 노출합니다. 동일 SAP BTP 테넌트 내에서 동작합니다.<br><br>
+        <strong>Datasphere</strong>: SAP 외 이기종 데이터(AWS RDS, Snowflake 등)를 통합하거나 복잡한 데이터 변환이 필요한 경우에만 추가로 도입합니다. 순수 S/4HANA CDS View 기반 Analytics에는 필요하지 않습니다.
+      </p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 2. OData 서비스 노출
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">2. OData 서비스 노출 — Query View를 SAC에 공개</h2>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+      SAC는 CDS View를 직접 인식하지 않고 <strong>OData 서비스</strong>를 통해 접근합니다.
+      Analytics Query View를 OData 서비스로 노출하는 방법은 두 가지입니다.
+    </p>
+
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th style="width:22%">방법</th>
+          <th>@OData.publish: true (자동)</th>
+          <th>수동 OData 서비스 등록</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>적용 위치</strong></td>
+          <td class="hl">Query View의 View 레벨 Annotation</td>
+          <td>SEGW(SAP Gateway Service Builder) 또는 /IWFND/MAINT_SERVICE</td>
+        </tr>
+        <tr>
+          <td><strong>서비스명 생성</strong></td>
+          <td class="hl">CDS View 이름 + <code>_SRV</code> 자동 생성</td>
+          <td>관리자가 직접 서비스명 지정</td>
+        </tr>
+        <tr>
+          <td><strong>S/4HANA Public Cloud</strong></td>
+          <td class="hl">✓ 표준 권장 방식</td>
+          <td>제한적 (관리형 환경)</td>
+        </tr>
+        <tr>
+          <td><strong>S/4HANA On-Premise</strong></td>
+          <td class="hl">가능</td>
+          <td>✓ 세밀한 서비스 관리 가능</td>
+        </tr>
+        <tr>
+          <td><strong>활성화</strong></td>
+          <td class="hl">CDS View 활성화 시 자동 등록</td>
+          <td>/IWFND/MAINT_SERVICE에서 수동 활성화 필요</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3 class="subsection-title">@OData.publish 선언 — ZASPN_C_PLQuery</h3>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-lang">ABAP CDS</span>
+        <span class="code-title">Query View에 OData 자동 등록 선언</span>
+      </div>
+      <div class="code-body"><pre><span class="cm">// @OData.publish: true → CDS View 이름 + _SRV로 OData 서비스 자동 생성</span>
+<span class="cm">// 생성되는 서비스명: ZASPN_C_PLQUERY_SRV</span>
+<span class="fn">@OData.publish</span>: <span class="kw">true</span>
+
+<span class="fn">@Analytics.query</span>: <span class="kw">true</span>
+<span class="fn">@EndUserText.label</span>: <span class="str">'ASPN P&amp;L / B&amp;S Integrated Query'</span>
+<span class="fn">@AccessControl.authorizationCheck</span>: <span class="str">#CHECK</span>
+
+<span class="kw">define view entity</span> <span class="fd">ZASPN_C_PLQuery</span>
+  <span class="kw">with parameters</span> …
+  <span class="kw">as select from</span> <span class="fd">ZASPN_C_FinancialCube</span>(…) <span class="kw">as</span> <span class="fd">Cube</span>
+{ … }
+
+<span class="cm">// 활성화 후 확인:
+// [Public Cloud] Fiori Launchpad → Communication Arrangements 앱에서 서비스 상태 확인
+// [On-Premise]   /IWFND/MAINT_SERVICE → 서비스 필터: ZASPN_C_PLQUERY*</span></pre></div>
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-label">OData 서비스 활성화 확인 — 환경별 방법</div>
+      <p>
+        <strong>S/4HANA Public Cloud:</strong> <code>@OData.publish: true</code> 선언 후 CDS View 활성화 시 서비스가 자동 등록됩니다. Fiori Launchpad의 <strong>Communication Arrangements</strong> 앱 또는 <strong>Display OData Services</strong> 앱에서 서비스 상태를 확인합니다. <code>/IWFND/MAINT_SERVICE</code> 트랜잭션은 Public Cloud에 존재하지 않습니다.<br><br>
+        <strong>S/4HANA On-Premise:</strong> <code>/IWFND/MAINT_SERVICE</code>에서 서비스가 Active 상태인지 확인하고, Inactive라면 수동으로 활성화합니다.
+      </p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 3. SAP_COM_0065 설정
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">3. SAP_COM_0065 — Communication Arrangement 설정</h2>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+      S/4HANA Public Cloud에서 SAC와의 Live Connection은
+      <strong>SAP_COM_0065</strong> Communication Scenario를 통해 설정합니다.
+      S/4HANA 측 설정과 SAC 측 설정 두 단계로 구성됩니다.
+    </p>
+
+    <h3 class="subsection-title">S/4HANA 측 — Communication Arrangement 생성</h3>
+
+    <div class="step-flow">
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h4>Communication User 확인</h4>
+          <p>Tab 08에서 생성한 <code>ZASPN_SAC_COMM</code> Communication User를 사용합니다.
+          SU01에서 User Type이 <strong>Communication User</strong>인지, 전체 법인 권한 PFCG Role이 할당되어 있는지 재확인합니다.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h4>Communication System 생성</h4>
+          <p>Fiori Launchpad → <strong>Communication Systems</strong> 앱에서 SAC 시스템을 등록합니다.
+          SAC 테넌트 URL을 Host Name으로 입력합니다.
+          예: <code>aspn-analytics.eu10.hanacloudservices.cloud.sap</code></p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h4>Communication Arrangement 생성 — SAP_COM_0065</h4>
+          <p>Fiori Launchpad → <strong>Communication Arrangements</strong> 앱에서
+          Scenario: <code>SAP_COM_0065</code>(Analytics — Live Data Connection from SAP Analytics Cloud)를 선택합니다.
+          Communication System과 Communication User(<code>ZASPN_SAC_COMM</code>)를 연결합니다.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <h4>서비스 URL 확인</h4>
+          <p>Communication Arrangement 생성 완료 후 <strong>Inbound Service URL</strong>을 복사합니다.
+          형식: <code>https://[테넌트].s4hana.ondemand.com/sap/opu/odata/sap/[서비스명]</code>
+          이 URL을 SAC Live Connection 설정에 사용합니다.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="subsection-title">SAC 측 — Live Connection 설정</h3>
+
+    <div class="step-flow">
+      <div class="step-item">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <h4>SAC System → Connections → Add Connection</h4>
+          <p>SAC 관리 화면에서 <strong>System → Connections → Add Connection</strong>을 선택합니다.
+          Connection Type: <strong>SAP S/4HANA</strong>를 선택합니다.
+          (Live Data Connection to SAP S/4HANA 옵션)</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">6</div>
+        <div class="step-content">
+          <h4>Connection 정보 입력</h4>
+          <p>Host: S/4HANA 테넌트 URL 입력.<br>
+          Authentication Method: <strong>User Name and Password</strong> 또는 <strong>OAuth</strong> 선택.<br>
+          User: <code>ZASPN_SAC_COMM</code> (Communication User).<br>
+          Password: Communication User 비밀번호.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">7</div>
+        <div class="step-content">
+          <h4>연결 테스트 및 저장</h4>
+          <p><strong>Test</strong> 버튼으로 연결 성공 여부를 확인합니다.
+          성공 시 초록색 체크 표시. 실패 시 Section 5의 운영 이슈 패턴을 참조합니다.
+          저장하면 Connection이 활성화됩니다.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout correct">
+      <div class="callout-label">On-Premise vs. Public Cloud 차이</div>
+      <p>
+        <strong>S/4HANA Public Cloud</strong>: SAP_COM_0065 Communication Arrangement 사용. Fiori Launchpad에서 설정.<br>
+        <strong>S/4HANA On-Premise</strong>: SAP Gateway(/IWFND/MAINT_SERVICE)에서 OData 서비스 활성화 후 SAC에서 직접 URL 입력. Communication Arrangement 불필요. SSL 인증서 관리가 추가로 필요할 수 있음.
+      </p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 4. Live Model Import 및 매핑 검증
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">4. Live Model Import — Dimension·Measure 매핑 검증</h2>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+      Connection 설정 완료 후 SAC에서 Live Model을 생성합니다.
+      Import 후 Dimension과 Measure가 올바르게 인식되었는지 반드시 검증합니다.
+    </p>
+
+    <h3 class="subsection-title">Live Model Import 절차</h3>
+
+    <div class="step-flow">
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h4>SAC Modeler → New Model → Live Data Model</h4>
+          <p>SAC Modeler에서 <strong>New Model → Live Data Model</strong>을 선택합니다.
+          생성한 S/4HANA Connection을 선택합니다.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h4>Query View 검색 및 선택</h4>
+          <p>OData 서비스 목록에서 <code>ZASPN_C_PLQUERY_SRV</code>를 검색합니다.
+          Query View 이름 또는 <code>@EndUserText.label</code>로 검색 가능합니다.
+          <strong>'ASPN P&amp;L / B&amp;S Integrated Query'</strong>를 선택합니다.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h4>Dimension 자동 인식 확인</h4>
+          <p>Import 후 <strong>Dimensions 패널</strong>에서 아래 항목이 자동 인식되었는지 확인합니다.<br>
+          ✓ CompanyCode → ZASPN_I_CompanyCode 텍스트 표시<br>
+          ✓ GLAccount → ZASPN_I_GLAccount 텍스트 + 계층 표시<br>
+          ✓ ProfitCenter → ZASPN_I_ProfitCenter 텍스트 + 계층 표시<br>
+          ✓ FiscalYear, FiscalPeriod → 시간 Dimension 인식</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <h4>Measure 자동 인식 확인</h4>
+          <p>Import 후 <strong>Measures 패널</strong>에서 아래 항목 확인합니다.<br>
+          ✓ AmountGC, AmountLC → 금액 Measure (통화 Dimension 연결 확인)<br>
+          ✓ RevenueGC, CostOfSalesGC → Restricted Measure<br>
+          ✓ GrossProfitGC, GrossMarginPct → Calculated Measure<br>
+          ✓ BSAmountGC → Exception Aggregation Measure</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <h4>Variable(Prompt) 확인</h4>
+          <p>Live Model을 Story에서 사용 시 Variable이 Prompt 화면에 표시되는지 확인합니다.
+          <code>P_FiscalYear</code>(필수), <code>P_CompanyCode</code>(선택), 기간 범위가 모두 표시되어야 합니다.
+          Value Help 드롭다운이 동작하는지도 확인합니다.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 매핑 검증 Pass/Fail -->
+    <h3 class="subsection-title">Import 후 매핑 검증 — Pass / Fail 기준</h3>
+
+    <div class="validate-grid">
+      <div class="validate-block">
+        <div class="validate-head pass">✓ 정상 (Pass) 기준</div>
+        <div class="validate-body">
+          <ul style="padding-left:18px; display:flex; flex-direction:column; gap:6px;">
+            <li>Dimension 패널에 CompanyCode·GLAccount·ProfitCenter 등 키 필드 표시</li>
+            <li>각 Dimension 옆에 텍스트(Description) 아이콘 표시</li>
+            <li>GLAccount·ProfitCenter Dimension에 계층(Hierarchy) 아이콘 표시</li>
+            <li>Measure 패널에 금액 Measure가 통화 Dimension과 연결된 상태로 표시</li>
+            <li>Restricted/Calculated Measure가 별도 구분으로 표시</li>
+            <li>Variable Prompt 화면에 모든 파라미터 표시 및 Value Help 동작</li>
+            <li>데이터 미리보기에서 ASPN Group 재무 데이터 표시</li>
+          </ul>
+        </div>
+      </div>
+      <div class="validate-block">
+        <div class="validate-head fail">✗ 문제 (Fail) 증상</div>
+        <div class="validate-body">
+          <ul style="padding-left:18px; display:flex; flex-direction:column; gap:6px;">
+            <li>Dimension이 <em>모두</em> Measure로 표시됨 → <code>@DefaultAggregation</code> 과다 선언 의심</li>
+            <li>텍스트 미표시 (코드만 표시) → <code>@ObjectModel.text.association</code> 또는 <code>@Semantics.text</code> 누락</li>
+            <li>Hierarchy 아이콘 없음 → <code>@ObjectModel.hierarchyAssociation</code> 누락</li>
+            <li>금액 Measure에 통화 미연결 → <code>@Semantics.amount.currencyCode</code> 누락</li>
+            <li>데이터 공백 → DCL 오류 또는 Communication User 권한 미설정</li>
+            <li>Query View 자체가 목록에 미표시 → OData 서비스 비활성 또는 <code>@Analytics.query: true</code> 미선언</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 5. 운영 이슈 패턴
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">5. 운영 이슈 패턴 — 원인과 해결</h2>
+
+    <div class="issue-grid">
+
+      <div class="issue-card">
+        <div class="issue-head err">
+          <span class="issue-icon">🔴</span>
+          <span class="issue-title">Measure 미인식 — Dimension으로 표시</span>
+        </div>
+        <div class="issue-body">
+          금액·수량 필드가 SAC에서 Measure가 아닌 Dimension으로 분류됩니다.
+          <div class="issue-cause">
+            <div class="ic-label">원인</div>
+            해당 필드에 <code>@DefaultAggregation</code> Annotation 누락.
+          </div>
+          <div class="issue-cause" style="margin-top:6px;">
+            <div class="ic-label">해결</div>
+            Cube View에서 해당 숫자 필드에 <code>@DefaultAggregation: #SUM</code> 추가 후 재활성화. SAC Live Model 새로고침.
+          </div>
+        </div>
+      </div>
+
+      <div class="issue-card">
+        <div class="issue-head err">
+          <span class="issue-icon">🔴</span>
+          <span class="issue-title">텍스트 미표시 — 코드만 표시</span>
+        </div>
+        <div class="issue-body">
+          SAC에서 회사 코드(<code>1000</code>)가 회사명(<code>ASPN Holdings</code>)으로 표시되지 않습니다.
+          <div class="issue-cause">
+            <div class="ic-label">원인 3가지 중 하나</div>
+            ① Dimension View에 <code>@ObjectModel.text.association</code> 누락<br>
+            ② Text View에 <code>@Semantics.text: true</code> 누락<br>
+            ③ Text Association Cardinality가 <code>[0..1]</code> (다국어 환경)
+          </div>
+          <div class="issue-cause" style="margin-top:6px;">
+            <div class="ic-label">해결</div>
+            위 세 항목을 순서대로 확인·수정 후 재활성화.
+          </div>
+        </div>
+      </div>
+
+      <div class="issue-card">
+        <div class="issue-head err">
+          <span class="issue-icon">🔴</span>
+          <span class="issue-title">Hierarchy 미로딩 — 드릴다운 불가</span>
+        </div>
+        <div class="issue-body">
+          SAC에서 이익센터 Dimension을 행에 배치해도 계층형 드릴다운이 동작하지 않습니다.
+          <div class="issue-cause">
+            <div class="ic-label">원인 2가지</div>
+            ① Dimension View 필드 목록에서 <code>@ObjectModel.hierarchyAssociation: '_Hierarchy'</code> 누락<br>
+            ② Hierarchy View(<code>.ddlx</code>)가 활성화되지 않았거나 소스 View에 데이터 없음
+          </div>
+          <div class="issue-cause" style="margin-top:6px;">
+            <div class="ic-label">해결</div>
+            Annotation 추가 후 Dimension View 재활성화. 소스 View 데이터 유효성 확인.
+          </div>
+        </div>
+      </div>
+
+      <div class="issue-card">
+        <div class="issue-head err">
+          <span class="issue-icon">🔴</span>
+          <span class="issue-title">데이터 공백 — 아무것도 표시 안 됨</span>
+        </div>
+        <div class="issue-body">
+          SAC에서 Live Model 연결은 성공하지만 데이터가 전혀 표시되지 않습니다.
+          <div class="issue-cause">
+            <div class="ic-label">원인 체크 순서</div>
+            ① Communication User의 PFCG Role에 조회 대상 회사 코드 권한 없음<br>
+            ② DCL이 잘못 작성되어 모든 행이 필터됨 (<code>ACTVT = '01'</code> 오류 등)<br>
+            ③ Variable 필수값(<code>mandatory: true</code>)이 입력되지 않아 쿼리 미실행<br>
+            ④ WHERE 절 조건이 실제 데이터와 불일치 (예: <code>FiscalYear >= '2030'</code>)
+          </div>
+        </div>
+      </div>
+
+      <div class="issue-card">
+        <div class="issue-head warn">
+          <span class="issue-icon">🟡</span>
+          <span class="issue-title">성능 이슈 — 쿼리 응답 지연</span>
+        </div>
+        <div class="issue-body">
+          SAC에서 Live Model 데이터 로딩이 30초 이상 소요됩니다.
+          <div class="issue-cause">
+            <div class="ic-label">주요 원인</div>
+            ① 필수 Variable 미설정으로 전체 ACDOCA 스캔<br>
+            ② Cube View에서 과다한 JOIN (불필요한 Association 즉시 실행)<br>
+            ③ AMDP SQLScript 미최적화 (인덱스 미활용)
+          </div>
+          <div class="issue-cause" style="margin-top:6px;">
+            <div class="ic-label">해결</div>
+            필수 Variable 추가. 불필요한 인라인 JOIN을 Association으로 전환. HANA SQL Plan 분석.
+          </div>
+        </div>
+      </div>
+
+      <div class="issue-card">
+        <div class="issue-head warn">
+          <span class="issue-icon">🟡</span>
+          <span class="issue-title">Query View 목록 미표시</span>
+        </div>
+        <div class="issue-body">
+          SAC에서 Live Model 생성 시 Connection은 성공하지만 Query View가 목록에 없습니다.
+          <div class="issue-cause">
+            <div class="ic-label">체크 순서</div>
+            ① <code>@Analytics.query: true</code> 선언 여부<br>
+            ② <code>@OData.publish: true</code> 선언 여부<br>
+            ③ [On-Premise] /IWFND/MAINT_SERVICE에서 서비스 활성화 상태 (Active vs. Inactive)<br>
+            ③ [Public Cloud] Fiori의 Display OData Services 앱에서 서비스 등록 상태 확인<br>
+            ④ Communication User의 <code>S_SERVICE</code> 권한에 서비스명 포함 여부
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 운영 진단 도구 -->
+    <div class="drill-toggle">
+      <div class="drill-header" onclick="toggleDrill(this)">
+        <span>🔧 운영 진단 도구 모음 — S/4HANA 트랜잭션 및 Fiori 앱</span>
+        <span class="drill-arrow">▼</span>
+      </div>
+      <div class="drill-body">
+        <table class="compare-table" style="margin-top:14px;">
+          <thead><tr><th>도구</th><th>용도</th><th>주요 활용 시나리오</th></tr></thead>
+          <tbody>
+            <tr><td><code>/IWFND/MAINT_SERVICE</code><br><span style="font-size:11px; color:var(--text-muted);">On-Premise 전용</span></td><td>OData 서비스 관리</td><td>서비스 활성화 상태 확인, 수동 활성화, 서비스 테스트</td></tr>
+            <tr><td><code>/IWFND/ERROR_LOG</code><br><span style="font-size:11px; color:var(--text-muted);">On-Premise 전용</span></td><td>Gateway 오류 로그</td><td>SAC 연결 실패 원인 분석, OData 요청·응답 오류 추적</td></tr>
+            <tr><td><code>SU53</code></td><td>권한 실패 분석</td><td>마지막 권한 체크 실패 오브젝트·필드·값 확인 → DCL 수정 근거</td></tr>
+            <tr><td><code>SUIM</code></td><td>권한 정보 시스템</td><td>사용자에게 할당된 Role·권한 오브젝트 확인, 권한 오브젝트 역조회</td></tr>
+            <tr><td><code>ST05</code></td><td>SQL 추적</td><td>CDS View 실행 시 생성되는 실제 SQL 확인, 성능 분석</td></tr>
+            <tr><td>ADT → CDS View → Run As → Data Preview</td><td>CDS View 데이터 직접 확인</td><td>SAC 없이 CDS View 결과 검증, DCL 적용 여부 확인</td></tr>
+            <tr><td>Communication Arrangements (Fiori)</td><td>SAP_COM_0065 설정 확인</td><td>Communication Arrangement 상태·URL 확인</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 6. 전체 배포 전 최종 체크리스트
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">6. SAC 배포 전 CDS View 품질 검증 — 최종 체크리스트</h2>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+      Tab 03~09 전 과정을 완료한 후 SAC에 배포하기 전 최종 점검 항목입니다.
+      ASPN Group P&amp;L Query 배포를 기준으로 작성되었습니다.
+    </p>
+
+    <div class="drill-toggle">
+      <div class="drill-header" onclick="toggleDrill(this)">
+        <span>📋 CDS View 계층 품질 체크 (Tab 03~07)</span>
+        <span class="drill-arrow">▼</span>
+      </div>
+      <div class="drill-body">
+        <table class="compare-table" style="margin-top:14px;">
+          <thead><tr><th>계층</th><th>확인 항목</th><th>기준</th></tr></thead>
+          <tbody>
+            <tr><td>Dimension</td><td><code>@Analytics.dataCategory: #DIMENSION</code></td><td>모든 Dimension View에 선언</td></tr>
+            <tr><td>Dimension</td><td>Text Association Cardinality</td><td><code>[0..*]</code> (다국어 필수)</td></tr>
+            <tr><td>Dimension</td><td><code>@Semantics.text: true</code></td><td>Text View 텍스트 필드에 선언</td></tr>
+            <tr><td>Hierarchy</td><td><code>.ddlx</code> 파일로 생성</td><td>Hierarchy View 파일 유형 확인</td></tr>
+            <tr><td>Hierarchy</td><td><code>start where … is initial</code></td><td>Parent-Child 루트 조건 확인</td></tr>
+            <tr><td>Cube</td><td>모든 숫자 필드 <code>@DefaultAggregation</code></td><td>Measure 필드 전체 커버</td></tr>
+            <tr><td>Cube</td><td>금액 필드 <code>@Semantics.amount.currencyCode</code></td><td>통화 코드 필드 참조 확인</td></tr>
+            <tr><td>Cube</td><td>키 필드 <code>@ObjectModel.foreignKey.association</code></td><td>모든 키 필드에 FK 선언</td></tr>
+            <tr><td>Query</td><td><code>@Analytics.query: true</code></td><td>Query View 선언 확인</td></tr>
+            <tr><td>Query</td><td>Variable에 <code>@AnalyticsDetails.query.variable</code></td><td>SAC Prompt 표시 필수</td></tr>
+            <tr><td>Query</td><td>B/S Measure에 Exception Aggregation <code>#LAST</code></td><td>재무상태표 잔액 정확성</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="drill-toggle">
+      <div class="drill-header" onclick="toggleDrill(this)">
+        <span>📋 권한 및 OData 체크 (Tab 08~09)</span>
+        <span class="drill-arrow">▼</span>
+      </div>
+      <div class="drill-body">
+        <table class="compare-table" style="margin-top:14px;">
+          <thead><tr><th>영역</th><th>확인 항목</th><th>기준</th></tr></thead>
+          <tbody>
+            <tr><td>DCL</td><td>Cube·Query·Dimension View 모두 DCL 작성</td><td>3개 계층 전체 커버</td></tr>
+            <tr><td>DCL</td><td><code>ACTVT = '03'</code> (Display) 설정</td><td>조회 사용자 접근 보장</td></tr>
+            <tr><td>DCL</td><td><code>@AccessControl.authorizationCheck: #CHECK</code></td><td><code>#NOT_REQUIRED</code> 없음 확인</td></tr>
+            <tr><td>PFCG</td><td>Communication User Role — 전 법인 권한</td><td>1000, 2000, 3000 모두 허용</td></tr>
+            <tr><td>PFCG</td><td>Dialog User Role — 개별 법인 권한</td><td>담당 법인만 허용</td></tr>
+            <tr><td>OData</td><td><code>@OData.publish: true</code> 선언</td><td>Query View에 선언 확인</td></tr>
+            <tr><td>OData</td><td>/IWFND/MAINT_SERVICE 서비스 Active 상태</td><td>Green 상태 확인</td></tr>
+            <tr><td>Connection</td><td>SAP_COM_0065 Communication Arrangement 생성</td><td>상태 Active 확인</td></tr>
+            <tr><td>SAC</td><td>Live Connection 테스트 성공</td><td>초록색 체크 표시</td></tr>
+            <tr><td>SAC</td><td>Live Model Import 후 Dimension·Measure 매핑 검증</td><td>텍스트·계층·통화 정상 표시</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       QUIZ
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <div class="quiz-section">
+      <h3 class="quiz-title">확인 퀴즈 — Tab 09</h3>
+      <div class="quiz-progress">
+        <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="progressFill" style="width:0%"></div></div>
+        <span class="quiz-score-label" id="scoreLabel">0 / 4 완료</span>
+      </div>
+
+      <!-- Q1 -->
+      <div class="quiz-item">
+        <div class="quiz-q">
+          <span class="q-num">Q1</span>
+          <code>@OData.publish: true</code>를 Query View에 선언하고 CDS View를 활성화했지만
+          SAC에서 Live Model 생성 시 Query View가 목록에 나타나지 않습니다. 가장 먼저 확인할 사항은?
+        </div>
+        <div class="quiz-options" id="q1">
+          <div class="quiz-option" onclick="answer('q1',this,false,'q1-fb','DCL 오류는 데이터 공백을 유발하지만 Query View 자체가 목록에 미표시되는 원인은 아닙니다.')">
+            <span class="opt-label">A</span> DCL(Access Control)이 올바르게 작성되었는지 확인한다
+          </div>
+          <div class="quiz-option" onclick="answer('q1',this,false,'q1-fb','Variable 설정은 Query View가 목록에 표시된 이후의 문제입니다. 목록 미표시의 직접 원인이 아닙니다.')">
+            <span class="opt-label">B</span> Variable Annotation이 올바르게 선언되었는지 확인한다
+          </div>
+          <div class="quiz-option" onclick="answer('q1',this,true,'q1-fb','정답입니다. @OData.publish: true를 선언해도 /IWFND/MAINT_SERVICE에서 서비스가 Inactive 상태이면 SAC에서 조회할 수 없습니다. 먼저 이 트랜잭션에서 ZASPN_C_PLQUERY_SRV 서비스를 검색하여 Active 상태인지 확인하고, Inactive라면 수동으로 활성화합니다.')">
+            <span class="opt-label">C</span> /IWFND/MAINT_SERVICE에서 OData 서비스가 Active 상태인지 확인한다
+          </div>
+          <div class="quiz-option" onclick="answer('q1',this,false,'q1-fb','Cube View의 DCL은 Query View 목록 표시와 관계없습니다.')">
+            <span class="opt-label">D</span> Cube View의 <code>@AccessControl.authorizationCheck</code> 설정을 확인한다
+          </div>
+        </div>
+        <div class="quiz-feedback" id="q1-fb"></div>
+      </div>
+
+      <!-- Q2 -->
+      <div class="quiz-item">
+        <div class="quiz-q">
+          <span class="q-num">Q2</span>
+          S/4HANA Public Cloud 환경에서 SAC Live Connection 설정에 사용하는
+          Communication Scenario는?
+        </div>
+        <div class="quiz-options" id="q2">
+          <div class="quiz-option" onclick="answer('q2',this,false,'q2-fb','SAP_COM_0087은 SAC Planning Write-Back(ACDOCP)을 위한 Communication Scenario입니다. Live Data Connection이 아닙니다.')">
+            <span class="opt-label">A</span> SAP_COM_0087
+          </div>
+          <div class="quiz-option" onclick="answer('q2',this,true,'q2-fb','정답입니다. SAP_COM_0065는 Analytics Live Data Connection from SAP Analytics Cloud Communication Scenario입니다. S/4HANA Public Cloud에서 SAC와의 Live Connection을 설정할 때 Communication Arrangements 앱에서 이 Scenario를 선택합니다.')">
+            <span class="opt-label">B</span> SAP_COM_0065
+          </div>
+          <div class="quiz-option" onclick="answer('q2',this,false,'q2-fb','SAP_COM_0001은 실제 존재하지 않는 시나리오명입니다.')">
+            <span class="opt-label">C</span> SAP_COM_0001
+          </div>
+          <div class="quiz-option" onclick="answer('q2',this,false,'q2-fb','Datasphere는 SAP 외 이기종 데이터 통합에 사용합니다. 순수 S/4HANA CDS View Live Connection에는 필요하지 않습니다.')">
+            <span class="opt-label">D</span> SAP Datasphere를 통한 간접 연결
+          </div>
+        </div>
+        <div class="quiz-feedback" id="q2-fb"></div>
+      </div>
+
+      <!-- Q3 -->
+      <div class="quiz-item">
+        <div class="quiz-q">
+          <span class="q-num">Q3</span>
+          SAC Live Model Import 후 CompanyCode Dimension에서 회사명 텍스트 대신
+          코드(<code>1000</code>, <code>2000</code>)만 표시됩니다. 원인 분석 순서로 올바른 것은?
+        </div>
+        <div class="quiz-options" id="q3">
+          <div class="quiz-option" onclick="answer('q3',this,false,'q3-fb','DCL 권한 오류는 데이터 공백을 유발하지 텍스트 미표시와는 다른 문제입니다.')">
+            <span class="opt-label">A</span> DCL 권한 설정 오류 → Communication User 권한 미설정 순으로 확인한다
+          </div>
+          <div class="quiz-option" onclick="answer('q3',this,false,'q3-fb','OData 서비스 상태는 Query View 목록 미표시 문제입니다. 텍스트 미표시와는 다릅니다.')">
+            <span class="opt-label">B</span> OData 서비스 상태 → Variable 설정 순으로 확인한다
+          </div>
+          <div class="quiz-option" onclick="answer('q3',this,true,'q3-fb','정답입니다. 텍스트 미표시의 3가지 원인을 순서대로 확인합니다. ① Dimension View(ZASPN_I_CompanyCode)에 @ObjectModel.text.association: \'_Text\'가 선언되었는지, ② Text View(ZASPN_I_CompanyCodeText)의 텍스트 필드에 @Semantics.text: true가 선언되었는지, ③ Text Association Cardinality가 [0..*]인지(다국어 환경)를 순서대로 확인합니다.')">
+            <span class="opt-label">C</span> <code>@ObjectModel.text.association</code> 누락 → <code>@Semantics.text: true</code> 누락 → Text Association Cardinality 순으로 확인한다
+          </div>
+          <div class="quiz-option" onclick="answer('q3',this,false,'q3-fb','Hierarchy와 텍스트 미표시는 별개의 문제입니다. @DefaultAggregation은 Measure 분류와 관련된 Annotation입니다.')">
+            <span class="opt-label">D</span> <code>@ObjectModel.hierarchyAssociation</code> 누락 → <code>@DefaultAggregation</code> 설정 순으로 확인한다
+          </div>
+        </div>
+        <div class="quiz-feedback" id="q3-fb"></div>
+      </div>
+
+      <!-- Q4 -->
+      <div class="quiz-item">
+        <div class="quiz-q">
+          <span class="q-num">Q4</span>
+          SAC에서 ASPN Holdings CFO가 모든 법인 데이터를 조회하는데
+          응답 시간이 45초 이상 소요됩니다. 성능 개선 우선 조치로 가장 적절한 것은?
+        </div>
+        <div class="quiz-options" id="q4">
+          <div class="quiz-option" onclick="answer('q4',this,true,'q4-fb','정답입니다. 성능 문제의 가장 흔한 원인은 필수 Variable 미설정으로 전체 ACDOCA를 스캔하는 것입니다. P_FiscalYear를 mandatory: true로 설정하면 사용자가 반드시 회계연도를 입력해야 하므로 쿼리 범위가 대폭 줄어듭니다. 이것이 가장 즉각적이고 효과적인 성능 개선 조치입니다.')">
+            <span class="opt-label">A</span> Query View의 <code>P_FiscalYear</code> Variable을 <code>mandatory: true</code>로 설정하여 필수 입력을 강제한다
+          </div>
+          <div class="quiz-option" onclick="answer('q4',this,false,'q4-fb','Dimension View 수를 줄이는 것은 기능 손실을 초래하며 성능의 근본 원인을 해결하지 못합니다.')">
+            <span class="opt-label">B</span> SAC Live Model에서 불필요한 Dimension을 제거한다
+          </div>
+          <div class="quiz-option" onclick="answer('q4',this,false,'q4-fb','SAP_COM_0065를 재생성해도 성능 문제는 해결되지 않습니다. 이는 연결 설정이지 쿼리 성능과 무관합니다.')">
+            <span class="opt-label">C</span> SAP_COM_0065 Communication Arrangement를 재생성한다
+          </div>
+          <div class="quiz-option" onclick="answer('q4',this,false,'q4-fb','DCL 수정으로 필터 조건을 추가하는 것은 성능에 도움이 될 수 있지만, 가장 즉각적인 조치는 Variable을 필수로 만들어 쿼리 범위를 제한하는 것입니다.')">
+            <span class="opt-label">D</span> DCL에 추가 정적 필터를 삽입하여 데이터 범위를 줄인다
+          </div>
+        </div>
+        <div class="quiz-feedback" id="q4-fb"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       COURSE COMPLETE BANNER
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <div class="complete-banner">
+      <h3>🎉 전체 커리큘럼 완료</h3>
+      <p>
+        Tab 01(개요) → Tab 09(SAC 연결)까지 Analytics Query CDS View A to Z 과정을 모두 완료했습니다.<br>
+        ASPN Group 픽션 시나리오를 통해 Dimension · Hierarchy · Cube · Query View 전 계층과<br>
+        AMDP · DCL · SAC 연결까지 실전 수준의 설계·구현 역량을 확보했습니다.
+      </p>
+      <div class="module-links">
+        <a href="tab01_overview.html">01 개요</a>
+        <a href="tab02_syntax.html">02 문법</a>
+        <a href="tab03_dimension.html">03 Dimension</a>
+        <a href="tab04_hierarchy.html">04 Hierarchy</a>
+        <a href="tab05_cube.html">05 Cube</a>
+        <a href="tab06_query.html">06 Query</a>
+        <a href="tab07_table_function.html">07 AMDP</a>
+        <a href="tab08_authorization.html">08 권한</a>
+        <a href="tab09_sac_live.html">09 SAC</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="module-footer">
+  <span>ASPN BAC EDU Portal · CDS View Analytics Query A to Z</span>
+  <div class="footer-nav">
+    <a href="tab08_authorization.html">← Tab 08. 권한 제어</a>
+    <span style="color:var(--border);">전체 완료 ✓</span>
+  </div>
+</footer>
+
+<script>
+  let answered = {};
+  const total = 4;
+
+  function answer(qId, el, isCorrect, fbId, msg) {
+    if (answered[qId]) return;
+    answered[qId] = true;
+    const opts = document.getElementById(qId).querySelectorAll('.quiz-option');
+    opts.forEach(o => { o.style.pointerEvents = 'none'; o.style.opacity = '0.7'; });
+    el.style.opacity = '1';
+    el.classList.add(isCorrect ? 'correct-ans' : 'wrong-ans');
+    const fb = document.getElementById(fbId);
+    fb.textContent = (isCorrect ? '✓ ' : '✗ ') + msg;
+    fb.className = 'quiz-feedback show ' + (isCorrect ? 'correct-fb' : 'wrong-fb');
+    updateProgress();
+  }
+
+  function updateProgress() {
+    const done = Object.keys(answered).length;
+    document.getElementById('progressFill').style.width = (done / total * 100) + '%';
+    document.getElementById('scoreLabel').textContent = done + ' / ' + total + ' 완료';
+  }
+
+  function toggleDrill(header) {
+    const body = header.nextElementSibling;
+    const arrow = header.querySelector('.drill-arrow');
+    body.classList.toggle('open');
+    arrow.style.transform = body.classList.contains('open') ? 'rotate(180deg)' : '';
+  }
+</script>
+
+</body>
+</html>

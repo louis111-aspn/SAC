@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tab 06. Analytics Query View | CDS View Analytics Query</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #003366;
+    --navy-light: #e8edf4;
+    --navy-mid: #c0cfe0;
+    --bg: #f0f3f8;
+    --white: #ffffff;
+    --border: #d0d8e4;
+    --text: #1a1a2e;
+    --text-muted: #5a6478;
+    --warn-bg: #fff8e6;
+    --warn-border: #e6a817;
+    --correct-bg: #e8f5e9;
+    --correct-border: #2e7d32;
+    --font-body: 'Noto Sans KR', sans-serif;
+    --font-heading: 'DM Serif Display', serif;
+    --font-mono: 'JetBrains Mono', 'Noto Sans KR', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-body); background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.7; }
+
+  .site-header { background: var(--navy); color: var(--white); padding: 0 80px; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 100; }
+  .site-header .logo { font-family: var(--font-heading); font-size: 18px; letter-spacing: 0.04em; }
+  .site-header .module-label { font-size: 13px; color: var(--navy-mid); font-family: var(--font-mono); }
+
+  .tab-nav { background: var(--white); border-bottom: 2px solid var(--border); padding: 0 80px; display: flex; position: sticky; top: 56px; z-index: 99; overflow-x: auto; overflow-y: hidden; }
+  .tab-nav a { display: block; padding: 14px 20px; font-size: 13px; font-weight: 500; color: var(--text-muted); text-decoration: none; white-space: nowrap; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: color 0.2s, border-color 0.2s; }
+  .tab-nav a:hover { color: var(--navy); }
+  .tab-nav a.active { color: var(--navy); border-bottom-color: var(--navy); font-weight: 700; }
+
+  .wrapper { max-width: 1280px; margin: 0 auto; padding: 48px 80px 80px; }
+
+  .hero { background: var(--navy); border-radius: 4px; padding: 48px 56px; margin-bottom: 40px; color: var(--white); }
+  .hero .eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.12em; color: var(--navy-mid); margin-bottom: 16px; text-transform: uppercase; }
+  .hero h1 { font-family: var(--font-heading); font-size: 36px; line-height: 1.25; margin-bottom: 16px; }
+  .hero p { font-size: 15px; color: rgba(255,255,255,0.75); max-width: 680px; line-height: 1.8; }
+  .hero .meta-row { display: flex; gap: 32px; margin-top: 28px; flex-wrap: wrap; }
+  .hero .meta-item { display: flex; flex-direction: column; gap: 4px; }
+  .hero .meta-label { font-size: 11px; color: var(--navy-mid); text-transform: uppercase; letter-spacing: 0.1em; font-family: var(--font-mono); }
+  .hero .meta-value { font-size: 14px; font-weight: 600; color: var(--white); }
+
+  .section { margin-bottom: 52px; }
+  .section-title { font-family: var(--font-heading); font-size: 26px; color: var(--navy); margin-bottom: 24px; padding-bottom: 10px; border-bottom: 2px solid var(--navy); }
+  .subsection-title { font-size: 18px; font-weight: 700; color: var(--navy); margin: 32px 0 16px; padding-left: 12px; border-left: 3px solid var(--navy); }
+
+  .callout { border-left: 4px solid var(--navy); background: var(--navy-light); padding: 16px 20px; border-radius: 0 4px 4px 0; margin-bottom: 16px; }
+  .callout.warn { border-left-color: var(--warn-border); background: var(--warn-bg); }
+  .callout.correct { border-left-color: var(--correct-border); background: var(--correct-bg); }
+  .callout .callout-label { font-family: var(--font-mono); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; color: var(--navy); }
+  .callout.warn .callout-label { color: var(--warn-border); }
+  .callout.correct .callout-label { color: var(--correct-border); }
+  .callout p { font-size: 14px; line-height: 1.7; }
+  .callout code { font-family: var(--font-mono); font-size: 13px; background: rgba(0,0,0,0.06); padding: 1px 5px; border-radius: 2px; }
+
+  .compare-table { width: 100%; border-collapse: collapse; font-size: 14px; background: var(--white); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 16px; }
+  .compare-table th { background: var(--navy); color: var(--white); padding: 12px 16px; text-align: left; font-weight: 600; font-size: 13px; }
+  .compare-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: top; line-height: 1.6; }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:nth-child(even) td { background: var(--bg); }
+  .compare-table .hl { font-weight: 700; color: var(--navy); }
+  .compare-table code { font-family: var(--font-mono); font-size: 12px; background: var(--bg); padding: 1px 5px; border-radius: 2px; border: 1px solid var(--border); }
+  .compare-table th code { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); color: var(--white); }
+
+  .code-wrap { background: #0f1923; border-radius: 4px; overflow: hidden; margin-bottom: 16px; }
+  .code-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; background: #1a2738; border-bottom: 1px solid #2a3d52; }
+  .code-lang { font-size: 11px; color: var(--navy-mid); text-transform: uppercase; letter-spacing: 0.1em; }
+  .code-title { font-size: 12px; color: #8ba3bc; }
+  .code-body { padding: 20px 24px; overflow-x: auto; font-size: 13px; line-height: 1.75; color: #cdd6e0; font-family: var(--font-mono); }
+  .code-body pre { white-space: pre; }
+  .code-body .kw  { color: #79b8ff; }
+  .code-body .fn  { color: #b392f0; }
+  .code-body .str { color: #9ecbff; }
+  .code-body .cm  { color: #6a737d; font-style: italic; }
+  .code-body .fd  { color: #ffab70; }
+  .code-body .tp  { color: #85e89d; }
+  .code-body .nb  { color: #f97583; }
+
+  /* ANATOMY */
+  .anatomy-box { background: var(--white); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 16px; }
+  .anatomy-header { background: var(--navy); color: var(--white); padding: 12px 24px; font-family: var(--font-mono); font-size: 13px; display: flex; align-items: center; gap: 12px; }
+  .anatomy-row { display: flex; border-bottom: 1px solid var(--border); }
+  .anatomy-row:last-child { border-bottom: none; }
+  .anatomy-num { width: 52px; flex-shrink: 0; background: var(--bg); color: var(--text-muted); font-family: var(--font-mono); font-size: 11px; display: flex; align-items: flex-start; justify-content: center; padding-top: 14px; border-right: 1px solid var(--border); }
+  .anatomy-code { flex: 1; padding: 12px 20px; font-family: var(--font-mono); font-size: 13px; color: #cdd6e0; background: #0f1923; line-height: 1.75; overflow-x: auto; }
+  .anatomy-desc { width: 300px; flex-shrink: 0; padding: 12px 16px; background: var(--white); border-left: 1px solid var(--border); font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+  .anatomy-desc strong { color: var(--navy); }
+  .anatomy-desc code { font-family: var(--font-mono); font-size: 11px; background: var(--bg); padding: 1px 4px; border-radius: 2px; border: 1px solid var(--border); }
+
+  /* VARIABLE TYPE CARDS */
+  .var-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 16px; }
+  .var-card { background: var(--white); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+  .var-card-head { padding: 11px 16px; background: var(--navy-light); border-bottom: 1px solid var(--border); }
+  .var-card-head .vc-tag { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 3px; }
+  .var-card-head .vc-title { font-size: 13px; font-weight: 700; color: var(--navy); }
+  .var-card-head .vc-ann { font-family: var(--font-mono); font-size: 10px; color: #b392f0; margin-top: 2px; }
+  .var-card-body { padding: 12px 16px; font-size: 12px; color: var(--text-muted); line-height: 1.65; }
+  .var-card-body code { font-family: var(--font-mono); font-size: 11px; background: var(--bg); padding: 1px 4px; border-radius: 2px; border: 1px solid var(--border); }
+
+  /* AXIS DIAGRAM */
+  .axis-diagram { background: var(--white); border: 1px solid var(--border); border-radius: 4px; padding: 28px 32px; margin-bottom: 16px; }
+  .axis-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .axis-box { border-radius: 4px; padding: 16px 18px; border: 2px solid var(--border); }
+  .axis-box.row-axis { border-color: var(--navy); background: var(--navy-light); }
+  .axis-box.col-axis { border-color: #2e7d32; background: var(--correct-bg); }
+  .axis-box.free-axis { border-color: var(--warn-border); background: var(--warn-bg); }
+  .axis-label { font-family: var(--font-mono); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+  .axis-box.row-axis .axis-label { color: var(--navy); }
+  .axis-box.col-axis .axis-label { color: #2e7d32; }
+  .axis-box.free-axis .axis-label { color: var(--warn-border); }
+  .axis-box h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .axis-box.row-axis h4 { color: var(--navy); }
+  .axis-box.col-axis h4 { color: #2e7d32; }
+  .axis-box.free-axis h4 { color: var(--warn-border); }
+  .axis-box p { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+  .axis-ann { font-family: var(--font-mono); font-size: 10px; margin-top: 8px; padding: 4px 8px; border-radius: 2px; }
+  .axis-box.row-axis .axis-ann { background: var(--navy); color: var(--white); }
+  .axis-box.col-axis .axis-ann { background: #2e7d32; color: var(--white); }
+  .axis-box.free-axis .axis-ann { background: var(--warn-border); color: var(--white); }
+
+  /* MEASURE TYPE COMPARE */
+  .measure-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .mc-block { background: var(--white); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+  .mc-head { padding: 12px 18px; border-bottom: 1px solid var(--border); }
+  .mc-head.restricted { background: var(--navy); color: var(--white); }
+  .mc-head.calculated { background: var(--navy-light); }
+  .mc-head .mch-tag { font-family: var(--font-mono); font-size: 10px; opacity: 0.7; margin-bottom: 4px; }
+  .mc-head.calculated .mch-tag { color: var(--text-muted); }
+  .mc-head .mch-title { font-size: 15px; font-weight: 700; }
+  .mc-head.calculated .mch-title { color: var(--navy); }
+  .mc-body { padding: 16px 18px; font-size: 13px; color: var(--text-muted); line-height: 1.7; }
+  .mc-body code { font-family: var(--font-mono); font-size: 11px; background: var(--bg); padding: 1px 5px; border-radius: 2px; border: 1px solid var(--border); }
+  .mc-body strong { color: var(--navy); }
+
+  /* EXCEPTION AGG TABLE */
+  .exc-table { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--white); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 16px; }
+  .exc-table th { background: var(--navy); color: var(--white); padding: 10px 14px; text-align: left; font-size: 12px; }
+  .exc-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.55; }
+  .exc-table tr:last-child td { border-bottom: none; }
+  .exc-table tr:nth-child(even) td { background: var(--bg); }
+  .exc-table code { font-family: var(--font-mono); font-size: 11px; background: var(--bg); padding: 1px 5px; border-radius: 2px; border: 1px solid var(--border); }
+
+  /* DRILL */
+  .drill-toggle { background: var(--white); border: 1px solid var(--border); border-radius: 4px; margin-bottom: 10px; overflow: hidden; }
+  .drill-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; cursor: pointer; user-select: none; font-size: 14px; font-weight: 600; color: var(--navy); transition: background 0.15s; }
+  .drill-header:hover { background: var(--navy-light); }
+  .drill-arrow { font-size: 12px; color: var(--text-muted); transition: transform 0.2s; }
+  .drill-body { display: none; padding: 0 20px 20px; border-top: 1px solid var(--border); }
+  .drill-body.open { display: block; }
+  .drill-body p { font-size: 14px; color: var(--text-muted); line-height: 1.7; margin-top: 14px; }
+  .drill-body code { font-family: var(--font-mono); font-size: 12px; background: var(--bg); padding: 1px 5px; border-radius: 2px; border: 1px solid var(--border); }
+
+  /* QUIZ */
+  .quiz-section { background: var(--white); border: 1px solid var(--border); border-radius: 4px; padding: 32px; }
+  .quiz-title { font-family: var(--font-heading); font-size: 20px; color: var(--navy); margin-bottom: 24px; }
+  .quiz-item { margin-bottom: 28px; padding-bottom: 28px; border-bottom: 1px solid var(--border); }
+  .quiz-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .quiz-q { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 14px; line-height: 1.6; }
+  .quiz-q .q-num { display: inline-block; background: var(--navy); color: var(--white); font-family: var(--font-mono); font-size: 11px; padding: 2px 8px; border-radius: 2px; margin-right: 10px; vertical-align: middle; }
+  .quiz-q code { font-family: var(--font-mono); font-size: 13px; background: var(--bg); padding: 1px 6px; border-radius: 2px; border: 1px solid var(--border); }
+  .quiz-options { display: flex; flex-direction: column; gap: 8px; }
+  .quiz-option { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; background: var(--bg); transition: border-color 0.15s, background 0.15s; font-size: 14px; line-height: 1.5; }
+  .quiz-option:hover { border-color: var(--navy); background: var(--navy-light); }
+  .quiz-option.correct-ans { border-color: var(--correct-border) !important; background: var(--correct-bg) !important; }
+  .quiz-option.wrong-ans   { border-color: #c0392b !important; background: #fdecea !important; }
+  .quiz-option .opt-label  { font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--navy); flex-shrink: 0; margin-top: 1px; }
+  .quiz-feedback { margin-top: 12px; padding: 12px 16px; border-radius: 4px; font-size: 13px; display: none; line-height: 1.6; }
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback.correct-fb { background: var(--correct-bg); color: #2e7d32; border-left: 3px solid var(--correct-border); }
+  .quiz-feedback.wrong-fb   { background: #fdecea; color: #c0392b; border-left: 3px solid #c0392b; }
+  .quiz-progress { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+  .quiz-progress-bar { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .quiz-progress-fill { height: 100%; background: var(--navy); border-radius: 3px; transition: width 0.4s; }
+  .quiz-score-label { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+
+  .module-footer { background: var(--white); border-top: 1px solid var(--border); padding: 24px 80px; display: flex; justify-content: space-between; align-items: center; margin-top: 60px; font-size: 13px; color: var(--text-muted); }
+  .footer-nav { display: flex; gap: 24px; }
+  .footer-nav a { color: var(--navy); text-decoration: none; font-weight: 500; }
+  .footer-nav a:hover { text-decoration: underline; }
+
+  @media (max-width: 900px) {
+    .site-header, .tab-nav, .wrapper, .module-footer { padding-left: 20px; padding-right: 20px; }
+    .hero { padding: 32px 24px; }
+    .var-grid { grid-template-columns: 1fr 1fr; }
+    .axis-grid { grid-template-columns: 1fr; }
+    .measure-compare { grid-template-columns: 1fr; }
+    .anatomy-desc { width: 180px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <span class="logo">ASPN BAC · EDU Portal</span>
+  <span class="module-label">CDS View Analytics Query — A to Z</span>
+</header>
+
+<nav class="tab-nav">
+  <a href="tab01_overview.html">01. 개요 &amp; 로드맵</a>
+  <a href="tab02_syntax.html">02. CDS 기초 문법</a>
+  <a href="tab03_dimension.html">03. Dimension View</a>
+  <a href="tab04_hierarchy.html">04. Hierarchy View</a>
+  <a href="tab05_cube.html">05. Cube View</a>
+  <a href="tab06_query.html" class="active">06. Analytics Query View</a>
+  <a href="tab07_table_function.html">07. Table Function &amp; AMDP</a>
+  <a href="tab08_authorization.html">08. 권한 제어</a>
+  <a href="tab09_sac_live.html">09. SAC Live Model 연결</a>
+</nav>
+
+<main class="wrapper">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="eyebrow">Module 06 / Analytics Query View Design</div>
+    <h1>Analytics Query View는 SAC가<br>직접 소비하는 최종 데이터 계약이다</h1>
+    <p>
+      <code style="color:var(--navy-mid); font-family:var(--font-mono);">@Analytics.query: true</code> 선언부터
+      Variable·Axis·Restricted Measure·Calculated Measure·Exception Aggregation까지,
+      ASPN Group P&amp;L Query View를 완성하며 Cube와의 결정적 차이를 이해합니다.
+    </p>
+    <div class="meta-row">
+      <div class="meta-item"><span class="meta-label">선수 지식</span><span class="meta-value">Tab 05 완료</span></div>
+      <div class="meta-item"><span class="meta-label">예상 학습 시간</span><span class="meta-value">55분</span></div>
+      <div class="meta-item"><span class="meta-label">핵심 개념</span><span class="meta-value">Variable · Restricted/Calculated Measure · Axis</span></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       SECTION 1. Cube와의 결정적 차이
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">1. @Analytics.query: true — Cube와의 결정적 차이</h2>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+      Query View는 Cube View를 소스로 하여 그 위에 <strong>사용자 목적에 맞는 분석 레이어</strong>를 추가합니다.
+      SAC Live Model은 Query View만 직접 참조합니다.
+      <code>@Analytics.query: true</code> 하나가 이 View를 Cube와 완전히 다른 오브젝트로 만듭니다.
+    </p>
+
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th style="width:22%">항목</th>
+          <th>Cube View (<code>#CUBE</code>)</th>
+          <th class="hl">Query View (<code>@Analytics.query: true</code>)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>핵심 선언</strong></td>
+          <td><code>@Analytics.dataCategory: #CUBE</code></td>
+          <td class="hl"><code>@Analytics.query: true</code><br><span style="font-size:12px; font-weight:400;">(dataCategory 선언 없음)</span></td>
+        </tr>
+        <tr>
+          <td><strong>SAC 노출</strong></td>
+          <td>직접 노출 안 됨</td>
+          <td class="hl">OData 서비스 등록 후 SAC Live Model 직접 참조</td>
+        </tr>
+        <tr>
+          <td><strong>소스</strong></td>
+          <td>트랜잭션 테이블 / Interface View</td>
+          <td class="hl">반드시 Cube View (<code>#CUBE</code>)를 소스로</td>
+        </tr>
+        <tr>
+          <td><strong>Variable</strong></td>
+          <td>파라미터만 가능</td>
+          <td class="hl">Variable 선언 — SAC 필터 화면과 직접 연동</td>
+        </tr>
+        <tr>
+          <td><strong>Restricted Measure</strong></td>
+          <td>선언 불가</td>
+          <td class="hl">선언 가능 — 특정 Dimension 조건으로 Measure 제한</td>
+        </tr>
+        <tr>
+          <td><strong>Calculated Measure</strong></td>
+          <td>선언 불가</td>
+          <td class="hl">선언 가능 — 다른 Measure 간 계산식 정의</td>
+        </tr>
+        <tr>
+          <td><strong>Axis 설정</strong></td>
+          <td>해당 없음</td>
+          <td class="hl">Row / Column / Free 기본 배치 설정</td>
+        </tr>
+        <tr>
+          <td><strong>Exception Aggregation</strong></td>
+          <td>해당 없음</td>
+          <td class="hl">집계 예외 처리 — B/S 잔액, 재고 수량 등에 활용</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <div class="callout-label">설계 실수 — Query View를 Cube 소스 외에서 참조</div>
+      <p>Query View의 소스(<code>as select from</code>)는 반드시 <code>@Analytics.dataCategory: #CUBE</code>가
+      선언된 Cube View여야 합니다.
+      Interface View나 일반 CDS View를 직접 소스로 삼으면 Variable·Restricted Measure 등
+      Query 전용 기능이 정상 동작하지 않거나 활성화 오류가 발생합니다.</p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 2. Variable 선언
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">2. Variable — SAC 필터 화면 연동</h2>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+      Variable은 Query View의 파라미터(<code>with parameters</code>)에
+      <code>@AnalyticsDetails.query.variable</code> Annotation을 추가하여 선언합니다.
+      Cube View의 <code>with parameters</code>와 달리 SAC 필터 화면(Prompt)에 자동으로 표시되어
+      사용자가 런타임에 값을 입력·선택합니다.
+    </p>
+
+    <!-- Variable 유형 카드 -->
+    <div class="var-grid">
+      <div class="var-card">
+        <div class="var-card-head">
+          <div class="vc-tag">단일값 입력</div>
+          <div class="vc-title">Single Value Variable</div>
+          <div class="vc-ann">selectionType: #SINGLE</div>
+        </div>
+        <div class="var-card-body">
+          SAC 필터 화면에서 하나의 값만 선택. 필수 입력 시 <code>mandatory: true</code>. 회계연도 단일 선택에 사용.</div>
+      </div>
+      <div class="var-card">
+        <div class="var-card-head">
+          <div class="vc-tag">복수값 선택</div>
+          <div class="vc-title">Multiple Value Variable</div>
+          <div class="vc-ann">selectionType: #MULTIPLE</div>
+        </div>
+        <div class="var-card-body">
+          복수 회사 코드 동시 선택. SAC 멀티 필터와 연동. Value Help(<code>valueHelpDefinition</code>)와 함께 사용하면 드롭다운 목록 제공.</div>
+      </div>
+      <div class="var-card">
+        <div class="var-card-head">
+          <div class="vc-tag">구간 선택</div>
+          <div class="vc-title">Range Variable</div>
+          <div class="vc-ann">selectionType: #RANGE</div>
+        </div>
+        <div class="var-card-body">
+          From~To 범위 입력. 회계기간 범위 필터에 사용. SAC 날짜 범위 필터 UI와 자동 연동.</div>
+      </div>
+      <div class="var-card">
+        <div class="var-card-head">
+          <div class="vc-tag">기본값 자동 설정</div>
+          <div class="vc-title">Default Value Variable</div>
+          <div class="vc-ann">@AnalyticsDetails.query.variableDefault</div>
+        </div>
+        <div class="var-card-body">
+          SAC 최초 로딩 시 기본값 자동 적용. 현재 회계연도를 기본값으로 설정하는 데 활용. <code>defaultValue</code> 또는 <code>defaultValueFunction</code> 사용.</div>
+      </div>
+      <div class="var-card">
+        <div class="var-card-head">
+          <div class="vc-tag">입력 불필요</div>
+          <div class="vc-title">Optional Variable</div>
+          <div class="vc-ann">mandatory: false</div>
+        </div>
+        <div class="var-card-body">
+          사용자 입력 없어도 Query 실행 가능. 입력 시 필터 적용, 미입력 시 전체 데이터. 주의: 대용량 Cube에서 미입력 시 성능 이슈 발생 가능.</div>
+      </div>
+      <div class="var-card">
+        <div class="var-card-head">
+          <div class="vc-tag">세션 변수</div>
+          <div class="vc-title">Customer Exit Variable</div>
+          <div class="vc-ann">variableType: #CUSTOMER_EXIT</div>
+        </div>
+        <div class="var-card-body">
+          ABAP Customer Exit으로 값을 동적 계산. 현재 사용자의 회사 코드 자동 설정 등에 활용. S/4HANA Public Cloud에서는 제한적.</div>
+      </div>
+    </div>
+
+    <h3 class="subsection-title">Variable 선언 코드 — ASPN P&amp;L Query</h3>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-lang">ABAP CDS</span>
+        <span class="code-title">Variable 선언 — 회계연도 · 회사 코드 · 회계기간 범위</span>
+      </div>
+      <div class="code-body"><pre><span class="fn">@Analytics.query</span>: <span class="kw">true</span>
+<span class="fn">@EndUserText.label</span>: <span class="str">'ASPN P&amp;L Query'</span>
+<span class="fn">@AccessControl.authorizationCheck</span>: <span class="str">#CHECK</span>
+
+<span class="kw">define view entity</span> <span class="fd">ZASPN_C_PLQuery</span>
+  <span class="kw">with parameters</span>
+
+    <span class="cm">// ① Single Value Variable — 회계연도 (필수)</span>
+    <span class="fn">@EndUserText.label</span>: <span class="str">'Fiscal Year'</span>
+    <span class="fn">@AnalyticsDetails.query.variable</span>: {
+        selectionType: <span class="str">#SINGLE</span>,
+        mandatory:     <span class="kw">true</span>
+    }
+    <span class="fd">P_FiscalYear</span>  : <span class="tp">fiscalyear</span>,
+
+    <span class="cm">// ② Multiple Value Variable — 회사 코드 (선택, Value Help 연결)</span>
+    <span class="fn">@EndUserText.label</span>: <span class="str">'Company Code'</span>
+    <span class="fn">@AnalyticsDetails.query.variable</span>: {
+        selectionType: <span class="str">#MULTIPLE</span>,
+        mandatory:     <span class="kw">false</span>
+    }
+    <span class="fn">@Consumption.valueHelpDefinition</span>: [{
+        entity: { name: <span class="str">'ZASPN_I_CompanyCode'</span>, element: <span class="str">'CompanyCode'</span> }
+    }]
+    <span class="fd">P_CompanyCode</span> : <span class="tp">bukrs</span>,
+
+    <span class="cm">// ③ Range Variable — 회계기간 From~To</span>
+    <span class="fn">@EndUserText.label</span>: <span class="str">'Fiscal Period From'</span>
+    <span class="fn">@AnalyticsDetails.query.variable</span>: {
+        selectionType: <span class="str">#RANGE</span>,
+        mandatory:     <span class="kw">false</span>
+    }
+    <span class="fd">P_FiscalPeriodFrom</span> : <span class="tp">fiscalmonth</span>,
+
+    <span class="fn">@EndUserText.label</span>: <span class="str">'Fiscal Period To'</span>
+    <span class="fn">@AnalyticsDetails.query.variable</span>: {
+        selectionType: <span class="str">#RANGE</span>,
+        mandatory:     <span class="kw">false</span>
+    }
+    <span class="fd">P_FiscalPeriodTo</span>  : <span class="tp">fiscalmonth</span>
+
+  <span class="kw">as select from</span> <span class="fd">ZASPN_C_FinancialCube</span>( <span class="cm">// Cube에 파라미터 전달</span>
+      <span class="fd">P_FiscalYear</span>  = <span class="fd">$parameters</span>.<span class="fd">P_FiscalYear</span>
+  ) <span class="kw">as</span> <span class="fd">Cube</span></pre></div>
+    </div>
+
+    <div class="callout">
+      <div class="callout-label">Variable vs. 파라미터 — 중요한 차이</div>
+      <p>
+        <code>with parameters</code> + <code>@AnalyticsDetails.query.variable</code> = <strong>Variable</strong> → SAC 필터 Prompt 화면에 표시<br>
+        <code>with parameters</code>만 선언 (Annotation 없음) = <strong>파라미터</strong> → SAC UI에 표시되지 않음, 프로그램 방식 전달만 가능<br><br>
+        Query View에서 사용자가 SAC 화면에서 직접 입력해야 하는 값은 반드시 Variable로 선언해야 합니다.
+      </p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 3. Restricted / Calculated Measure
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">3. Restricted Measure와 Calculated Measure</h2>
+
+    <div class="measure-compare">
+      <div class="mc-block">
+        <div class="mc-head restricted">
+          <div class="mch-tag">특정 조건으로 범위 제한</div>
+          <div class="mch-title">Restricted Measure</div>
+        </div>
+        <div class="mc-body">
+          <strong>정의:</strong> Cube의 Measure를 특정 Dimension 조건으로 필터링한 새로운 Measure.<br><br>
+          <strong>선언 위치:</strong> Query View 필드 목록 — <code>@AnalyticsDetails.query.selection</code><br><br>
+          <strong>ASPN 예시:</strong> 전체 금액 Measure에서 손익계산서 계정(<code>GLAccountType = 'Y'</code>)만 집계하는 "영업이익" Measure, Korea 법인(<code>CompanyCode = '2000'</code>)만 필터링한 "Korea Revenue" Measure.<br><br>
+          <strong>특징:</strong> 집계 방식은 Cube의 <code>@DefaultAggregation</code>을 상속. 조건은 Dimension 값으로만 제한 가능.
+        </div>
+      </div>
+      <div class="mc-block">
+        <div class="mc-head calculated">
+          <div class="mch-tag">다른 Measure 간 계산</div>
+          <div class="mch-title">Calculated Measure</div>
+        </div>
+        <div class="mc-body">
+          <strong>정의:</strong> Query View 내 다른 Measure(원본 또는 Restricted)를 조합·계산하는 파생 Measure.<br><br>
+          <strong>선언 위치:</strong> Query View 필드 목록 — <code>@AnalyticsDetails.query.formula</code><br><br>
+          <strong>ASPN 예시:</strong> 매출액 − 매출원가 = 매출총이익, (영업이익 ÷ 매출액) × 100 = 영업이익률, 전기 대비 증감률.<br><br>
+          <strong>특징:</strong> 사칙연산, CASE 표현식, 집계 함수 조합 가능. Exception Aggregation과 함께 활용 시 B/S 잔액 계산이 가능.
+        </div>
+      </div>
+    </div>
+
+    <h3 class="subsection-title">Restricted Measure 선언 — ASPN P&amp;L</h3>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-lang">ABAP CDS</span>
+        <span class="code-title">Restricted Measure — 손익계산서 계정 필터 Measure</span>
+      </div>
+      <div class="code-body"><pre>{
+  <span class="kw">key</span> <span class="fd">Cube</span>.<span class="fd">CompanyCode</span>,
+  <span class="kw">key</span> <span class="fd">Cube</span>.<span class="fd">FiscalYear</span>,
+  <span class="kw">key</span> <span class="fd">Cube</span>.<span class="fd">FiscalPeriod</span>,
+  <span class="kw">key</span> <span class="fd">Cube</span>.<span class="fd">GLAccount</span>,
+  <span class="kw">key</span> <span class="fd">Cube</span>.<span class="fd">ProfitCenter</span>,
+
+  <span class="cm">// ── 원본 Measure (Cube에서 상속) ──</span>
+      <span class="fd">Cube</span>.<span class="fd">AmountLC</span>,
+      <span class="fd">Cube</span>.<span class="fd">AmountGC</span>,
+
+  <span class="cm">// ── Restricted Measure ① : 매출 (GLAccountType = 'Y' + 특정 계정 범위) ──</span>
+  <span class="fn">@EndUserText.label</span>: <span class="str">'Revenue (GC)'</span>
+  <span class="fn">@AnalyticsDetails.query.selection</span>: [
+      { dimension: <span class="str">'FinancialStatementType'</span>, range: [{
+          sign:     <span class="str">#INCLUDE</span>,
+          operator: <span class="str">#EQ</span>,
+          low:      <span class="str">'Income Statement'</span>
+      }]},
+      { dimension: <span class="str">'GLAccount'</span>, range: [{
+          sign:     <span class="str">#INCLUDE</span>,
+          operator: <span class="str">#BT</span>,   <span class="cm">// BT = Between</span>
+          low:      <span class="str">'4000000'</span>,
+          high:     <span class="str">'4999999'</span>  <span class="cm">// ASPN 매출 계정 범위</span>
+      }]}
+  ]
+      <span class="fd">Cube</span>.<span class="fd">AmountGC</span>  <span class="kw">as</span> <span class="fd">RevenueGC</span>,
+
+  <span class="cm">// ── Restricted Measure ② : 매출원가 ──</span>
+  <span class="fn">@EndUserText.label</span>: <span class="str">'Cost of Sales (GC)'</span>
+  <span class="fn">@AnalyticsDetails.query.selection</span>: [
+      { dimension: <span class="str">'GLAccount'</span>, range: [{
+          sign:     <span class="str">#INCLUDE</span>,
+          operator: <span class="str">#BT</span>,
+          low:      <span class="str">'5000000'</span>,
+          high:     <span class="str">'5999999'</span>
+      }]}
+  ]
+      <span class="fd">Cube</span>.<span class="fd">AmountGC</span>  <span class="kw">as</span> <span class="fd">CostOfSalesGC</span></pre></div>
+    </div>
+
+    <h3 class="subsection-title">Calculated Measure 선언 — 매출총이익·이익률</h3>
+
+    <div class="callout" style="margin-bottom:16px;">
+      <div class="callout-label">Calculated Measure Formula 참조 방식</div>
+      <p>
+        <code>@AnalyticsDetails.query.formula</code>의 수식에서 다른 Measure를 참조할 때는
+        <strong>해당 Measure의 필드 별칭(alias)</strong>을 사용합니다.
+        SAP 표준 CDS Query Calculated Measure에서 Measure 참조 표기는 구현 환경(BW/S4 Analytics Engine 버전)에 따라
+        <code>$$MeasureName</code> 또는 필드명 직접 참조 방식이 혼용됩니다.
+        아래 예시는 개념적 표현이며, 실제 프로젝트에서는 ADT의 CDS Annotation 자동완성과
+        SAP 공식 가이드를 기준으로 사용 환경의 정확한 구문을 확인하고 적용합니다.
+      </p>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-lang">ABAP CDS</span>
+        <span class="code-title">Calculated Measure — 매출총이익 · 영업이익률 계산 (개념 예시)</span>
+      </div>
+      <div class="code-body"><pre>  <span class="cm">// ── Calculated Measure ① : 매출총이익 = 매출 − 매출원가 ──</span>
+  <span class="fn">@EndUserText.label</span>: <span class="str">'Gross Profit (GC)'</span>
+  <span class="fn">@DefaultAggregation</span>: <span class="str">#SUM</span>
+  <span class="fn">@Semantics.amount.currencyCode</span>: <span class="str">'GroupCurrency'</span>
+  <span class="cm">// Formula: 다른 Measure 필드명을 참조하여 계산식 정의</span>
+  <span class="fn">@AnalyticsDetails.query.formula</span>: <span class="str">'RevenueGC - CostOfSalesGC'</span>
+      <span class="fd">Cube</span>.<span class="fd">AmountGC</span>  <span class="kw">as</span> <span class="fd">GrossProfitGC</span>,
+
+  <span class="cm">// ── Calculated Measure ② : 매출총이익률 (%) ──</span>
+  <span class="fn">@EndUserText.label</span>: <span class="str">'Gross Profit Margin (%)'</span>
+  <span class="fn">@DefaultAggregation</span>: <span class="str">#NOP</span>   <span class="cm">// 비율 — 합산 불가, 상위 레벨 재계산</span>
+  <span class="fn">@AnalyticsDetails.query.formula</span>: <span class="str">'GrossProfitGC / RevenueGC * 100'</span>
+      <span class="fd">Cube</span>.<span class="fd">AmountGC</span>  <span class="kw">as</span> <span class="fd">GrossMarginPct</span>,
+
+  <span class="cm">// ── Calculated Measure ③ : 이익/손실 부호 분류 ──</span>
+  <span class="fn">@EndUserText.label</span>: <span class="str">'P&amp;L Status'</span>
+  <span class="fn">@DefaultAggregation</span>: <span class="str">#NOP</span>
+  <span class="fn">@AnalyticsDetails.query.formula</span>: <span class="str">'GrossProfitGC GT 0 ? 1 : -1'</span>
+      <span class="fd">Cube</span>.<span class="fd">AmountGC</span>  <span class="kw">as</span> <span class="fd">PLStatus</span></pre></div>
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-label">이익률 Measure의 @DefaultAggregation: #NOP</div>
+      <p>매출총이익률처럼 비율로 계산되는 Calculated Measure는 합산하면 의미가 없습니다.
+      <code>@DefaultAggregation: #NOP</code>을 선언하여 Analytics Engine이 집계 방식을 위임받도록 합니다.
+      SAC에서 이 Measure를 테이블에 표시할 때 집계 로직은 Formula에 정의된 대로
+      상위 레벨에서 재계산됩니다.</p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 4. Exception Aggregation
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">4. Exception Aggregation — B/S 잔액·재고 수량 처리</h2>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+      ASPN Group의 재무상태표(B/S) 금액은 <strong>기간별 합산이 아닌 특정 시점 잔액</strong>이어야 합니다.
+      예를 들어 현금 계정의 1분기 금액과 2분기 금액을 합산하면 실제 현금 잔액이 아닙니다.
+      이런 경우 Exception Aggregation을 사용하여 집계 예외 동작을 지정합니다.
+    </p>
+
+    <table class="exc-table">
+      <thead>
+        <tr>
+          <th style="width:22%">Exception Aggregation</th>
+          <th style="width:22%">동작</th>
+          <th>ASPN 활용 시나리오</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>#LAST</code></td>
+          <td>참조 특성의 마지막 값 기준 집계</td>
+          <td>B/S 계정 잔액: 기간 범위 선택 시 마지막 기간 잔액 표시. 재고 수량 마감 잔액.</td>
+        </tr>
+        <tr>
+          <td><code>#FIRST</code></td>
+          <td>참조 특성의 첫 번째 값 기준 집계</td>
+          <td>기초 잔액(기간 시작 시점 잔액). 비교 분석용 전기 초 잔액.</td>
+        </tr>
+        <tr>
+          <td><code>#MAX</code></td>
+          <td>참조 특성 범위 내 최댓값</td>
+          <td>기간 중 최고 현금 잔액. 피크 재고 수량 분석.</td>
+        </tr>
+        <tr>
+          <td><code>#MIN</code></td>
+          <td>참조 특성 범위 내 최솟값</td>
+          <td>기간 중 최저 유동성 분석.</td>
+        </tr>
+        <tr>
+          <td><code>#COUNT_DISTINCT_NULLS</code></td>
+          <td>참조 특성의 고유값 수</td>
+          <td>거래 법인 수, 활성 이익센터 수 등 집계.</td>
+        </tr>
+        <tr>
+          <td><code>#AVG</code></td>
+          <td>참조 특성 범위 내 평균</td>
+          <td>월평균 현금 잔액, 분기 평균 재고.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3 class="subsection-title">Exception Aggregation 선언 — B/S 잔액 Measure</h3>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-lang">ABAP CDS</span>
+        <span class="code-title">B/S 잔액 Measure — Exception Aggregation #LAST 활용</span>
+      </div>
+      <div class="code-body"><pre>  <span class="cm">// ── B/S 계정 잔액 — 기간별 합산 아닌 마지막 기간 잔액 ──</span>
+  <span class="fn">@EndUserText.label</span>: <span class="str">'Balance Sheet Amount (GC)'</span>
+  <span class="fn">@DefaultAggregation</span>: <span class="str">#SUM</span>
+  <span class="fn">@Semantics.amount.currencyCode</span>: <span class="str">'GroupCurrency'</span>
+
+  <span class="cm">// Exception Aggregation: FiscalYearPeriod 기준으로 마지막 기간 값 사용</span>
+  <span class="fn">@AnalyticsDetails.query.exceptionAggregationSteps</span>: [{
+      exceptionAggregationBehavior: <span class="str">#LAST</span>,
+      exceptionAggregationElements:  [ <span class="str">'FiscalYearPeriod'</span> ]
+                          <span class="cm">// FiscalYearPeriod 기준으로 마지막 기간 잔액 추출</span>
+  }]
+
+  <span class="fn">@AnalyticsDetails.query.selection</span>: [
+      { dimension: <span class="str">'FinancialStatementType'</span>, range: [{
+          sign:     <span class="str">#INCLUDE</span>,
+          operator: <span class="str">#EQ</span>,
+          low:      <span class="str">'Balance Sheet'</span>     <span class="cm">// B/S 계정만 (GLAccountType = 'X')</span>
+      }]}
+  ]
+      <span class="fd">Cube</span>.<span class="fd">AmountGC</span>  <span class="kw">as</span> <span class="fd">BSAmountGC</span>,
+
+  <span class="cm">// ── P&amp;L 금액은 Exception Aggregation 없이 일반 #SUM ──</span>
+  <span class="fn">@EndUserText.label</span>: <span class="str">'P&amp;L Amount (GC)'</span>
+  <span class="fn">@DefaultAggregation</span>: <span class="str">#SUM</span>
+  <span class="fn">@Semantics.amount.currencyCode</span>: <span class="str">'GroupCurrency'</span>
+  <span class="fn">@AnalyticsDetails.query.selection</span>: [
+      { dimension: <span class="str">'FinancialStatementType'</span>, range: [{
+          sign:     <span class="str">#INCLUDE</span>,
+          operator: <span class="str">#EQ</span>,
+          low:      <span class="str">'Income Statement'</span>
+      }]}
+  ]
+      <span class="fd">Cube</span>.<span class="fd">AmountGC</span>  <span class="kw">as</span> <span class="fd">PLAmountGC</span></pre></div>
+    </div>
+
+    <div class="callout correct">
+      <div class="callout-label">ASPN Group — B/S vs. P&amp;L 집계 구분 설계</div>
+      <p>ASPN Holdings 연결재무제표에서 재무상태표(B/S) 계정과 손익계산서(P&amp;L) 계정은
+      집계 방식이 근본적으로 다릅니다.
+      하나의 Query View에서 <code>BSAmountGC</code>(Exception Aggregation #LAST)와
+      <code>PLAmountGC</code>(일반 #SUM) 두 Measure를 함께 선언하면
+      SAC에서 재무상태표와 손익계산서를 하나의 Live Model로 통합 분석할 수 있습니다.
+      <code>FinancialStatementType</code>은 Tab 03 GL 계정 Dimension에서 CASE 구문으로 정의한 필드입니다.</p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 5. Axis 설정
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">5. Axis 설정 — SAC 기본 레이아웃 제어</h2>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+      <code>@AnalyticsDetails.query.axis</code>로 SAC에서 Live Model Import 시
+      각 필드가 기본적으로 어디에 배치될지를 지정합니다.
+      SAC 사용자가 이후 드래그로 변경할 수 있지만, 초기 배치를 설계 의도에 맞게 미리 설정합니다.
+    </p>
+
+    <div class="axis-diagram">
+      <div class="axis-grid">
+        <div class="axis-box row-axis">
+          <div class="axis-label">Row Axis</div>
+          <h4>행 (Row)</h4>
+          <p>테이블의 행에 기본 배치. Dimension 분석 기준이 되는 필드에 사용. ASPN 예시: GL 계정, 이익센터.</p>
+          <div class="axis-ann">@AnalyticsDetails.query.axis: #ROWS</div>
+        </div>
+        <div class="axis-box col-axis">
+          <div class="axis-label">Column Axis</div>
+          <h4>열 (Column)</h4>
+          <p>테이블의 열에 기본 배치. 비교 기준이 되는 필드에 사용. ASPN 예시: 회계기간, Measure.</p>
+          <div class="axis-ann">@AnalyticsDetails.query.axis: #COLUMNS</div>
+        </div>
+        <div class="axis-box free-axis">
+          <div class="axis-label">Free Axis</div>
+          <h4>자유 (Free)</h4>
+          <p>초기 배치 없음 — 사용자가 드래그하여 배치. 필터 영역 기본 배치. ASPN 예시: 회계연도, 회사 코드.</p>
+          <div class="axis-ann">@AnalyticsDetails.query.axis: #FREE</div>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="subsection-title">Axis 선언 코드 — ASPN P&amp;L Query 레이아웃</h3>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-lang">ABAP CDS</span>
+        <span class="code-title">Axis 설정 — P&amp;L Query SAC 기본 레이아웃</span>
+      </div>
+      <div class="code-body"><pre>{
+  <span class="cm">// ── FREE: 필터 영역 기본 배치 ──</span>
+  <span class="fn">@AnalyticsDetails.query.axis</span>: <span class="str">#FREE</span>
+  <span class="kw">key</span> <span class="fd">Cube</span>.<span class="fd">CompanyCode</span>,
+
+  <span class="fn">@AnalyticsDetails.query.axis</span>: <span class="str">#FREE</span>
+  <span class="kw">key</span> <span class="fd">Cube</span>.<span class="fd">FiscalYear</span>,
+
+  <span class="cm">// ── ROWS: 행 기본 배치 ──</span>
+  <span class="fn">@AnalyticsDetails.query.axis</span>: <span class="str">#ROWS</span>
+  <span class="kw">key</span> <span class="fd">Cube</span>.<span class="fd">GLAccount</span>,
+
+  <span class="fn">@AnalyticsDetails.query.axis</span>: <span class="str">#ROWS</span>
+  <span class="kw">key</span> <span class="fd">Cube</span>.<span class="fd">ProfitCenter</span>,
+
+  <span class="fn">@AnalyticsDetails.query.axis</span>: <span class="str">#ROWS</span>
+  <span class="kw">key</span> <span class="fd">Cube</span>.<span class="fd">ChartOfAccounts</span>,
+
+  <span class="cm">// ── COLUMNS: 열 기본 배치 — 회계기간 ──</span>
+  <span class="fn">@AnalyticsDetails.query.axis</span>: <span class="str">#COLUMNS</span>
+  <span class="kw">key</span> <span class="fd">Cube</span>.<span class="fd">FiscalPeriod</span>,
+
+  <span class="cm">// ── Measure 필드 (Axis 선언 없음 — Measure는 자동으로 COLUMNS 배치) ──</span>
+      <span class="fd">Cube</span>.<span class="fd">AmountGC</span>,
+      <span class="fd">RevenueGC</span>,
+      <span class="fd">CostOfSalesGC</span>,
+      <span class="fd">GrossProfitGC</span>,
+      <span class="fd">GrossMarginPct</span>,
+      <span class="fd">BSAmountGC</span>,
+      <span class="fd">PLAmountGC</span>,
+
+  <span class="cm">// ── 통화·단위 필드 ──</span>
+      <span class="fd">Cube</span>.<span class="fd">GroupCurrency</span>,
+      <span class="fd">Cube</span>.<span class="fd">CompanyCodeCurrency</span>
+}</pre></div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 6. 완성 예시 전체 조합
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">6. ZASPN_C_PLQuery — 완성형 전체 구조</h2>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+      Variable·Restricted Measure·Calculated Measure·Exception Aggregation·Axis를
+      모두 포함한 완성형 P&amp;L Query View 전체 골격입니다.
+    </p>
+
+    <div class="anatomy-box">
+      <div class="anatomy-header">
+        <span style="font-size:11px; color:var(--navy-mid);">ABAP CDS</span>
+        <span style="font-size:12px; color:#8ba3bc;">ZASPN_C_PLQuery — Analytics Query View 완성 구조</span>
+      </div>
+
+      <div class="anatomy-row">
+        <div class="anatomy-num">1–5</div>
+        <div class="anatomy-code"><span style="color:#b392f0;">@Analytics.query</span>: <span style="color:#79b8ff;">true</span>
+<span style="color:#b392f0;">@EndUserText.label</span>: <span style="color:#9ecbff;">'ASPN P&amp;L / B&amp;S Integrated Query'</span>
+<span style="color:#b392f0;">@AccessControl.authorizationCheck</span>: <span style="color:#9ecbff;">#CHECK</span>
+<span style="color:#b392f0;">@VDM.viewType</span>: <span style="color:#9ecbff;">#CONSUMPTION</span>
+<span style="color:#b392f0;">@OData.publish</span>: <span style="color:#79b8ff;">true</span>   <span style="color:#6a737d; font-style:italic;">// OData 서비스 자동 등록 (Tab 09)</span></div>
+        <div class="anatomy-desc"><strong>View 레벨 핵심 Annotation.</strong> <code>@Analytics.query: true</code>가 이 View를 Query View로 선언. <code>@OData.publish: true</code>는 SAC 연결을 위한 OData 서비스 자동 등록 (Tab 09 상세).</div>
+      </div>
+
+      <div class="anatomy-row">
+        <div class="anatomy-num">6–22</div>
+        <div class="anatomy-code"><span style="color:#79b8ff;">define view entity</span> <span style="color:#ffab70;">ZASPN_C_PLQuery</span>
+  <span style="color:#79b8ff;">with parameters</span>
+    <span style="color:#6a737d; font-style:italic;">// [Variable 선언 — Section 2 참조]</span>
+    <span style="color:#ffab70;">P_FiscalYear</span>       : <span style="color:#85e89d;">fiscalyear</span>,
+    <span style="color:#ffab70;">P_CompanyCode</span>      : <span style="color:#85e89d;">bukrs</span>,
+    <span style="color:#ffab70;">P_FiscalPeriodFrom</span> : <span style="color:#85e89d;">fiscalmonth</span>,
+    <span style="color:#ffab70;">P_FiscalPeriodTo</span>   : <span style="color:#85e89d;">fiscalmonth</span>
+
+  <span style="color:#79b8ff;">as select from</span> <span style="color:#ffab70;">ZASPN_C_FinancialCube</span>(
+      <span style="color:#ffab70;">P_FiscalYear</span> = <span style="color:#ffab70;">$parameters</span>.<span style="color:#ffab70;">P_FiscalYear</span>
+  ) <span style="color:#79b8ff;">as</span> <span style="color:#ffab70;">Cube</span></div>
+        <div class="anatomy-desc"><strong>소스는 반드시 Cube View.</strong> 파라미터를 Cube에 전달합니다. <code>P_CompanyCode</code>와 기간 파라미터는 WHERE 절에서 필터링.</div>
+      </div>
+
+      <div class="anatomy-row">
+        <div class="anatomy-num">23–60</div>
+        <div class="anatomy-code">{
+  <span style="color:#6a737d; font-style:italic;">// ── 키 필드 + Axis + FK Association ──</span>
+  <span style="color:#b392f0;">@AnalyticsDetails.query.axis</span>: <span style="color:#9ecbff;">#FREE</span>
+  <span style="color:#79b8ff;">key</span> <span style="color:#ffab70;">Cube</span>.<span style="color:#ffab70;">CompanyCode</span>,
+  <span style="color:#b392f0;">@AnalyticsDetails.query.axis</span>: <span style="color:#9ecbff;">#FREE</span>
+  <span style="color:#79b8ff;">key</span> <span style="color:#ffab70;">Cube</span>.<span style="color:#ffab70;">FiscalYear</span>,
+  <span style="color:#b392f0;">@AnalyticsDetails.query.axis</span>: <span style="color:#9ecbff;">#ROWS</span>
+  <span style="color:#79b8ff;">key</span> <span style="color:#ffab70;">Cube</span>.<span style="color:#ffab70;">GLAccount</span>,
+  <span style="color:#b392f0;">@AnalyticsDetails.query.axis</span>: <span style="color:#9ecbff;">#ROWS</span>
+  <span style="color:#79b8ff;">key</span> <span style="color:#ffab70;">Cube</span>.<span style="color:#ffab70;">ProfitCenter</span>,
+  <span style="color:#b392f0;">@AnalyticsDetails.query.axis</span>: <span style="color:#9ecbff;">#COLUMNS</span>
+  <span style="color:#79b8ff;">key</span> <span style="color:#ffab70;">Cube</span>.<span style="color:#ffab70;">FiscalPeriod</span>,
+  <span style="color:#79b8ff;">key</span> <span style="color:#ffab70;">Cube</span>.<span style="color:#ffab70;">ChartOfAccounts</span>,
+
+  <span style="color:#6a737d; font-style:italic;">// ── 원본 Measure ──</span>
+      <span style="color:#ffab70;">Cube</span>.<span style="color:#ffab70;">AmountGC</span>,
+
+  <span style="color:#6a737d; font-style:italic;">// ── Restricted Measure ──</span>
+  <span style="color:#6a737d; font-style:italic;">// [RevenueGC, CostOfSalesGC — Section 3 참조]</span>
+
+  <span style="color:#6a737d; font-style:italic;">// ── Calculated Measure ──</span>
+  <span style="color:#6a737d; font-style:italic;">// [GrossProfitGC, GrossMarginPct — Section 3 참조]</span>
+
+  <span style="color:#6a737d; font-style:italic;">// ── Exception Aggregation Measure ──</span>
+  <span style="color:#6a737d; font-style:italic;">// [BSAmountGC #LAST, PLAmountGC #SUM — Section 4 참조]</span>
+
+  <span style="color:#6a737d; font-style:italic;">// ── 통화 코드 ──</span>
+      <span style="color:#ffab70;">Cube</span>.<span style="color:#ffab70;">GroupCurrency</span>,
+      <span style="color:#ffab70;">Cube</span>.<span style="color:#ffab70;">CompanyCodeCurrency</span>
+}
+<span style="color:#6a737d; font-style:italic;">// WHERE 절 — 파라미터 기반 필터</span>
+<span style="color:#79b8ff;">where</span>
+    <span style="color:#ffab70;">Cube</span>.<span style="color:#ffab70;">CompanyCode</span> <span style="color:#79b8ff;">in</span> <span style="color:#ffab70;">$parameters</span>.<span style="color:#ffab70;">P_CompanyCode</span>
+<span style="color:#79b8ff;">and</span> <span style="color:#ffab70;">Cube</span>.<span style="color:#ffab70;">FiscalPeriod</span> <span style="color:#79b8ff;">between</span>
+      <span style="color:#ffab70;">$parameters</span>.<span style="color:#ffab70;">P_FiscalPeriodFrom</span>
+  <span style="color:#79b8ff;">and</span> <span style="color:#ffab70;">$parameters</span>.<span style="color:#ffab70;">P_FiscalPeriodTo</span></div>
+        <div class="anatomy-desc"><strong>전체 필드 목록 구조.</strong> 키 필드에 Axis 선언 → 원본 Measure → Restricted Measure → Calculated Measure → Exception Aggregation Measure → 통화 코드 순서로 배치하는 것이 가독성 표준. WHERE 절에서 Multiple Variable(<code>in</code>)과 Range Variable(<code>between</code>) 활용.</div>
+      </div>
+
+    </div>
+
+    <!-- 배포 전 체크리스트 -->
+    <div class="drill-toggle" style="margin-top:20px;">
+      <div class="drill-header" onclick="toggleDrill(this)">
+        <span>✅ Query View 배포 전 품질 체크리스트</span>
+        <span class="drill-arrow">▼</span>
+      </div>
+      <div class="drill-body">
+        <table class="compare-table" style="margin-top:14px;">
+          <thead><tr><th>확인 항목</th><th>미비 시 증상</th></tr></thead>
+          <tbody>
+            <tr><td>소스가 <code>#CUBE</code> View인지 확인</td><td>Variable·Restricted Measure 미동작</td></tr>
+            <tr><td><code>@Analytics.query: true</code> 선언</td><td>SAC가 Query View로 인식 안 함</td></tr>
+            <tr><td>필수 Variable에 <code>mandatory: true</code></td><td>사용자 미입력 시 전체 데이터 조회 → 성능 문제</td></tr>
+            <tr><td>Variable에 Value Help 연결</td><td>SAC 필터 화면에서 수동 코드 입력 필요</td></tr>
+            <tr><td>Calculated Measure 비율 필드에 <code>#NOP</code></td><td>합산 시 의미 없는 숫자 표시</td></tr>
+            <tr><td>B/S 계정 Measure에 Exception Aggregation <code>#LAST</code></td><td>기간 합산으로 잘못된 B/S 잔액 표시</td></tr>
+            <tr><td>Restricted Measure의 <code>selection</code> dimension 필드명 확인</td><td>필터 미적용 — 전체 금액이 Restricted Measure에 집계</td></tr>
+            <tr><td><code>@AccessControl.authorizationCheck: #CHECK</code></td><td>권한 없는 데이터 노출</td></tr>
+            <tr><td>DCL(DEFINE ROLE) 작성 완료</td><td>SAC에서 데이터 공백</td></tr>
+            <tr><td><code>@OData.publish: true</code> 또는 수동 OData 서비스 등록</td><td>SAC Live Model Import 불가</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       QUIZ
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <div class="quiz-section">
+      <h3 class="quiz-title">확인 퀴즈 — Tab 06</h3>
+      <div class="quiz-progress">
+        <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="progressFill" style="width:0%"></div></div>
+        <span class="quiz-score-label" id="scoreLabel">0 / 4 완료</span>
+      </div>
+
+      <!-- Q1 -->
+      <div class="quiz-item">
+        <div class="quiz-q">
+          <span class="q-num">Q1</span>
+          ASPN P&amp;L Query View에서 회사 코드 Variable을 선언했지만 SAC 필터 화면에 표시되지 않습니다. 원인으로 가장 적절한 것은?
+        </div>
+        <div class="quiz-options" id="q1">
+          <div class="quiz-option" onclick="answer('q1',this,false,'q1-fb','@Consumption.valueHelpDefinition은 Value Help(선택 목록) 제공을 위한 Annotation입니다. 이것이 없어도 Variable은 SAC에 표시됩니다. 핵심 Annotation이 누락된 것을 확인해야 합니다.')">
+            <span class="opt-label">A</span> <code>@Consumption.valueHelpDefinition</code>이 선언되지 않았다
+          </div>
+          <div class="quiz-option" onclick="answer('q1',this,true,'q1-fb','정답입니다. with parameters로 파라미터를 선언해도 @AnalyticsDetails.query.variable Annotation이 없으면 SAC 필터 화면(Prompt)에 표시되지 않습니다. 이 Annotation이 있어야 파라미터가 Variable로 승격되어 SAC UI에 노출됩니다.')">
+            <span class="opt-label">B</span> <code>@AnalyticsDetails.query.variable</code> Annotation이 파라미터에 선언되지 않았다
+          </div>
+          <div class="quiz-option" onclick="answer('q1',this,false,'q1-fb','mandatory 설정 여부는 필수 입력 여부를 제어하는 것이지 SAC 표시 여부와는 무관합니다.')">
+            <span class="opt-label">C</span> <code>mandatory: false</code>로 설정되어 표시가 억제되었다
+          </div>
+          <div class="quiz-option" onclick="answer('q1',this,false,'q1-fb','@AccessControl 설정은 권한 체크 방식을 제어합니다. Variable 표시 여부와는 관련이 없습니다.')">
+            <span class="opt-label">D</span> <code>@AccessControl.authorizationCheck: #CHECK</code>가 Variable 표시를 차단했다
+          </div>
+        </div>
+        <div class="quiz-feedback" id="q1-fb"></div>
+      </div>
+
+      <!-- Q2 -->
+      <div class="quiz-item">
+        <div class="quiz-q">
+          <span class="q-num">Q2</span>
+          ASPN Holdings의 현금 계정 잔액(B/S)을 SAC에서 분기별로 표시하려 합니다.
+          1분기~4분기를 선택하면 4분기 말 잔액이 표시되어야 합니다.
+          올바른 설계는?
+        </div>
+        <div class="quiz-options" id="q2">
+          <div class="quiz-option" onclick="answer('q2',this,false,'q2-fb','@DefaultAggregation: #SUM은 기간별 금액을 합산합니다. 현금 잔액은 기간 합산이 아니라 마지막 기간 잔액이어야 합니다.')">
+            <span class="opt-label">A</span> <code>@DefaultAggregation: #SUM</code>으로 선언한다
+          </div>
+          <div class="quiz-option" onclick="answer('q2',this,false,'q2-fb','#MAX는 기간 내 최댓값을 반환합니다. 4분기 말 잔액이 기간 내 최대값과 일치하지 않을 수 있습니다.')">
+            <span class="opt-label">B</span> Exception Aggregation <code>#MAX</code>를 <code>FiscalYearPeriod</code> 기준으로 선언한다
+          </div>
+          <div class="quiz-option" onclick="answer('q2',this,true,'q2-fb','정답입니다. @AnalyticsDetails.query.exceptionAggregationSteps에서 exceptionAggregationBehavior: #LAST, exceptionAggregationElements: [\'FiscalYearPeriod\']를 선언합니다. 이렇게 하면 선택된 기간 범위 중 마지막 회계기간의 잔액이 집계되어 B/S 잔액이 올바르게 표시됩니다.')">
+            <span class="opt-label">C</span> Exception Aggregation <code>#LAST</code>를 <code>FiscalYearPeriod</code> 기준으로 선언한다
+          </div>
+          <div class="quiz-option" onclick="answer('q2',this,false,'q2-fb','Restricted Measure는 Dimension 조건으로 집계 범위를 제한하는 것입니다. 집계 방식(합산 vs. 잔액)을 변경하지는 않습니다.')">
+            <span class="opt-label">D</span> Restricted Measure의 <code>selection</code>으로 4분기만 필터링한다
+          </div>
+        </div>
+        <div class="quiz-feedback" id="q2-fb"></div>
+      </div>
+
+      <!-- Q3 -->
+      <div class="quiz-item">
+        <div class="quiz-q">
+          <span class="q-num">Q3</span>
+          영업이익률(<code>GrossMarginPct</code>) Calculated Measure에
+          <code>@DefaultAggregation: #SUM</code> 대신 <code>#NOP</code>를 선언해야 하는 이유는?
+        </div>
+        <div class="quiz-options" id="q3">
+          <div class="quiz-option" onclick="answer('q3',this,false,'q3-fb','성능 개선은 #NOP와 직접적인 관련이 없습니다.')">
+            <span class="opt-label">A</span> 집계 계산을 HANA 레이어로 위임하여 성능을 향상시키기 위해
+          </div>
+          <div class="quiz-option" onclick="answer('q3',this,false,'q3-fb','DCL 권한 체크와 #NOP는 관련이 없습니다.')">
+            <span class="opt-label">B</span> DCL Access Control이 비율 필드 집계를 차단하기 때문에
+          </div>
+          <div class="quiz-option" onclick="answer('q3',this,true,'q3-fb','정답입니다. 영업이익률은 비율(%)이므로 여러 행의 값을 합산하면 의미가 없습니다. 예를 들어 Korea 20%, Europe 30%를 합산하면 50%가 되는데 이는 그룹 전체 이익률이 아닙니다. #NOP로 선언하면 상위 레벨에서 Formula($GrossProfitGC / $RevenueGC * 100)를 재계산하여 올바른 집계 이익률을 표시합니다.')">
+            <span class="opt-label">C</span> 비율은 합산하면 의미가 없으므로 상위 레벨에서 Formula를 재계산해야 하기 때문에
+          </div>
+          <div class="quiz-option" onclick="answer('q3',this,false,'q3-fb','Restricted Measure 참조와 #NOP는 직접적인 관련이 없습니다.')">
+            <span class="opt-label">D</span> Restricted Measure를 참조하는 Calculated Measure는 반드시 #NOP를 사용해야 하는 규칙이 있기 때문에
+          </div>
+        </div>
+        <div class="quiz-feedback" id="q3-fb"></div>
+      </div>
+
+      <!-- Q4 -->
+      <div class="quiz-item">
+        <div class="quiz-q">
+          <span class="q-num">Q4</span>
+          Query View의 <code>@AnalyticsDetails.query.axis: #ROWS</code>를 <code>GLAccount</code> 필드에 선언했습니다.
+          이 설정의 의미와 한계는?
+        </div>
+        <div class="quiz-options" id="q4">
+          <div class="quiz-option" onclick="answer('q4',this,false,'q4-fb','#ROWS 설정은 SAC에서 행을 고정하지 않습니다. 사용자가 여전히 드래그로 열로 이동할 수 있습니다.')">
+            <span class="opt-label">A</span> SAC에서 GL 계정 Dimension을 행에 고정하며 사용자가 변경할 수 없다
+          </div>
+          <div class="quiz-option" onclick="answer('q4',this,false,'q4-fb','성능 최적화와 Axis 설정은 직접적인 관련이 없습니다.')">
+            <span class="opt-label">B</span> HANA에서 GL 계정 기준으로 데이터를 정렬하여 조회 성능을 최적화한다
+          </div>
+          <div class="quiz-option" onclick="answer('q4',this,true,'q4-fb','정답입니다. @AnalyticsDetails.query.axis: #ROWS는 SAC가 Live Model을 Import할 때 GL 계정 Dimension이 행에 기본 배치되도록 초기 레이아웃을 설정합니다. 단, 이는 초기값일 뿐이며 SAC 사용자는 이후 드래그앤드롭으로 열이나 필터 영역으로 자유롭게 이동할 수 있습니다.')">
+            <span class="opt-label">C</span> SAC Live Model Import 시 초기 레이아웃으로 행에 배치되며, 사용자가 이후 변경 가능하다
+          </div>
+          <div class="quiz-option" onclick="answer('q4',this,false,'q4-fb','Axis 설정은 Hierarchy와 독립적입니다. #ROWS 선언이 Hierarchy 표시를 자동 활성화하지는 않습니다.')">
+            <span class="opt-label">D</span> GL 계정 Hierarchy가 자동으로 행에 펼쳐져 표시된다
+          </div>
+        </div>
+        <div class="quiz-feedback" id="q4-fb"></div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer class="module-footer">
+  <span>ASPN BAC EDU Portal · CDS View Analytics Query A to Z</span>
+  <div class="footer-nav">
+    <a href="tab05_cube.html">← Tab 05. Cube View</a>
+    <a href="tab07_table_function.html">다음: Tab 07. Table Function &amp; AMDP →</a>
+  </div>
+</footer>
+
+<script>
+  let answered = {};
+  const total = 4;
+
+  function answer(qId, el, isCorrect, fbId, msg) {
+    if (answered[qId]) return;
+    answered[qId] = true;
+    const opts = document.getElementById(qId).querySelectorAll('.quiz-option');
+    opts.forEach(o => { o.style.pointerEvents = 'none'; o.style.opacity = '0.7'; });
+    el.style.opacity = '1';
+    el.classList.add(isCorrect ? 'correct-ans' : 'wrong-ans');
+    const fb = document.getElementById(fbId);
+    fb.textContent = (isCorrect ? '✓ ' : '✗ ') + msg;
+    fb.className = 'quiz-feedback show ' + (isCorrect ? 'correct-fb' : 'wrong-fb');
+    updateProgress();
+  }
+
+  function updateProgress() {
+    const done = Object.keys(answered).length;
+    document.getElementById('progressFill').style.width = (done / total * 100) + '%';
+    document.getElementById('scoreLabel').textContent = done + ' / ' + total + ' 완료';
+  }
+
+  function toggleDrill(header) {
+    const body = header.nextElementSibling;
+    const arrow = header.querySelector('.drill-arrow');
+    body.classList.toggle('open');
+    arrow.style.transform = body.classList.contains('open') ? 'rotate(180deg)' : '';
+  }
+</script>
+
+</body>
+</html>

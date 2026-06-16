@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tab 07. Table Function & AMDP | CDS View Analytics Query</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #003366;
+    --navy-light: #e8edf4;
+    --navy-mid: #c0cfe0;
+    --bg: #f0f3f8;
+    --white: #ffffff;
+    --border: #d0d8e4;
+    --text: #1a1a2e;
+    --text-muted: #5a6478;
+    --warn-bg: #fff8e6;
+    --warn-border: #e6a817;
+    --correct-bg: #e8f5e9;
+    --correct-border: #2e7d32;
+    --font-body: 'Noto Sans KR', sans-serif;
+    --font-heading: 'DM Serif Display', serif;
+    --font-mono: 'JetBrains Mono', 'Noto Sans KR', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-body); background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.7; }
+
+  .site-header { background: var(--navy); color: var(--white); padding: 0 80px; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 100; }
+  .site-header .logo { font-family: var(--font-heading); font-size: 18px; letter-spacing: 0.04em; }
+  .site-header .module-label { font-size: 13px; color: var(--navy-mid); font-family: var(--font-mono); }
+
+  .tab-nav { background: var(--white); border-bottom: 2px solid var(--border); padding: 0 80px; display: flex; position: sticky; top: 56px; z-index: 99; overflow-x: auto; overflow-y: hidden; }
+  .tab-nav a { display: block; padding: 14px 20px; font-size: 13px; font-weight: 500; color: var(--text-muted); text-decoration: none; white-space: nowrap; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: color 0.2s, border-color 0.2s; }
+  .tab-nav a:hover { color: var(--navy); }
+  .tab-nav a.active { color: var(--navy); border-bottom-color: var(--navy); font-weight: 700; }
+
+  .wrapper { max-width: 1280px; margin: 0 auto; padding: 48px 80px 80px; }
+
+  .hero { background: var(--navy); border-radius: 4px; padding: 48px 56px; margin-bottom: 40px; color: var(--white); }
+  .hero .eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.12em; color: var(--navy-mid); margin-bottom: 16px; text-transform: uppercase; }
+  .hero h1 { font-family: var(--font-heading); font-size: 36px; line-height: 1.25; margin-bottom: 16px; }
+  .hero p { font-size: 15px; color: rgba(255,255,255,0.75); max-width: 680px; line-height: 1.8; }
+  .hero .meta-row { display: flex; gap: 32px; margin-top: 28px; flex-wrap: wrap; }
+  .hero .meta-item { display: flex; flex-direction: column; gap: 4px; }
+  .hero .meta-label { font-size: 11px; color: var(--navy-mid); text-transform: uppercase; letter-spacing: 0.1em; font-family: var(--font-mono); }
+  .hero .meta-value { font-size: 14px; font-weight: 600; color: var(--white); }
+
+  .section { margin-bottom: 52px; }
+  .section-title { font-family: var(--font-heading); font-size: 26px; color: var(--navy); margin-bottom: 24px; padding-bottom: 10px; border-bottom: 2px solid var(--navy); }
+  .subsection-title { font-size: 18px; font-weight: 700; color: var(--navy); margin: 32px 0 16px; padding-left: 12px; border-left: 3px solid var(--navy); }
+
+  .callout { border-left: 4px solid var(--navy); background: var(--navy-light); padding: 16px 20px; border-radius: 0 4px 4px 0; margin-bottom: 16px; }
+  .callout.warn { border-left-color: var(--warn-border); background: var(--warn-bg); }
+  .callout.correct { border-left-color: var(--correct-border); background: var(--correct-bg); }
+  .callout .callout-label { font-family: var(--font-mono); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; color: var(--navy); }
+  .callout.warn .callout-label { color: var(--warn-border); }
+  .callout.correct .callout-label { color: var(--correct-border); }
+  .callout p { font-size: 14px; line-height: 1.7; }
+  .callout code { font-family: var(--font-mono); font-size: 13px; background: rgba(0,0,0,0.06); padding: 1px 5px; border-radius: 2px; }
+
+  .compare-table { width: 100%; border-collapse: collapse; font-size: 14px; background: var(--white); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 16px; }
+  .compare-table th { background: var(--navy); color: var(--white); padding: 12px 16px; text-align: left; font-weight: 600; font-size: 13px; }
+  .compare-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: top; line-height: 1.6; }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:nth-child(even) td { background: var(--bg); }
+  .compare-table .hl { font-weight: 700; color: var(--navy); }
+  .compare-table code { font-family: var(--font-mono); font-size: 12px; background: var(--bg); padding: 1px 5px; border-radius: 2px; border: 1px solid var(--border); }
+  .compare-table th code { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); color: var(--white); }
+
+  .code-wrap { background: #0f1923; border-radius: 4px; overflow: hidden; margin-bottom: 16px; }
+  .code-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; background: #1a2738; border-bottom: 1px solid #2a3d52; }
+  .code-lang { font-size: 11px; color: var(--navy-mid); text-transform: uppercase; letter-spacing: 0.1em; }
+  .code-title { font-size: 12px; color: #8ba3bc; }
+  .code-body { padding: 20px 24px; overflow-x: auto; font-size: 13px; line-height: 1.75; color: #cdd6e0; font-family: var(--font-mono); }
+  .code-body pre { white-space: pre; }
+  .code-body .kw  { color: #79b8ff; }
+  .code-body .fn  { color: #b392f0; }
+  .code-body .str { color: #9ecbff; }
+  .code-body .cm  { color: #6a737d; font-style: italic; }
+  .code-body .fd  { color: #ffab70; }
+  .code-body .tp  { color: #85e89d; }
+  .code-body .nb  { color: #f97583; }
+  .code-body .kw2 { color: #f97583; }  /* ABAP keyword */
+
+  /* ARCH DIAGRAM */
+  .arch-diagram {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 28px 32px;
+    margin-bottom: 16px;
+  }
+  .arch-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin-bottom: 0;
+  }
+  .arch-layer {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px 20px;
+    border-radius: 4px;
+  }
+  .arch-layer.layer-cds { background: var(--navy-light); border: 1px solid var(--navy-mid); }
+  .arch-layer.layer-abap { background: var(--bg); border: 1px solid var(--border); }
+  .arch-layer.layer-hana { background: #0f1923; border: 1px solid #2a3d52; }
+  .arch-layer-label { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+  .arch-layer.layer-cds .arch-layer-label { color: var(--navy); }
+  .arch-layer.layer-abap .arch-layer-label { color: var(--text-muted); }
+  .arch-layer.layer-hana .arch-layer-label { color: var(--navy-mid); }
+  .arch-item { border-radius: 3px; padding: 10px 14px; font-size: 13px; }
+  .arch-item.cds-item { background: var(--navy); color: var(--white); font-family: var(--font-mono); }
+  .arch-item.abap-item { background: var(--white); border: 1px solid var(--border); color: var(--navy); font-family: var(--font-mono); font-size: 12px; }
+  .arch-item.hana-item { background: #1a2738; color: #9ecbff; font-family: var(--font-mono); font-size: 12px; }
+  .arch-item .ai-label { font-size: 10px; opacity: 0.65; margin-bottom: 3px; }
+  .arch-item .ai-name { font-weight: 700; }
+  .arch-connector {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 12px;
+    color: var(--navy);
+    font-size: 20px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .arch-conn-label { font-family: var(--font-mono); font-size: 9px; color: var(--text-muted); text-align: center; margin-top: 4px; white-space: nowrap; }
+
+  /* STEP */
+  .step-flow { display: flex; flex-direction: column; margin-bottom: 16px; }
+  .step-item { display: flex; gap: 20px; background: var(--white); border: 1px solid var(--border); padding: 20px 24px; }
+  .step-item:not(:last-child) { border-bottom: none; }
+  .step-item:first-child { border-radius: 4px 4px 0 0; }
+  .step-item:last-child { border-radius: 0 0 4px 4px; }
+  .step-num { width: 32px; height: 32px; border-radius: 50%; background: var(--navy); color: var(--white); font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+  .step-content h4 { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+  .step-content p { font-size: 13px; color: var(--text-muted); line-height: 1.65; }
+  .step-content code { font-family: var(--font-mono); font-size: 12px; background: var(--bg); padding: 1px 5px; border-radius: 2px; border: 1px solid var(--border); }
+
+  /* SCENARIO CARDS */
+  .scenario-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .scenario-card { background: var(--white); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+  .scenario-head { padding: 12px 18px; background: var(--navy-light); border-bottom: 1px solid var(--border); }
+  .scenario-head .sh-tag { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 3px; }
+  .scenario-head .sh-title { font-size: 14px; font-weight: 700; color: var(--navy); }
+  .scenario-body { padding: 14px 18px; font-size: 13px; color: var(--text-muted); line-height: 1.65; }
+  .scenario-body code { font-family: var(--font-mono); font-size: 11px; background: var(--bg); padding: 1px 4px; border-radius: 2px; border: 1px solid var(--border); }
+  .scenario-body strong { color: var(--navy); }
+
+  /* ANATOMY */
+  .anatomy-box { background: var(--white); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 16px; }
+  .anatomy-header { background: var(--navy); color: var(--white); padding: 12px 24px; font-family: var(--font-mono); font-size: 13px; display: flex; align-items: center; gap: 12px; }
+  .anatomy-row { display: flex; border-bottom: 1px solid var(--border); }
+  .anatomy-row:last-child { border-bottom: none; }
+  .anatomy-num { width: 52px; flex-shrink: 0; background: var(--bg); color: var(--text-muted); font-family: var(--font-mono); font-size: 11px; display: flex; align-items: flex-start; justify-content: center; padding-top: 14px; border-right: 1px solid var(--border); }
+  .anatomy-code { flex: 1; padding: 12px 20px; font-family: var(--font-mono); font-size: 13px; color: #cdd6e0; background: #0f1923; line-height: 1.75; overflow-x: auto; }
+  .anatomy-desc { width: 290px; flex-shrink: 0; padding: 12px 16px; background: var(--white); border-left: 1px solid var(--border); font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+  .anatomy-desc strong { color: var(--navy); }
+  .anatomy-desc code { font-family: var(--font-mono); font-size: 11px; background: var(--bg); padding: 1px 4px; border-radius: 2px; border: 1px solid var(--border); }
+
+  /* DRILL */
+  .drill-toggle { background: var(--white); border: 1px solid var(--border); border-radius: 4px; margin-bottom: 10px; overflow: hidden; }
+  .drill-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; cursor: pointer; user-select: none; font-size: 14px; font-weight: 600; color: var(--navy); transition: background 0.15s; }
+  .drill-header:hover { background: var(--navy-light); }
+  .drill-arrow { font-size: 12px; color: var(--text-muted); transition: transform 0.2s; }
+  .drill-body { display: none; padding: 0 20px 20px; border-top: 1px solid var(--border); }
+  .drill-body.open { display: block; }
+  .drill-body p { font-size: 14px; color: var(--text-muted); line-height: 1.7; margin-top: 14px; }
+  .drill-body code { font-family: var(--font-mono); font-size: 12px; background: var(--bg); padding: 1px 5px; border-radius: 2px; border: 1px solid var(--border); }
+
+  /* QUIZ */
+  .quiz-section { background: var(--white); border: 1px solid var(--border); border-radius: 4px; padding: 32px; }
+  .quiz-title { font-family: var(--font-heading); font-size: 20px; color: var(--navy); margin-bottom: 24px; }
+  .quiz-item { margin-bottom: 28px; padding-bottom: 28px; border-bottom: 1px solid var(--border); }
+  .quiz-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .quiz-q { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 14px; line-height: 1.6; }
+  .quiz-q .q-num { display: inline-block; background: var(--navy); color: var(--white); font-family: var(--font-mono); font-size: 11px; padding: 2px 8px; border-radius: 2px; margin-right: 10px; vertical-align: middle; }
+  .quiz-q code { font-family: var(--font-mono); font-size: 13px; background: var(--bg); padding: 1px 6px; border-radius: 2px; border: 1px solid var(--border); }
+  .quiz-options { display: flex; flex-direction: column; gap: 8px; }
+  .quiz-option { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; background: var(--bg); transition: border-color 0.15s, background 0.15s; font-size: 14px; line-height: 1.5; }
+  .quiz-option:hover { border-color: var(--navy); background: var(--navy-light); }
+  .quiz-option.correct-ans { border-color: var(--correct-border) !important; background: var(--correct-bg) !important; }
+  .quiz-option.wrong-ans   { border-color: #c0392b !important; background: #fdecea !important; }
+  .quiz-option .opt-label  { font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--navy); flex-shrink: 0; margin-top: 1px; }
+  .quiz-feedback { margin-top: 12px; padding: 12px 16px; border-radius: 4px; font-size: 13px; display: none; line-height: 1.6; }
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback.correct-fb { background: var(--correct-bg); color: #2e7d32; border-left: 3px solid var(--correct-border); }
+  .quiz-feedback.wrong-fb   { background: #fdecea; color: #c0392b; border-left: 3px solid #c0392b; }
+  .quiz-progress { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+  .quiz-progress-bar { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .quiz-progress-fill { height: 100%; background: var(--navy); border-radius: 3px; transition: width 0.4s; }
+  .quiz-score-label { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+
+  .module-footer { background: var(--white); border-top: 1px solid var(--border); padding: 24px 80px; display: flex; justify-content: space-between; align-items: center; margin-top: 60px; font-size: 13px; color: var(--text-muted); }
+  .footer-nav { display: flex; gap: 24px; }
+  .footer-nav a { color: var(--navy); text-decoration: none; font-weight: 500; }
+  .footer-nav a:hover { text-decoration: underline; }
+
+  @media (max-width: 900px) {
+    .site-header, .tab-nav, .wrapper, .module-footer { padding-left: 20px; padding-right: 20px; }
+    .hero { padding: 32px 24px; }
+    .arch-row { flex-direction: column; }
+    .scenario-grid { grid-template-columns: 1fr; }
+    .anatomy-desc { width: 180px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <span class="logo">ASPN BAC · EDU Portal</span>
+  <span class="module-label">CDS View Analytics Query — A to Z</span>
+</header>
+
+<nav class="tab-nav">
+  <a href="tab01_overview.html">01. 개요 &amp; 로드맵</a>
+  <a href="tab02_syntax.html">02. CDS 기초 문법</a>
+  <a href="tab03_dimension.html">03. Dimension View</a>
+  <a href="tab04_hierarchy.html">04. Hierarchy View</a>
+  <a href="tab05_cube.html">05. Cube View</a>
+  <a href="tab06_query.html">06. Analytics Query View</a>
+  <a href="tab07_table_function.html" class="active">07. Table Function &amp; AMDP</a>
+  <a href="tab08_authorization.html">08. 권한 제어</a>
+  <a href="tab09_sac_live.html">09. SAC Live Model 연결</a>
+</nav>
+
+<main class="wrapper">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="eyebrow">Module 07 / CDS Table Function &amp; AMDP</div>
+    <h1>CDS가 표현 못하는 복잡 로직을<br>ABAP 클래스로 HANA에서 실행한다</h1>
+    <p>
+      서브쿼리·루프·HANA Native Function이 필요한 경우,
+      <code style="color:var(--navy-mid); font-family:var(--font-mono);">DEFINE TABLE FUNCTION</code>과
+      <code style="color:var(--navy-mid); font-family:var(--font-mono);">IF_AMDP_MARKER_HDB</code> 인터페이스를 구현한
+      ABAP 클래스로 로직을 HANA 레이어에서 직접 실행합니다.
+      ASPN Group 기간별 잔액 계산 시나리오를 완성합니다.
+    </p>
+    <div class="meta-row">
+      <div class="meta-item"><span class="meta-label">선수 지식</span><span class="meta-value">Tab 02 · 05 완료</span></div>
+      <div class="meta-item"><span class="meta-label">예상 학습 시간</span><span class="meta-value">55분</span></div>
+      <div class="meta-item"><span class="meta-label">핵심 기술</span><span class="meta-value">DEFINE TABLE FUNCTION · AMDP · IF_AMDP_MARKER_HDB</span></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       SECTION 1. 개념 및 필요성
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">1. CDS Table Function과 AMDP — 개념 및 필요성</h2>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+      Tab 02에서 다뤘듯 CDS View DDL은 서브쿼리, 루프, HANA Native Function을 직접 지원하지 않습니다.
+      이를 해결하는 메커니즘이 <strong>CDS Table Function + AMDP</strong> 조합입니다.
+      CDS DDL에서 함수 인터페이스를 선언하고, 실제 구현은 ABAP 클래스 메서드에 HANA SQL로 작성합니다.
+    </p>
+
+    <!-- 아키텍처 다이어그램 -->
+    <div class="arch-diagram">
+      <p style="font-family:var(--font-mono); font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:20px;">CDS Table Function + AMDP 전체 아키텍처</p>
+      <div class="arch-row">
+
+        <div class="arch-layer layer-cds">
+          <div class="arch-layer-label">CDS Layer (.ddls)</div>
+          <div class="arch-item cds-item">
+            <div class="ai-label">DEFINE TABLE FUNCTION</div>
+            <div class="ai-name">ZASPN_TF_PeriodBalance</div>
+          </div>
+          <div class="arch-item cds-item" style="margin-top:8px; background:rgba(255,255,255,0.12);">
+            <div class="ai-label">소비자 — Cube View 소스로 참조</div>
+            <div class="ai-name">ZASPN_C_FinancialCube</div>
+          </div>
+        </div>
+
+        <div class="arch-connector">
+          →<div class="arch-conn-label">implemented by</div>
+        </div>
+
+        <div class="arch-layer layer-abap">
+          <div class="arch-layer-label">ABAP Layer (Class)</div>
+          <div class="arch-item abap-item">
+            <div class="ai-label">CLASS (implements IF_AMDP_MARKER_HDB)</div>
+            <div class="ai-name">ZCL_ASPN_AMDP_BALANCE</div>
+          </div>
+          <div class="arch-item abap-item" style="margin-top:8px; font-size:11px; color:var(--text-muted);">
+            <div class="ai-label">METHOD</div>
+            <div class="ai-name" style="color:var(--navy);">get_period_balance</div>
+          </div>
+        </div>
+
+        <div class="arch-connector">
+          →<div class="arch-conn-label">executes on</div>
+        </div>
+
+        <div class="arch-layer layer-hana">
+          <div class="arch-layer-label">HANA Layer (SQLScript)</div>
+          <div class="arch-item hana-item">
+            <div class="ai-label">SQLScript (HANA Native)</div>
+            <div class="ai-name">LOOP / SERIES_GENERATE / Window Functions</div>
+          </div>
+          <div class="arch-item hana-item" style="margin-top:8px;">
+            <div class="ai-label">직접 참조 가능</div>
+            <div class="ai-name" style="color:#85e89d;">ACDOCA, BKPF, T-Tables</div>
+          </div>
+        </div>
+
+      </div>
+      <div class="callout" style="margin-top:20px; margin-bottom:0;">
+        <div class="callout-label">핵심 원칙</div>
+        <p>CDS Table Function은 <strong>인터페이스(입출력 스펙)</strong>만 선언합니다.
+        실제 로직은 ABAP 클래스 메서드에 <strong>HANA SQLScript</strong>로 작성하며,
+        런타임에 HANA 엔진이 직접 실행합니다. ABAP 레이어를 거치지 않아 성능이 뛰어납니다.</p>
+      </div>
+    </div>
+
+    <!-- CDS View vs Table Function 비교 -->
+    <table class="compare-table" style="margin-top:24px;">
+      <thead>
+        <tr>
+          <th style="width:22%">항목</th>
+          <th>일반 CDS View Entity</th>
+          <th class="hl">CDS Table Function + AMDP</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>선언 구문</strong></td>
+          <td><code>DEFINE VIEW ENTITY</code></td>
+          <td class="hl"><code>DEFINE TABLE FUNCTION</code></td>
+        </tr>
+        <tr>
+          <td><strong>구현 위치</strong></td>
+          <td>CDS DDL 내 SELECT 문</td>
+          <td class="hl">ABAP 클래스 메서드 (SQLScript)</td>
+        </tr>
+        <tr>
+          <td><strong>서브쿼리</strong></td>
+          <td>불가</td>
+          <td class="hl">SQLScript 내 자유롭게 사용 가능</td>
+        </tr>
+        <tr>
+          <td><strong>루프 / 분기</strong></td>
+          <td>불가</td>
+          <td class="hl">FOR LOOP, IF/ELSE, CASE 모두 가능</td>
+        </tr>
+        <tr>
+          <td><strong>HANA Native Function</strong></td>
+          <td>불가</td>
+          <td class="hl">SERIES_GENERATE_DATE, 윈도우 함수 등 직접 사용</td>
+        </tr>
+        <tr>
+          <td><strong>Association 선언</strong></td>
+          <td>가능</td>
+          <td class="hl">불가 — Table Function 자체에는 Association 선언 불가</td>
+        </tr>
+        <tr>
+          <td><strong>Annotation</strong></td>
+          <td>전체 지원</td>
+          <td class="hl">제한적 — <code>@EndUserText</code>, <code>@AccessControl</code> 등 일부만 지원</td>
+        </tr>
+        <tr>
+          <td><strong>SAC 직접 연결</strong></td>
+          <td>Query View 통해 가능</td>
+          <td class="hl">Table Function → Cube View 소스 → Query View → SAC 경로로 간접 연결</td>
+        </tr>
+        <tr>
+          <td><strong>ASPN 활용</strong></td>
+          <td>대부분의 Dimension · Cube · Query</td>
+          <td class="hl">기간별 잔액, BW 마이그레이션 데이터 변환, 복잡 원가 계산</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 2. 사용 적합 시나리오
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">2. AMDP 사용 적합 시나리오</h2>
+
+    <div class="scenario-grid">
+      <div class="scenario-card">
+        <div class="scenario-head">
+          <div class="sh-tag">ASPN Group 핵심 시나리오</div>
+          <div class="sh-title">기간별 누적 잔액 계산</div>
+        </div>
+        <div class="scenario-body">
+          재무상태표 계정의 기간별 누적 잔액은 전기이월 잔액 + 당기 발생액의 누적 합산입니다.
+          이 계산에는 <strong>기간 순서에 따른 누적 합산(Running Total)</strong>이 필요하며,
+          HANA 윈도우 함수 <code>SUM() OVER (PARTITION BY … ORDER BY …)</code>로 구현합니다.
+          CDS View DDL로는 윈도우 함수를 직접 사용할 수 없습니다.
+        </div>
+      </div>
+      <div class="scenario-card">
+        <div class="scenario-head">
+          <div class="sh-tag">데이터 전환</div>
+          <div class="sh-title">BW 마이그레이션 데이터 변환</div>
+        </div>
+        <div class="scenario-body">
+          BW에서 S/4HANA로 이관된 데이터는 구조가 다릅니다.
+          복수 BW DSO 데이터를 조인하고, 키 필드를 매핑하고, NULL을 처리하는
+          <strong>복잡한 변환 로직</strong>을 CDS View 단독으로 구현하기 어렵습니다.
+          AMDP에서 SQLScript로 변환 후 Table Function으로 노출합니다.
+        </div>
+      </div>
+      <div class="scenario-card">
+        <div class="scenario-head">
+          <div class="sh-tag">원가 계산</div>
+          <div class="sh-title">다단계 원가 배부 계산</div>
+        </div>
+        <div class="scenario-body">
+          ASPN Korea의 간접비 배부 로직은 배부 기준(인원수, 면적)에 따라
+          여러 단계를 반복하며 원가를 분할합니다.
+          각 배부 단계가 이전 단계 결과에 의존하는 <strong>순차적 루프 계산</strong>은
+          CDS View로 표현 불가능하며 SQLScript LOOP로 구현합니다.
+        </div>
+      </div>
+      <div class="scenario-card">
+        <div class="scenario-head">
+          <div class="sh-tag">시계열 분석</div>
+          <div class="sh-title">날짜 시계열 생성 (SERIES_GENERATE)</div>
+        </div>
+        <div class="scenario-body">
+          특정 기간의 모든 날짜/월을 행으로 생성하는 HANA Native Function
+          <code>SERIES_GENERATE_DATE</code>는 CDS DDL에서 직접 호출 불가합니다.
+          ASPN Group의 월별 트렌드 분석에서 데이터가 없는 월도 0으로 표시하려면
+          이 함수로 기준 날짜 테이블을 생성 후 LEFT JOIN합니다.
+        </div>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-label">AMDP 남용 주의</div>
+      <p>CDS View DDL로 해결 가능한 로직은 반드시 CDS View로 구현합니다.
+      AMDP는 <strong>디버깅이 어렵고</strong>, ADT의 CDS 모델링 툴과 연동이 제한됩니다.
+      또한 ABAP 유닛 테스트 작성이 복잡합니다.
+      Tab 02의 제약사항 목록에 해당하는 경우에만 AMDP를 선택합니다.</p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 3. DEFINE TABLE FUNCTION 구문
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">3. DEFINE TABLE FUNCTION 구문</h2>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+      CDS Table Function은 <strong>입력 파라미터</strong>와 <strong>반환 컬럼 스펙</strong>만 선언합니다.
+      실제 데이터 반환 로직은 <code>implemented by method</code>로 지정된 ABAP 클래스 메서드에 위임합니다.
+    </p>
+
+    <div class="anatomy-box">
+      <div class="anatomy-header">
+        <span style="font-size:11px; color:var(--navy-mid);">ABAP CDS · DDL</span>
+        <span style="font-size:12px; color:#8ba3bc;">ZASPN_TF_PeriodBalance — Table Function 해부</span>
+      </div>
+
+      <div class="anatomy-row">
+        <div class="anatomy-num">1–4</div>
+        <div class="anatomy-code"><span style="color:#b392f0;">@EndUserText.label</span>: <span style="color:#9ecbff;">'ASPN Period Balance Table Function'</span>
+<span style="color:#b392f0;">@ClientHandling.type</span>: <span style="color:#9ecbff;">#CLIENT_INDEPENDENT</span>
+<span style="color:#b392f0;">@AccessControl.authorizationCheck</span>: <span style="color:#9ecbff;">#NOT_REQUIRED</span>
+<span style="color:#6a737d; font-style:italic;">// Table Function은 AccessControl을 직접 지원하지 않음</span>
+<span style="color:#6a737d; font-style:italic;">// → 소비하는 Cube View에서 권한 제어</span></div>
+        <div class="anatomy-desc"><strong>Table Function Annotation.</strong> <code>#CLIENT_INDEPENDENT</code>: 클라이언트 필드 처리 방식. <code>@AccessControl: #NOT_REQUIRED</code>: Table Function 자체는 DCL 불가. 소비 View에서 <code>#CHECK</code>로 제어합니다.</div>
+      </div>
+
+      <div class="anatomy-row">
+        <div class="anatomy-num">5–10</div>
+        <div class="anatomy-code"><span style="color:#79b8ff;">define table function</span> <span style="color:#ffab70;">ZASPN_TF_PeriodBalance</span>
+
+  <span style="color:#6a737d; font-style:italic;">// 입력 파라미터 선언</span>
+  <span style="color:#79b8ff;">with parameters</span>
+    <span style="color:#ffab70;">P_FiscalYear</span>   : <span style="color:#85e89d;">fiscalyear</span>,
+    <span style="color:#ffab70;">P_CompanyCode</span>  : <span style="color:#85e89d;">bukrs</span>
+
+  <span style="color:#6a737d; font-style:italic;">// ABAP 클래스 메서드를 구현체로 지정</span>
+  <span style="color:#79b8ff;">implemented by method</span>
+    <span style="color:#ffab70;">ZCL_ASPN_AMDP_BALANCE</span>=&gt;<span style="color:#ffab70;">GET_PERIOD_BALANCE</span></div>
+        <div class="anatomy-desc"><strong>핵심 선언.</strong> <code>define table function</code>: Table Function 선언 키워드. <code>implemented by method</code>: 구현 ABAP 클래스와 메서드를 <code>클래스명=&gt;메서드명</code> 형식으로 지정합니다.</div>
+      </div>
+
+      <div class="anatomy-row">
+        <div class="anatomy-num">11–26</div>
+        <div class="anatomy-code"><span style="color:#6a737d; font-style:italic;">// 반환 컬럼 스펙 선언 (실제 데이터 로직 아님)</span>
+<span style="color:#79b8ff;">returns</span> {
+  <span style="color:#79b8ff;">key</span> <span style="color:#ffab70;">CompanyCode</span>          : <span style="color:#85e89d;">abap.char(4)</span>;
+  <span style="color:#79b8ff;">key</span> <span style="color:#ffab70;">FiscalYear</span>           : <span style="color:#85e89d;">abap.numc(4)</span>;
+  <span style="color:#79b8ff;">key</span> <span style="color:#ffab70;">FiscalPeriod</span>         : <span style="color:#85e89d;">abap.numc(3)</span>;
+  <span style="color:#79b8ff;">key</span> <span style="color:#ffab70;">GLAccount</span>            : <span style="color:#85e89d;">abap.char(10)</span>;
+  <span style="color:#79b8ff;">key</span> <span style="color:#ffab70;">ProfitCenter</span>         : <span style="color:#85e89d;">abap.char(10)</span>;
+
+  <span style="color:#6a737d; font-style:italic;">// 집계 컬럼 — ABAP 타입으로 명시</span>
+  <span style="color:#ffab70;">CumulativeAmountLC</span>   : <span style="color:#85e89d;">abap.curr(23,2)</span>;   <span style="color:#6a737d; font-style:italic;">// 누적 잔액 (LC)</span>
+  <span style="color:#ffab70;">CumulativeAmountGC</span>   : <span style="color:#85e89d;">abap.curr(23,2)</span>;   <span style="color:#6a737d; font-style:italic;">// 누적 잔액 (GC)</span>
+  <span style="color:#ffab70;">PeriodAmountLC</span>       : <span style="color:#85e89d;">abap.curr(23,2)</span>;   <span style="color:#6a737d; font-style:italic;">// 당기 발생액 (LC)</span>
+  <span style="color:#ffab70;">CompanyCodeCurrency</span>  : <span style="color:#85e89d;">abap.cuky</span>;         <span style="color:#6a737d; font-style:italic;">// 통화 코드</span>
+  <span style="color:#ffab70;">GroupCurrency</span>        : <span style="color:#85e89d;">abap.cuky</span>;
+}</div>
+        <div class="anatomy-desc"><strong>returns 블록.</strong> 반환 컬럼의 이름과 ABAP 타입을 선언합니다. 세미콜론(<code>;</code>)으로 끝납니다 (일반 CDS View와 달리). ABAP 타입(<code>abap.char</code>, <code>abap.curr</code> 등)을 직접 사용합니다. 이 스펙이 ABAP 클래스 메서드의 반환 테이블 타입과 일치해야 합니다.</div>
+      </div>
+
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-label">returns 블록 — 세미콜론 주의</div>
+      <p>Table Function의 <code>returns</code> 블록에서 각 컬럼 선언은
+      일반 CDS View 필드 목록의 쉼표(<code>,</code>) 대신 <strong>세미콜론(<code>;</code>)</strong>으로 끝납니다.
+      또한 타입은 ABAP Dictionary 타입(<code>abap.char</code>, <code>abap.numc</code>, <code>abap.curr</code>, <code>abap.cuky</code>)으로 명시해야 합니다.
+      DDIC 데이터 요소 참조(<code>: bukrs</code> 형식)는 사용 불가합니다.</p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 4. ABAP 클래스 — AMDP 구현
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">4. ABAP 클래스 구현 — IF_AMDP_MARKER_HDB</h2>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+      AMDP는 <strong>ABAP 클래스</strong>로 구현합니다.
+      클래스가 <code>IF_AMDP_MARKER_HDB</code> 인터페이스를 구현(implements)하면
+      ABAP 런타임이 해당 클래스를 AMDP 클래스로 인식합니다.
+      메서드 본문에는 ABAP 코드 대신 <strong>HANA SQLScript</strong>를 작성합니다.
+    </p>
+
+    <h3 class="subsection-title">클래스 정의 — ZCL_ASPN_AMDP_BALANCE</h3>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-lang">ABAP</span>
+        <span class="code-title">ZCL_ASPN_AMDP_BALANCE — 클래스 정의부 (CLASS DEFINITION)</span>
+      </div>
+      <div class="code-body"><pre><span class="kw2">CLASS</span> <span class="fd">ZCL_ASPN_AMDP_BALANCE</span> <span class="kw2">DEFINITION</span>
+  <span class="kw2">PUBLIC</span>
+  <span class="kw2">FINAL</span>
+  <span class="kw2">CREATE PUBLIC</span>.
+
+  <span class="kw2">PUBLIC SECTION</span>.
+
+    <span class="cm">"AMDP 클래스임을 선언하는 인터페이스 — 반드시 구현</span>
+    <span class="kw2">INTERFACES</span> <span class="fd">IF_AMDP_MARKER_HDB</span>.
+
+    <span class="cm">"Table Function에서 implemented by method로 지정한 메서드</span>
+    <span class="kw2">CLASS-METHODS</span> <span class="fd">GET_PERIOD_BALANCE</span>
+      <span class="kw2">IMPORTING</span>
+        VALUE(<span class="fd">IV_FISCAL_YEAR</span>)  <span class="kw2">TYPE</span> <span class="tp">fiscalyear</span>
+        VALUE(<span class="fd">IV_COMPANY_CODE</span>) <span class="kw2">TYPE</span> <span class="tp">bukrs</span>
+      <span class="kw2">EXPORTING</span>
+        VALUE(<span class="fd">ET_RESULT</span>) <span class="kw2">TYPE</span> <span class="tp">STANDARD TABLE OF</span> <span class="fd">ZASPN_TT_PERIOD_BALANCE</span>
+                                    <span class="cm">"반환 테이블 타입 — returns 블록과 일치</span>
+      <span class="kw2">RAISING</span>
+        <span class="fd">CX_AMDP_ERROR</span>.
+
+<span class="kw2">ENDCLASS</span>.</pre></div>
+    </div>
+
+    <div class="callout">
+      <div class="callout-label">IMPORTING / EXPORTING 파라미터 매핑</div>
+      <p>
+        <code>IMPORTING</code> 파라미터: Table Function의 <code>with parameters</code>와 이름·타입이 일치해야 합니다.<br>
+        <code>EXPORTING</code> 파라미터: Table Function의 <code>returns</code> 블록과 구조가 일치하는 테이블 타입을 사용합니다.<br>
+        타입 불일치 시 Table Function 활성화 오류가 발생합니다.
+      </p>
+    </div>
+
+    <h3 class="subsection-title">클래스 구현 — AMDP 메서드 본문 (SQLScript)</h3>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-lang">ABAP + SQLScript</span>
+        <span class="code-title">ZCL_ASPN_AMDP_BALANCE — GET_PERIOD_BALANCE 구현부</span>
+      </div>
+      <div class="code-body"><pre><span class="kw2">CLASS</span> <span class="fd">ZCL_ASPN_AMDP_BALANCE</span> <span class="kw2">IMPLEMENTATION</span>.
+
+  <span class="kw2">METHOD</span> <span class="fd">GET_PERIOD_BALANCE</span>
+    <span class="kw2">BY DATABASE FUNCTION</span>              <span class="cm">"AMDP 메서드 선언 키워드</span>
+    <span class="kw2">FOR HDB</span>                            <span class="cm">"대상 DB: HANA (HDB)</span>
+    <span class="kw2">LANGUAGE SQLSCRIPT</span>                 <span class="cm">"구현 언어: SQLScript</span>
+    <span class="kw2">OPTIONS READ-ONLY</span>                  <span class="cm">"읽기 전용 선언 (DML 불가)</span>
+    <span class="kw2">USING</span>                              <span class="cm">"참조할 HANA DB 오브젝트 명시</span>
+      <span class="fd">ACDOCA</span>                           <span class="cm">"Universal Journal</span>
+      <span class="fd">TCURR</span>                            <span class="cm">"환율 테이블</span>
+      <span class="fd">ZASPN_T_CARRY_FORWARD</span>.           <span class="cm">"전기이월 커스텀 테이블</span>
+
+    <span class="cm">-- ────────────────────────────────────────────
+       SQLScript 본문 시작
+       ABAP 코드가 아닌 HANA SQLScript 문법
+    ─────────────────────────────────────────── --</span>
+
+    <span class="cm">-- 1단계: 전기이월 잔액 (기초잔액)</span>
+    <span class="kw">carry_forward</span> = <span class="kw2">SELECT</span>
+        <span class="fd">BUKRS</span>          <span class="kw2">AS</span> <span class="fd">CompanyCode</span>,
+        <span class="fd">GJAHR</span>          <span class="kw2">AS</span> <span class="fd">FiscalYear</span>,
+        <span class="str">'000'</span>          <span class="kw2">AS</span> <span class="fd">FiscalPeriod</span>,   <span class="cm">-- 기초잔액 기간 = 000</span>
+        <span class="fd">HKONT</span>          <span class="kw2">AS</span> <span class="fd">GLAccount</span>,
+        <span class="fd">PRCTR</span>          <span class="kw2">AS</span> <span class="fd">ProfitCenter</span>,
+        <span class="fd">BALANCE_AMOUNT</span> <span class="kw2">AS</span> <span class="fd">CumulativeAmountLC</span>,
+        <span class="str">'KRW'</span>          <span class="kw2">AS</span> <span class="fd">GroupCurrency</span>,
+        <span class="fd">WAERS</span>          <span class="kw2">AS</span> <span class="fd">CompanyCodeCurrency</span>
+    <span class="kw2">FROM</span> <span class="fd">ZASPN_T_CARRY_FORWARD</span>
+    <span class="kw2">WHERE</span> <span class="fd">BUKRS</span>  = <span class="fd">:IV_COMPANY_CODE</span>    <span class="cm">-- 입력 파라미터 참조: :변수명</span>
+      <span class="kw2">AND</span> <span class="fd">GJAHR</span>  = <span class="fd">:IV_FISCAL_YEAR</span>;
+
+    <span class="cm">-- 2단계: 당기 발생액 (ACDOCA)</span>
+    <span class="kw">period_amounts</span> = <span class="kw2">SELECT</span>
+        <span class="fd">RBUKRS</span>         <span class="kw2">AS</span> <span class="fd">CompanyCode</span>,
+        <span class="fd">GJAHR</span>          <span class="kw2">AS</span> <span class="fd">FiscalYear</span>,
+        <span class="fd">POPER</span>          <span class="kw2">AS</span> <span class="fd">FiscalPeriod</span>,
+        <span class="fd">HKONT</span>          <span class="kw2">AS</span> <span class="fd">GLAccount</span>,
+        <span class="fd">PRCTR</span>          <span class="kw2">AS</span> <span class="fd">ProfitCenter</span>,
+        <span class="kw2">SUM</span>(<span class="fd">HSL</span>)       <span class="kw2">AS</span> <span class="fd">PeriodAmountLC</span>,   <span class="cm">-- 당기 발생액 합산</span>
+        <span class="fd">RHCUR</span>          <span class="kw2">AS</span> <span class="fd">CompanyCodeCurrency</span>
+    <span class="kw2">FROM</span> <span class="fd">ACDOCA</span>
+    <span class="kw2">WHERE</span> <span class="fd">RBUKRS</span> = <span class="fd">:IV_COMPANY_CODE</span>
+      <span class="kw2">AND</span> <span class="fd">GJAHR</span>  = <span class="fd">:IV_FISCAL_YEAR</span>
+      <span class="kw2">AND</span> <span class="fd">RLDNR</span>  = <span class="str">'0L'</span>               <span class="cm">-- 원장: Leading Ledger</span>
+    <span class="kw2">GROUP BY</span> <span class="fd">RBUKRS</span>, <span class="fd">GJAHR</span>, <span class="fd">POPER</span>, <span class="fd">HKONT</span>, <span class="fd">PRCTR</span>, <span class="fd">RHCUR</span>;
+
+    <span class="cm">-- 3단계: 기초잔액과 당기발생액 UNION ALL 후 누적 집계
+    --        HANA 윈도우 함수로 기간별 Running Total 계산</span>
+    <span class="kw">combined</span> = <span class="kw2">SELECT</span> * <span class="kw2">FROM</span> :<span class="fd">carry_forward</span>
+               <span class="kw2">UNION ALL</span>
+               <span class="kw2">SELECT</span> <span class="fd">CompanyCode</span>, <span class="fd">FiscalYear</span>, <span class="fd">FiscalPeriod</span>,
+                      <span class="fd">GLAccount</span>, <span class="fd">ProfitCenter</span>,
+                      <span class="fd">PeriodAmountLC</span>, <span class="str">'KRW'</span>,
+                      <span class="fd">CompanyCodeCurrency</span>
+               <span class="kw2">FROM</span> :<span class="fd">period_amounts</span>;
+
+    <span class="cm">-- 4단계: 윈도우 함수로 기간별 누적 잔액 (CumulativeAmountLC) 계산</span>
+    <span class="kw">et_result</span> = <span class="kw2">SELECT</span>
+        <span class="fd">CompanyCode</span>, <span class="fd">FiscalYear</span>, <span class="fd">FiscalPeriod</span>,
+        <span class="fd">GLAccount</span>, <span class="fd">ProfitCenter</span>,
+        <span class="fd">PeriodAmountLC</span>,
+        <span class="cm">-- 윈도우 함수: 계정·이익센터·회사별로 기간 순서에 따라 누적 합산</span>
+        <span class="kw2">SUM</span>(<span class="fd">PeriodAmountLC</span>)
+          <span class="kw2">OVER</span> (
+            <span class="kw2">PARTITION BY</span> <span class="fd">CompanyCode</span>, <span class="fd">GLAccount</span>, <span class="fd">ProfitCenter</span>
+            <span class="kw2">ORDER BY</span>     <span class="fd">FiscalYear</span>, <span class="fd">FiscalPeriod</span>
+            <span class="kw2">ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</span>
+          )                                       <span class="kw2">AS</span> <span class="fd">CumulativeAmountLC</span>,
+        <span class="nb">0.00</span>               <span class="kw2">AS</span> <span class="fd">CumulativeAmountGC</span>, <span class="cm">-- GC는 별도 환산 (간략화)</span>
+        <span class="str">'KRW'</span>              <span class="kw2">AS</span> <span class="fd">GroupCurrency</span>,
+        <span class="fd">CompanyCodeCurrency</span>
+    <span class="kw2">FROM</span> :<span class="fd">combined</span>
+    <span class="kw2">WHERE</span> <span class="fd">FiscalPeriod</span> != <span class="str">'000'</span>;  <span class="cm">-- 기초잔액 행 제외 (누적에 이미 포함)</span>
+
+  <span class="kw2">ENDMETHOD</span>.
+
+<span class="kw2">ENDCLASS</span>.</pre></div>
+    </div>
+
+    <div class="callout correct">
+      <div class="callout-label">SQLScript 핵심 포인트</div>
+      <p>
+        ① <strong>입력 파라미터 참조</strong>: SQLScript 내에서 ABAP IMPORTING 파라미터는 <code>:IV_FISCAL_YEAR</code>처럼 콜론(<code>:</code>)을 앞에 붙여 참조합니다.<br>
+        ② <strong>중간 결과 변수</strong>: <code>carry_forward =</code>, <code>period_amounts =</code> 같이 변수에 SELECT 결과를 할당합니다. 참조 시 <code>:carry_forward</code> 형태.<br>
+        ③ <strong>윈도우 함수</strong>: <code>SUM() OVER (PARTITION BY … ORDER BY … ROWS BETWEEN …)</code>는 순수 HANA SQL 문법이며 CDS DDL에서는 사용 불가합니다.<br>
+        ④ <strong>최종 결과</strong>: <code>et_result =</code>에 할당된 값이 EXPORTING 파라미터로 반환됩니다.
+      </p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 5. USING 절 — 참조 오브젝트
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">5. USING 절 — DB 오브젝트 명시적 선언</h2>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+      AMDP 메서드가 SQLScript에서 참조하는 모든 DB 테이블·View·함수는
+      <code>USING</code> 절에 명시적으로 선언해야 합니다.
+      선언하지 않으면 런타임 오류가 발생합니다.
+    </p>
+
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th style="width:30%">USING 대상</th>
+          <th style="width:35%">예시</th>
+          <th>설명</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="hl">DDIC 투명 테이블</td>
+          <td><code>ACDOCA</code>, <code>BKPF</code>, <code>T001</code></td>
+          <td>SQLScript에서 직접 참조하는 SAP / 커스텀 테이블. 클라이언트 필드(MANDT) 포함 테이블은 WHERE MANDT = 클라이언트 조건 추가 필요</td>
+        </tr>
+        <tr>
+          <td class="hl">CDS View</td>
+          <td><code>I_JournalEntryItem</code></td>
+          <td>CDS View를 SQLScript 내에서 직접 참조 가능. 단, Table Function 자체를 재귀 참조 불가</td>
+        </tr>
+        <tr>
+          <td class="hl">다른 AMDP 메서드</td>
+          <td><code>ZCL_OTHER_AMDP=&gt;METHOD</code></td>
+          <td>SQLScript에서 다른 AMDP를 호출하는 경우 선언. 복잡한 계산 로직의 모듈화에 활용</td>
+        </tr>
+        <tr>
+          <td class="hl">환율 테이블</td>
+          <td><code>TCURR</code>, <code>TCURF</code></td>
+          <td>SQLScript 내 직접 환율 조인 시 선언. CDS <code>currency_conversion()</code> 대신 직접 환율 계산이 필요한 경우</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <div class="callout-label">클라이언트 필드(MANDT) 주의</div>
+      <p>SQLScript에서 DDIC 테이블(예: ACDOCA)을 참조할 때 클라이언트 필드(<code>MANDT</code>)는
+      자동 필터되지 않습니다. 반드시 WHERE 조건에
+      <code>MANDT = SESSION_CONTEXT('CLIENT')</code>를 추가해야 멀티 클라이언트 환경에서 데이터가 혼용되지 않습니다.
+      CDS View를 USING에 선언하면 클라이언트 필터가 자동 적용됩니다.</p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 6. Cube View에서 Table Function 참조
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">6. Cube View에서 Table Function 소비</h2>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+      완성된 Table Function은 일반 CDS View와 동일하게
+      Cube View의 <code>as select from</code> 소스로 참조합니다.
+      이후 Tab 05의 Cube View 설계 원칙이 그대로 적용됩니다.
+    </p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-lang">ABAP CDS</span>
+        <span class="code-title">ZASPN_C_BalanceCube — Table Function을 소스로 참조하는 Cube View</span>
+      </div>
+      <div class="code-body"><pre><span class="fn">@Analytics.dataCategory</span>: <span class="str">#CUBE</span>
+<span class="fn">@EndUserText.label</span>: <span class="str">'ASPN Period Balance Cube'</span>
+<span class="fn">@AccessControl.authorizationCheck</span>: <span class="str">#CHECK</span>  <span class="cm">// Cube에서 권한 제어</span>
+
+<span class="kw">define view entity</span> <span class="fd">ZASPN_C_BalanceCube</span>
+  <span class="kw">with parameters</span>
+    <span class="fd">P_FiscalYear</span>  : <span class="tp">fiscalyear</span>,
+    <span class="fd">P_CompanyCode</span> : <span class="tp">bukrs</span>
+
+  <span class="cm">// ★ Table Function을 소스로 참조 — 파라미터 전달</span>
+  <span class="kw">as select from</span> <span class="fd">ZASPN_TF_PeriodBalance</span>(
+      <span class="fd">P_FiscalYear</span>  = <span class="fd">$parameters</span>.<span class="fd">P_FiscalYear</span>,
+      <span class="fd">P_CompanyCode</span> = <span class="fd">$parameters</span>.<span class="fd">P_CompanyCode</span>
+  ) <span class="kw">as</span> <span class="fd">TF</span>
+
+  <span class="cm">// Dimension FK Association — 일반 Cube와 동일하게 선언</span>
+  <span class="kw">association [0..1] to</span> <span class="fd">ZASPN_I_CompanyCode</span> <span class="kw">as</span> <span class="fd">_CompanyCode</span>
+    <span class="kw">on</span> <span class="fd">$projection</span>.<span class="fd">CompanyCode</span> = <span class="fd">_CompanyCode</span>.<span class="fd">CompanyCode</span>
+
+  <span class="kw">association [0..1] to</span> <span class="fd">ZASPN_I_GLAccount</span>   <span class="kw">as</span> <span class="fd">_GLAccount</span>
+    <span class="kw">on</span>  <span class="fd">$projection</span>.<span class="fd">GLAccount</span> = <span class="fd">_GLAccount</span>.<span class="fd">GLAccount</span>
+
+{
+  <span class="fn">@ObjectModel.foreignKey.association</span>: <span class="str">'_CompanyCode'</span>
+  <span class="kw">key</span> <span class="fd">TF</span>.<span class="fd">CompanyCode</span>,
+  <span class="kw">key</span> <span class="fd">TF</span>.<span class="fd">FiscalYear</span>,
+  <span class="kw">key</span> <span class="fd">TF</span>.<span class="fd">FiscalPeriod</span>,
+
+  <span class="fn">@ObjectModel.foreignKey.association</span>: <span class="str">'_GLAccount'</span>
+  <span class="kw">key</span> <span class="fd">TF</span>.<span class="fd">GLAccount</span>,
+  <span class="kw">key</span> <span class="fd">TF</span>.<span class="fd">ProfitCenter</span>,
+
+  <span class="cm">// Measure 선언 — returns 블록의 컬럼을 Measure로 선언</span>
+  <span class="fn">@Semantics.amount.currencyCode</span>: <span class="str">'CompanyCodeCurrency'</span>
+  <span class="fn">@DefaultAggregation</span>: <span class="str">#SUM</span>
+      <span class="fd">TF</span>.<span class="fd">CumulativeAmountLC</span>,
+
+  <span class="fn">@Semantics.amount.currencyCode</span>: <span class="str">'CompanyCodeCurrency'</span>
+  <span class="fn">@DefaultAggregation</span>: <span class="str">#SUM</span>
+      <span class="fd">TF</span>.<span class="fd">PeriodAmountLC</span>,
+
+  <span class="fn">@Semantics.currencyCode</span>: <span class="kw">true</span>
+      <span class="fd">TF</span>.<span class="fd">CompanyCodeCurrency</span>,
+
+      <span class="fd">_CompanyCode</span>,
+      <span class="fd">_GLAccount</span>
+}</pre></div>
+    </div>
+
+    <div class="callout correct">
+      <div class="callout-label">SAC Live Model 연결 경로 — Table Function 기반</div>
+      <p>
+        <strong>ZASPN_TF_PeriodBalance</strong> (Table Function · AMDP)<br>
+        &nbsp;&nbsp;↓ 소스로 참조<br>
+        <strong>ZASPN_C_BalanceCube</strong> (#CUBE · DCL 권한 제어)<br>
+        &nbsp;&nbsp;↓ 소스로 참조<br>
+        <strong>ZASPN_C_BalanceQuery</strong> (@Analytics.query: true · OData 등록)<br>
+        &nbsp;&nbsp;↓ SAC Live Model Import<br>
+        <strong>SAC Analytics</strong>
+      </p>
+      <p style="margin-top:8px;">Table Function 자체는 SAC에 직접 노출되지 않습니다.
+      Cube → Query 경로를 통해 간접 노출되며, 권한 제어도 Cube View의 DCL에서 수행합니다.</p>
+    </div>
+
+    <!-- 개발 순서 체크리스트 -->
+    <div class="drill-toggle" style="margin-top:16px;">
+      <div class="drill-header" onclick="toggleDrill(this)">
+        <span>📋 Table Function + AMDP 개발 순서 체크리스트</span>
+        <span class="drill-arrow">▼</span>
+      </div>
+      <div class="drill-body">
+        <div class="step-flow" style="margin-top:14px;">
+          <div class="step-item">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <h4>반환 테이블 타입 생성 (SE11)</h4>
+              <p>ABAP Dictionary에서 Table Function의 <code>returns</code> 블록과 일치하는 구조체·테이블 타입을 생성합니다. (<code>ZASPN_TT_PERIOD_BALANCE</code>)</p>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <h4>ABAP 클래스 정의 작성</h4>
+              <p>ADT에서 클래스를 생성하고 <code>IF_AMDP_MARKER_HDB</code> 인터페이스 추가, 메서드 시그니처를 Table Function의 파라미터·반환 타입에 맞게 선언합니다.</p>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <h4>SQLScript 로직 구현</h4>
+              <p>클래스 구현부에 <code>BY DATABASE FUNCTION FOR HDB LANGUAGE SQLSCRIPT USING …</code>으로 메서드를 선언하고 SQLScript를 작성합니다.</p>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">4</div>
+            <div class="step-content">
+              <h4>DEFINE TABLE FUNCTION 작성 및 활성화</h4>
+              <p>ADT에서 .ddls 파일로 Table Function을 작성하고 <code>implemented by method</code>를 ABAP 클래스에 연결합니다. 활성화 시 메서드 시그니처 일치 여부가 검증됩니다.</p>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">5</div>
+            <div class="step-content">
+              <h4>단위 테스트 — ABAP Console 또는 ADBC</h4>
+              <p>ABAP 프로그램에서 <code>ZCL_ASPN_AMDP_BALANCE=&gt;GET_PERIOD_BALANCE()</code>를 직접 호출하여 반환 데이터를 검증합니다. SAC 연결 전 데이터 정합성을 먼저 확인합니다.</p>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">6</div>
+            <div class="step-content">
+              <h4>Cube View에서 Table Function 소스 참조</h4>
+              <p><code>as select from ZASPN_TF_PeriodBalance(…)</code>로 Cube View를 작성하고, Dimension FK Association·Measure·DCL을 선언합니다.</p>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">7</div>
+            <div class="step-content">
+              <h4>Query View 작성 및 SAC 연결</h4>
+              <p>Cube 위에 Query View를 작성하고 OData 등록 후 SAC Live Model로 Import합니다 (Tab 09 참조).</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       QUIZ
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <div class="quiz-section">
+      <h3 class="quiz-title">확인 퀴즈 — Tab 07</h3>
+      <div class="quiz-progress">
+        <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="progressFill" style="width:0%"></div></div>
+        <span class="quiz-score-label" id="scoreLabel">0 / 4 완료</span>
+      </div>
+
+      <!-- Q1 -->
+      <div class="quiz-item">
+        <div class="quiz-q">
+          <span class="q-num">Q1</span>
+          ASPN Group의 기간별 누적 잔액 계산에 CDS Table Function + AMDP를 선택한 핵심 이유는?
+        </div>
+        <div class="quiz-options" id="q1">
+          <div class="quiz-option" onclick="answer('q1',this,false,'q1-fb','CDS View Entity도 SAC와 연결 가능합니다. SAC 연결 가능 여부가 Table Function 선택 이유가 아닙니다.')">
+            <span class="opt-label">A</span> CDS View Entity는 SAC Live Model과 연결이 불가능하기 때문에
+          </div>
+          <div class="quiz-option" onclick="answer('q1',this,false,'q1-fb','AMDP가 일반적으로 성능이 더 빠른 경우가 있지만, 이것이 핵심 선택 이유가 아닙니다. 단순 집계는 CDS View가 오히려 더 적합합니다.')">
+            <span class="opt-label">B</span> AMDP가 CDS View보다 항상 성능이 뛰어나기 때문에
+          </div>
+          <div class="quiz-option" onclick="answer('q1',this,true,'q1-fb','정답입니다. 기간별 누적 잔액 계산에는 HANA 윈도우 함수(SUM() OVER PARTITION BY … ORDER BY … ROWS BETWEEN …)가 필요합니다. 이 함수는 CDS View DDL에서 직접 사용할 수 없습니다. AMDP의 SQLScript 본문에서는 HANA Native Function을 자유롭게 사용할 수 있으므로 AMDP가 유일한 해결책입니다.')">
+            <span class="opt-label">C</span> 누적 잔액 계산에 필요한 HANA 윈도우 함수를 CDS View DDL에서 직접 사용할 수 없기 때문에
+          </div>
+          <div class="quiz-option" onclick="answer('q1',this,false,'q1-fb','DCL Access Control은 CDS View에서도 구현 가능합니다. Table Function 선택의 이유가 아닙니다.')">
+            <span class="opt-label">D</span> Table Function만이 DCL Access Control을 지원하기 때문에
+          </div>
+        </div>
+        <div class="quiz-feedback" id="q1-fb"></div>
+      </div>
+
+      <!-- Q2 -->
+      <div class="quiz-item">
+        <div class="quiz-q">
+          <span class="q-num">Q2</span>
+          AMDP 클래스에서 <code>IF_AMDP_MARKER_HDB</code> 인터페이스를 구현하는 목적은?
+        </div>
+        <div class="quiz-options" id="q2">
+          <div class="quiz-option" onclick="answer('q2',this,false,'q2-fb','권한 체크는 IF_AMDP_MARKER_HDB와 관련이 없습니다. 권한은 소비하는 Cube View의 DCL에서 처리합니다.')">
+            <span class="opt-label">A</span> 클래스 메서드에서 사용자 권한을 자동으로 체크하기 위해
+          </div>
+          <div class="quiz-option" onclick="answer('q2',this,false,'q2-fb','CDS Table Function 파라미터와의 연결은 implemented by method 선언으로 이루어지며, IF_AMDP_MARKER_HDB 인터페이스의 직접적인 역할이 아닙니다.')">
+            <span class="opt-label">B</span> CDS Table Function의 파라미터를 ABAP 메서드와 자동 매핑하기 위해
+          </div>
+          <div class="quiz-option" onclick="answer('q2',this,true,'q2-fb','정답입니다. IF_AMDP_MARKER_HDB 인터페이스를 구현하면 ABAP 런타임이 해당 클래스를 AMDP 클래스로 인식합니다. 이 인터페이스가 없으면 BY DATABASE FUNCTION FOR HDB LANGUAGE SQLSCRIPT 메서드를 선언할 수 없으며, Table Function에서 implemented by method로 참조할 수도 없습니다.')">
+            <span class="opt-label">C</span> ABAP 런타임이 해당 클래스를 AMDP 클래스로 인식하여 SQLScript 메서드 선언을 허용하게 하기 위해
+          </div>
+          <div class="quiz-option" onclick="answer('q2',this,false,'q2-fb','HANA DB 연결 설정은 시스템 수준에서 관리됩니다. IF_AMDP_MARKER_HDB의 역할이 아닙니다.')">
+            <span class="opt-label">D</span> ABAP에서 HANA 데이터베이스 연결 설정을 초기화하기 위해
+          </div>
+        </div>
+        <div class="quiz-feedback" id="q2-fb"></div>
+      </div>
+
+      <!-- Q3 -->
+      <div class="quiz-item">
+        <div class="quiz-q">
+          <span class="q-num">Q3</span>
+          AMDP 메서드에서 ACDOCA 테이블을 참조할 때 <code>USING ACDOCA</code>를 선언하지 않으면 어떻게 됩니까?
+        </div>
+        <div class="quiz-options" id="q3">
+          <div class="quiz-option" onclick="answer('q3',this,false,'q3-fb','클라이언트 필터 누락은 USING 절 누락과는 다른 문제입니다. USING 절을 선언해도 클라이언트 필터는 수동으로 WHERE MANDT = SESSION_CONTEXT(\'CLIENT\')를 추가해야 합니다.')">
+            <span class="opt-label">A</span> 클라이언트 필터가 자동 적용되지 않아 모든 클라이언트 데이터가 혼용된다
+          </div>
+          <div class="quiz-option" onclick="answer('q3',this,false,'q3-fb','USING 절 누락은 성능 저하가 아닌 오류를 유발합니다.')">
+            <span class="opt-label">B</span> ACDOCA 전체 스캔이 발생하여 성능이 저하된다
+          </div>
+          <div class="quiz-option" onclick="answer('q3',this,true,'q3-fb','정답입니다. AMDP 메서드가 SQLScript에서 참조하는 모든 DB 오브젝트는 USING 절에 명시적으로 선언해야 합니다. USING 절에 선언되지 않은 테이블·View를 SQLScript에서 참조하면 Table Function 활성화 시 또는 런타임에 오류가 발생합니다.')">
+            <span class="opt-label">C</span> Table Function 활성화 오류 또는 런타임 오류가 발생한다
+          </div>
+          <div class="quiz-option" onclick="answer('q3',this,false,'q3-fb','USING 절 없이도 일부 경우 동작하는 것처럼 보일 수 있지만, 이는 정상적인 동작이 아닙니다. SAP 표준에 따라 반드시 선언해야 합니다.')">
+            <span class="opt-label">D</span> 오류 없이 동작하지만 데이터가 반환되지 않는다
+          </div>
+        </div>
+        <div class="quiz-feedback" id="q3-fb"></div>
+      </div>
+
+      <!-- Q4 -->
+      <div class="quiz-item">
+        <div class="quiz-q">
+          <span class="q-num">Q4</span>
+          <code>ZASPN_TF_PeriodBalance</code> Table Function에
+          <code>@AccessControl.authorizationCheck: #NOT_REQUIRED</code>를 선언했습니다.
+          SAC 사용자 권한은 어디서 제어합니까?
+        </div>
+        <div class="quiz-options" id="q4">
+          <div class="quiz-option" onclick="answer('q4',this,false,'q4-fb','SAC에서 직접 데이터 필터를 설정할 수 있지만, 이것은 CDS 권한 제어가 아닌 SAC 레포트 레벨 필터입니다. 보안 목적의 권한 제어는 CDS DCL로 해야 합니다.')">
+            <span class="opt-label">A</span> SAC Live Model에서 데이터 필터 설정으로 제어한다
+          </div>
+          <div class="quiz-option" onclick="answer('q4',this,false,'q4-fb','Query View의 AccessControl은 #NOT_REQUIRED 대신 #CHECK가 되어야 합니다. 하지만 실제 DCL 제어는 Cube View에서 하는 것이 구조상 올바릅니다.')">
+            <span class="opt-label">B</span> Query View에 <code>@AccessControl.authorizationCheck: #CHECK</code>를 선언하고 DCL을 작성한다
+          </div>
+          <div class="quiz-option" onclick="answer('q4',this,true,'q4-fb','정답입니다. Table Function은 DCL(Access Control)을 직접 지원하지 않으므로 #NOT_REQUIRED가 필수입니다. 대신 Table Function을 소스로 참조하는 Cube View에 @AccessControl.authorizationCheck: #CHECK를 선언하고 DCL(DEFINE ROLE)을 작성합니다. SAC는 Cube → Query 경로를 통해 접근하므로 Cube의 권한 제어가 효과적으로 적용됩니다.')">
+            <span class="opt-label">C</span> Table Function을 소스로 참조하는 <strong>Cube View</strong>에 <code>#CHECK</code>를 선언하고 DCL을 작성한다
+          </div>
+          <div class="quiz-option" onclick="answer('q4',this,false,'q4-fb','AMDP 클래스 메서드에는 CDS 권한 체크 메커니즘을 직접 추가할 수 없습니다. ABAP Authority-Check를 AMDP 메서드에 작성하는 것은 SQLScript 환경에서 지원되지 않습니다.')">
+            <span class="opt-label">D</span> AMDP 클래스 메서드 내에 ABAP <code>AUTHORITY-CHECK</code>를 직접 추가한다
+          </div>
+        </div>
+        <div class="quiz-feedback" id="q4-fb"></div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer class="module-footer">
+  <span>ASPN BAC EDU Portal · CDS View Analytics Query A to Z</span>
+  <div class="footer-nav">
+    <a href="tab06_query.html">← Tab 06. Analytics Query View</a>
+    <a href="tab08_authorization.html">다음: Tab 08. 권한 제어 →</a>
+  </div>
+</footer>
+
+<script>
+  let answered = {};
+  const total = 4;
+
+  function answer(qId, el, isCorrect, fbId, msg) {
+    if (answered[qId]) return;
+    answered[qId] = true;
+    const opts = document.getElementById(qId).querySelectorAll('.quiz-option');
+    opts.forEach(o => { o.style.pointerEvents = 'none'; o.style.opacity = '0.7'; });
+    el.style.opacity = '1';
+    el.classList.add(isCorrect ? 'correct-ans' : 'wrong-ans');
+    const fb = document.getElementById(fbId);
+    fb.textContent = (isCorrect ? '✓ ' : '✗ ') + msg;
+    fb.className = 'quiz-feedback show ' + (isCorrect ? 'correct-fb' : 'wrong-fb');
+    updateProgress();
+  }
+
+  function updateProgress() {
+    const done = Object.keys(answered).length;
+    document.getElementById('progressFill').style.width = (done / total * 100) + '%';
+    document.getElementById('scoreLabel').textContent = done + ' / ' + total + ' 완료';
+  }
+
+  function toggleDrill(header) {
+    const body = header.nextElementSibling;
+    const arrow = header.querySelector('.drill-arrow');
+    body.classList.toggle('open');
+    arrow.style.transform = body.classList.contains('open') ? 'rotate(180deg)' : '';
+  }
+</script>
+
+</body>
+</html>

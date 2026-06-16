@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tab 02. CDS 기초 문법 | CDS View Analytics Query</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #003366;
+    --navy-light: #e8edf4;
+    --navy-mid: #c0cfe0;
+    --bg: #f0f3f8;
+    --white: #ffffff;
+    --border: #d0d8e4;
+    --text: #1a1a2e;
+    --text-muted: #5a6478;
+    --warn-bg: #fff8e6;
+    --warn-border: #e6a817;
+    --correct-bg: #e8f5e9;
+    --correct-border: #2e7d32;
+    --font-body: 'Noto Sans KR', sans-serif;
+    --font-heading: 'DM Serif Display', serif;
+    --font-mono: 'JetBrains Mono', 'Noto Sans KR', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  /* ── HEADER ── */
+  .site-header {
+    background: var(--navy);
+    color: var(--white);
+    padding: 0 80px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .site-header .logo { font-family: var(--font-heading); font-size: 18px; letter-spacing: 0.04em; }
+  .site-header .module-label { font-size: 13px; color: var(--navy-mid); font-family: var(--font-mono); }
+
+  /* ── STICKY NAV TABS ── */
+  .tab-nav {
+    background: var(--white);
+    border-bottom: 2px solid var(--border);
+    padding: 0 80px;
+    display: flex;
+    position: sticky;
+    top: 56px;
+    z-index: 99;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  .tab-nav a {
+    display: block;
+    padding: 14px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-decoration: none;
+    white-space: nowrap;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .tab-nav a:hover { color: var(--navy); }
+  .tab-nav a.active { color: var(--navy); border-bottom-color: var(--navy); font-weight: 700; }
+
+  /* ── WRAPPER ── */
+  .wrapper { max-width: 1280px; margin: 0 auto; padding: 48px 80px 80px; }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--navy);
+    border-radius: 4px;
+    padding: 48px 56px;
+    margin-bottom: 40px;
+    color: var(--white);
+  }
+  .hero .eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.12em; color: var(--navy-mid); margin-bottom: 16px; text-transform: uppercase; }
+  .hero h1 { font-family: var(--font-heading); font-size: 36px; line-height: 1.25; margin-bottom: 16px; }
+  .hero p { font-size: 15px; color: rgba(255,255,255,0.75); max-width: 680px; line-height: 1.8; }
+  .hero .meta-row { display: flex; gap: 32px; margin-top: 28px; }
+  .hero .meta-item { display: flex; flex-direction: column; gap: 4px; }
+  .hero .meta-label { font-size: 11px; color: var(--navy-mid); text-transform: uppercase; letter-spacing: 0.1em; font-family: var(--font-mono); }
+  .hero .meta-value { font-size: 14px; font-weight: 600; color: var(--white); }
+
+  /* ── SECTION ── */
+  .section { margin-bottom: 52px; }
+  .section-title {
+    font-family: var(--font-heading);
+    font-size: 26px;
+    color: var(--navy);
+    margin-bottom: 24px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--navy);
+  }
+  .subsection-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--navy);
+    margin: 32px 0 16px;
+    padding-left: 12px;
+    border-left: 3px solid var(--navy);
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 28px 32px;
+    margin-bottom: 16px;
+  }
+  .card h3 { font-size: 16px; font-weight: 700; color: var(--navy); margin-bottom: 10px; }
+  .card p, .card li { font-size: 14px; color: var(--text-muted); line-height: 1.75; }
+  .card ul { padding-left: 20px; }
+  .card ul li { margin-bottom: 6px; }
+
+  /* ── CALLOUT ── */
+  .callout {
+    border-left: 4px solid var(--navy);
+    background: var(--navy-light);
+    padding: 16px 20px;
+    border-radius: 0 4px 4px 0;
+    margin-bottom: 16px;
+  }
+  .callout.warn { border-left-color: var(--warn-border); background: var(--warn-bg); }
+  .callout.correct { border-left-color: var(--correct-border); background: var(--correct-bg); }
+  .callout .callout-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+    color: var(--navy);
+  }
+  .callout.warn .callout-label { color: var(--warn-border); }
+  .callout.correct .callout-label { color: var(--correct-border); }
+  .callout p { font-size: 14px; line-height: 1.7; }
+  .callout code { font-family: var(--font-mono); font-size: 13px; background: rgba(0,0,0,0.06); padding: 1px 5px; border-radius: 2px; }
+
+  /* ── COMPARE TABLE ── */
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .compare-table th { background: var(--navy); color: var(--white); padding: 12px 16px; text-align: left; font-weight: 600; font-size: 13px; }
+  .compare-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: top; line-height: 1.6; }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:nth-child(even) td { background: var(--bg); }
+  .compare-table .hl { font-weight: 700; color: var(--navy); }
+  .compare-table code { font-family: var(--font-mono); font-size: 12px; background: var(--bg); padding: 1px 5px; border-radius: 2px; border: 1px solid var(--border); }
+  .compare-table th code { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); color: var(--white); }
+
+  /* ── CODE BLOCK ── */
+  .code-wrap {
+    background: #0f1923;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 16px;
+    font-family: var(--font-mono);
+  }
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    background: #1a2738;
+    border-bottom: 1px solid #2a3d52;
+  }
+  .code-lang {
+    font-size: 11px;
+    color: var(--navy-mid);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .code-title { font-size: 12px; color: #8ba3bc; }
+  .code-body {
+    padding: 20px 24px;
+    overflow-x: auto;
+  overflow-y: hidden;
+    font-size: 13px;
+    line-height: 1.75;
+    color: #cdd6e0;
+  }
+  .code-body .kw  { color: #79b8ff; }   /* keyword */
+  .code-body .fn  { color: #b392f0; }   /* function / annotation */
+  .code-body .str { color: #9ecbff; }   /* string / value */
+  .code-body .cm  { color: #6a737d; font-style: italic; } /* comment */
+  .code-body .fd  { color: #ffab70; }   /* field name */
+  .code-body .tp  { color: #85e89d; }   /* type */
+  .code-body .nb  { color: #f97583; }   /* number / boolean */
+
+  /* ── SIDE-BY-SIDE CODE ── */
+  .code-compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .code-compare .code-wrap { margin-bottom: 0; }
+
+  /* ── FUNCTION TABLE ── */
+  .fn-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .fn-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .fn-card-head {
+    background: var(--navy-light);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--navy);
+    font-family: var(--font-mono);
+  }
+  .fn-card-body { padding: 12px 16px; }
+  .fn-row {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--bg);
+    font-size: 13px;
+  }
+  .fn-row:last-child { border-bottom: none; }
+  .fn-name { font-family: var(--font-mono); color: #b392f0; font-size: 12px; min-width: 180px; flex-shrink: 0; }
+  .fn-desc { color: var(--text-muted); line-height: 1.5; }
+
+  /* ── CONSTRAINT LIST ── */
+  .constraint-list { display: flex; flex-direction: column; gap: 10px; }
+  .constraint-item {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 14px 18px;
+    font-size: 14px;
+  }
+  .constraint-icon {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    margin-top: 1px;
+  }
+  .constraint-icon.warn { background: var(--warn-bg); color: var(--warn-border); border: 1px solid var(--warn-border); }
+  .constraint-icon.err  { background: #fdecea; color: #c0392b; border: 1px solid #c0392b; }
+  .constraint-body h4 { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+  .constraint-body p  { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+  .constraint-body code { font-family: var(--font-mono); font-size: 12px; background: var(--bg); padding: 1px 5px; border-radius: 2px; border: 1px solid var(--border); }
+
+  /* ── DRILL TOGGLE ── */
+  .drill-toggle {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+  .drill-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    cursor: pointer;
+    user-select: none;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--navy);
+    transition: background 0.15s;
+  }
+  .drill-header:hover { background: var(--navy-light); }
+  .drill-arrow { font-size: 12px; color: var(--text-muted); transition: transform 0.2s; }
+  .drill-body { display: none; padding: 0 20px 20px; border-top: 1px solid var(--border); }
+  .drill-body.open { display: block; }
+  .drill-body p { font-size: 14px; color: var(--text-muted); line-height: 1.7; margin-top: 14px; }
+
+  /* ── QUIZ ── */
+  .quiz-section { background: var(--white); border: 1px solid var(--border); border-radius: 4px; padding: 32px; }
+  .quiz-title { font-family: var(--font-heading); font-size: 20px; color: var(--navy); margin-bottom: 24px; }
+  .quiz-item { margin-bottom: 28px; padding-bottom: 28px; border-bottom: 1px solid var(--border); }
+  .quiz-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .quiz-q { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 14px; line-height: 1.6; }
+  .quiz-q .q-num { display: inline-block; background: var(--navy); color: var(--white); font-family: var(--font-mono); font-size: 11px; padding: 2px 8px; border-radius: 2px; margin-right: 10px; vertical-align: middle; }
+  .quiz-q code { font-family: var(--font-mono); font-size: 13px; background: var(--bg); padding: 1px 6px; border-radius: 2px; border: 1px solid var(--border); }
+  .quiz-options { display: flex; flex-direction: column; gap: 8px; }
+  .quiz-option { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; background: var(--bg); transition: border-color 0.15s, background 0.15s; font-size: 14px; line-height: 1.5; }
+  .quiz-option:hover { border-color: var(--navy); background: var(--navy-light); }
+  .quiz-option.correct-ans { border-color: var(--correct-border) !important; background: var(--correct-bg) !important; }
+  .quiz-option.wrong-ans   { border-color: #c0392b !important; background: #fdecea !important; }
+  .quiz-option .opt-label  { font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--navy); flex-shrink: 0; margin-top: 1px; }
+  .quiz-option code { font-family: var(--font-mono); font-size: 12px; }
+  .quiz-feedback { margin-top: 12px; padding: 12px 16px; border-radius: 4px; font-size: 13px; display: none; line-height: 1.6; }
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback.correct-fb { background: var(--correct-bg); color: #2e7d32; border-left: 3px solid var(--correct-border); }
+  .quiz-feedback.wrong-fb   { background: #fdecea; color: #c0392b; border-left: 3px solid #c0392b; }
+  .quiz-progress { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+  .quiz-progress-bar { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .quiz-progress-fill { height: 100%; background: var(--navy); border-radius: 3px; transition: width 0.4s; }
+  .quiz-score-label { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+
+  /* ── FOOTER ── */
+  .module-footer {
+    background: var(--white);
+    border-top: 1px solid var(--border);
+    padding: 24px 80px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 60px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .footer-nav { display: flex; gap: 24px; }
+  .footer-nav a { color: var(--navy); text-decoration: none; font-weight: 500; }
+  .footer-nav a:hover { text-decoration: underline; }
+
+  @media (max-width: 900px) {
+    .site-header, .tab-nav, .wrapper, .module-footer { padding-left: 20px; padding-right: 20px; }
+    .code-compare { grid-template-columns: 1fr; }
+    .fn-grid { grid-template-columns: 1fr; }
+    .hero { padding: 32px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <span class="logo">ASPN BAC · EDU Portal</span>
+  <span class="module-label">CDS View Analytics Query — A to Z</span>
+</header>
+
+<!-- TAB NAV -->
+<nav class="tab-nav">
+  <a href="tab01_overview.html">01. 개요 &amp; 로드맵</a>
+  <a href="tab02_syntax.html" class="active">02. CDS 기초 문법</a>
+  <a href="tab03_dimension.html">03. Dimension View</a>
+  <a href="tab04_hierarchy.html">04. Hierarchy View</a>
+  <a href="tab05_cube.html">05. Cube View</a>
+  <a href="tab06_query.html">06. Analytics Query View</a>
+  <a href="tab07_table_function.html">07. Table Function &amp; AMDP</a>
+  <a href="tab08_authorization.html">08. 권한 제어</a>
+  <a href="tab09_sac_live.html">09. SAC Live Model 연결</a>
+</nav>
+
+<!-- MAIN -->
+<main class="wrapper">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="eyebrow">Module 02 / CDS Syntax Fundamentals</div>
+    <h1>CDS View는 SQL 확장이 아니라<br>선언적 데이터 모델링 언어다</h1>
+    <p>DDL 기반 구조, Annotation 우선 원칙, Association의 지연 평가 개념,
+    그리고 SQL 개발자가 반드시 인지해야 할 CDS 고유 제약사항을 ASPN Group 시나리오로 학습합니다.</p>
+    <div class="meta-row">
+      <div class="meta-item">
+        <span class="meta-label">선수 지식</span>
+        <span class="meta-value">Tab 01 완료 / SQL 기초</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">예상 학습 시간</span>
+        <span class="meta-value">50분</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">핵심 개념</span>
+        <span class="meta-value">Association · Annotation · Built-in Function</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       SECTION 1. DDL 기반 선언 구조
+  ════════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">1. DDL 기반 선언 구조</h2>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+      CDS View는 ABAP Development Tools(ADT)의 <strong>.ddls</strong> 파일에 DDL 구문으로 작성합니다.
+      SQL의 <code>CREATE VIEW</code>와 유사하지만 Annotation 블록, Association 선언,
+      파라미터 정의 등 CDS 고유 구성 요소가 추가됩니다.
+    </p>
+
+    <!-- BASIC SKELETON -->
+    <h3 class="subsection-title">기본 골격 — CDS View Entity</h3>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-lang">ABAP CDS · DDL</span>
+        <span class="code-title">ASPN_FinancialItem — 기본 골격 예시</span>
+      </div>
+      <div class="code-body"><pre><span class="cm">// ① Annotation 블록: 데이터 모델 메타데이터 선언</span>
+<span class="fn">@AbapCatalog.viewEnhancementCategory</span>: [<span class="str">#NONE</span>]
+<span class="fn">@AccessControl.authorizationCheck</span>: <span class="str">#CHECK</span>
+<span class="fn">@EndUserText.label</span>: <span class="str">'ASPN Financial Item'</span>
+<span class="fn">@VDM.viewType</span>: <span class="str">#CONSUMPTION</span>
+<span class="fn">@Analytics.dataCategory</span>: <span class="str">#CUBE</span>
+
+<span class="cm">// ② 파라미터 선언 (선택)</span>
+<span class="kw">define view entity</span> <span class="fd">ZASPN_C_FinancialItem</span>
+  <span class="kw">with parameters</span>
+    <span class="fd">P_FiscalYear</span> : <span class="tp">fiscalyear</span>
+
+<span class="cm">// ③ SELECT 소스</span>
+  <span class="kw">as select from</span> <span class="fd">I_JournalEntryItem</span> <span class="kw">as</span> <span class="fd">JournalEntry</span>
+
+<span class="cm">// ④ Association 선언 (지연 평가 — JOIN 아님)</span>
+  <span class="kw">association [0..1] to</span> <span class="fd">I_CompanyCode</span> <span class="kw">as</span> <span class="fd">_CompanyCode</span>
+    <span class="kw">on</span> <span class="fd">$projection</span>.<span class="fd">CompanyCode</span> = <span class="fd">_CompanyCode</span>.<span class="fd">CompanyCode</span>
+
+<span class="cm">// ⑤ 필드 목록</span>
+{
+  <span class="cm">// key 필드 명시 (View Entity 필수)</span>
+  <span class="kw">key</span> <span class="fd">JournalEntry</span>.<span class="fd">CompanyCode</span>,
+  <span class="kw">key</span> <span class="fd">JournalEntry</span>.<span class="fd">FiscalYear</span>,
+  <span class="kw">key</span> <span class="fd">JournalEntry</span>.<span class="fd">AccountingDocument</span>,
+  <span class="kw">key</span> <span class="fd">JournalEntry</span>.<span class="fd">AccountingDocumentItem</span>,
+
+      <span class="fd">JournalEntry</span>.<span class="fd">GLAccount</span>,
+      <span class="fd">JournalEntry</span>.<span class="fd">AmountInCompanyCodeCurrency</span>,
+      <span class="fd">JournalEntry</span>.<span class="fd">CompanyCodeCurrency</span>,
+
+  <span class="cm">// Association을 필드로 노출 (소비자가 필요 시 JOIN)</span>
+      <span class="fd">_CompanyCode</span>
+}</pre></div>
+    </div>
+
+    <div class="callout">
+      <div class="callout-label">구성 요소 요약</div>
+      <p>
+        ① <strong>Annotation 블록</strong> — <code>@</code>로 시작하는 메타데이터. 데이터 카테고리, 권한 체크, 라벨 등을 선언합니다.<br>
+        ② <strong>파라미터</strong> — <code>with parameters</code>로 런타임 입력값을 받습니다. Fiori / SAC Variable과 연동됩니다.<br>
+        ③ <strong>SELECT 소스</strong> — 테이블 또는 다른 CDS View를 소스로 지정합니다.<br>
+        ④ <strong>Association</strong> — 조인 조건을 선언하되, 즉시 실행하지 않습니다 (지연 평가).<br>
+        ⑤ <strong>필드 목록</strong> — <code>key</code> 키워드 명시가 View Entity의 필수 요건입니다.
+      </p>
+    </div>
+
+    <!-- SQL vs CDS 선언 방식 비교 -->
+    <h3 class="subsection-title">SQL CREATE VIEW vs. CDS View Entity — 선언 방식 비교</h3>
+
+    <div class="code-compare">
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang">SQL</span>
+          <span class="code-title">표준 SQL CREATE VIEW</span>
+        </div>
+        <div class="code-body"><pre><span class="cm">-- 메타데이터 선언 불가</span>
+<span class="cm">-- 권한 체크 별도 구현 필요</span>
+<span class="cm">-- 텍스트/라벨 정보 없음</span>
+
+<span class="kw">CREATE VIEW</span> <span class="fd">V_FinancialItem</span> <span class="kw">AS</span>
+<span class="kw">SELECT</span>
+    je.<span class="fd">BUKRS</span>   <span class="kw">AS</span> <span class="fd">CompanyCode</span>,
+    je.<span class="fd">GJAHR</span>   <span class="kw">AS</span> <span class="fd">FiscalYear</span>,
+    je.<span class="fd">HKONT</span>   <span class="kw">AS</span> <span class="fd">GLAccount</span>,
+    je.<span class="fd">DMBTR</span>   <span class="kw">AS</span> <span class="fd">Amount</span>,
+    cc.<span class="fd">BUTXT</span>   <span class="kw">AS</span> <span class="fd">CompanyName</span>
+<span class="kw">FROM</span>  <span class="fd">BSEG</span> je
+<span class="cm">-- JOIN이 즉시 실행됨 (항상 비용 발생)</span>
+<span class="kw">LEFT JOIN</span> <span class="fd">T001</span> cc
+  <span class="kw">ON</span> je.<span class="fd">BUKRS</span> = cc.<span class="fd">BUKRS</span>;</pre></div>
+      </div>
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang">ABAP CDS</span>
+          <span class="code-title">CDS View Entity — 동일 목적</span>
+        </div>
+        <div class="code-body"><pre><span class="fn">@EndUserText.label</span>: <span class="str">'Financial Item'</span>
+<span class="fn">@AccessControl.authorizationCheck</span>: <span class="str">#CHECK</span>
+<span class="fn">@Semantics.amount.currencyCode</span>: <span class="str">'CompanyCodeCurrency'</span>
+
+<span class="kw">define view entity</span> <span class="fd">ZASPN_C_FinancialItem</span>
+  <span class="kw">as select from</span> <span class="fd">I_JournalEntryItem</span> <span class="kw">as</span> <span class="fd">je</span>
+
+  <span class="cm">// Association: 필요 시에만 JOIN 실행</span>
+  <span class="kw">association [0..1] to</span> <span class="fd">I_CompanyCode</span>
+    <span class="kw">as</span> <span class="fd">_CompanyCode</span>
+    <span class="kw">on</span> <span class="fd">$projection</span>.<span class="fd">CompanyCode</span>
+     = <span class="fd">_CompanyCode</span>.<span class="fd">CompanyCode</span>
+{
+  <span class="kw">key</span> je.<span class="fd">CompanyCode</span>,
+  <span class="kw">key</span> je.<span class="fd">FiscalYear</span>,
+      je.<span class="fd">GLAccount</span>,
+      je.<span class="fd">AmountInCompanyCodeCurrency</span>,
+      je.<span class="fd">CompanyCodeCurrency</span>,
+      <span class="fd">_CompanyCode</span>  <span class="cm">// 노출만, 실행 안 함</span>
+}</pre></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       SECTION 2. Annotation 우선 원칙
+  ════════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">2. Annotation 우선 원칙</h2>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+      CDS View에서 Annotation은 단순 주석이 아니라 <strong>런타임 동작을 제어하는 선언</strong>입니다.
+      SQL 힌트나 프로그램 로직 대신 Annotation으로 의미와 동작을 정의하는 것이 CDS 설계 철학의 핵심입니다.
+    </p>
+
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th style="width:20%">Annotation 네임스페이스</th>
+          <th style="width:35%">대표 Annotation</th>
+          <th>역할 및 설명</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="hl">@AbapCatalog</td>
+          <td><code>@AbapCatalog.viewEnhancementCategory</code></td>
+          <td>View 확장 허용 여부, SQL View 이름 설정 (구형 CDS View 전용)</td>
+        </tr>
+        <tr>
+          <td class="hl">@AccessControl</td>
+          <td><code>@AccessControl.authorizationCheck: #CHECK</code></td>
+          <td>DCL Access Control 적용 여부. <code>#NOT_REQUIRED</code> 설정 시 권한 체크 없이 전체 노출 — 운영 금지</td>
+        </tr>
+        <tr>
+          <td class="hl">@Analytics</td>
+          <td><code>@Analytics.dataCategory</code><br><code>@Analytics.query</code></td>
+          <td>데이터 카테고리(#DIMENSION / #CUBE) 지정. <code>@Analytics.query: true</code>는 Query View 선언의 핵심</td>
+        </tr>
+        <tr>
+          <td class="hl">@Semantics</td>
+          <td><code>@Semantics.amount.currencyCode</code><br><code>@Semantics.quantity.unitOfMeasure</code></td>
+          <td>금액 필드의 통화 코드 필드, 수량 필드의 단위 필드 연결. SAC에서 통화 변환 자동 처리에 필수</td>
+        </tr>
+        <tr>
+          <td class="hl">@DefaultAggregation</td>
+          <td><code>@DefaultAggregation: #SUM</code><br><code>@DefaultAggregation: #MIN</code></td>
+          <td>Measure 필드의 기본 집계 방식 선언. Analytics Engine이 자동 집계 시 사용</td>
+        </tr>
+        <tr>
+          <td class="hl">@EndUserText</td>
+          <td><code>@EndUserText.label</code><br><code>@EndUserText.quickInfo</code></td>
+          <td>SAC · Fiori UI에 표시되는 필드 레이블. 번역 가능 (SE63)</td>
+        </tr>
+        <tr>
+          <td class="hl">@VDM</td>
+          <td><code>@VDM.viewType: #BASIC</code><br><code>@VDM.viewType: #CONSUMPTION</code></td>
+          <td>VDM 계층 분류. Tab 01 계층 구조와 직접 연결</td>
+        </tr>
+        <tr>
+          <td class="hl">@ObjectModel</td>
+          <td><code>@ObjectModel.text.association</code><br><code>@ObjectModel.foreignKey.association</code></td>
+          <td>텍스트 Association 연결, 외래 키 Association 지정. Dimension View에서 핵심적으로 사용</td>
+        </tr>
+        <tr>
+          <td class="hl">@Consumption</td>
+          <td><code>@Consumption.filter.selectionType</code><br><code>@Consumption.valueHelpDefinition</code></td>
+          <td>필터 동작 방식 및 Value Help 연결. Query View의 Variable 설계에 사용</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <div class="callout-label">주의 — #NOT_REQUIRED 운영 절대 금지</div>
+      <p><code>@AccessControl.authorizationCheck: #NOT_REQUIRED</code>는 개발·디버깅 전용입니다.
+      SAC Live Model에 연결된 Query View에 이 설정이 남아 있으면, 권한 없는 사용자에게 전체 데이터가 노출됩니다.
+      Tab 08에서 DCL 설계와 함께 반드시 <code>#CHECK</code>로 전환합니다.</p>
+    </div>
+
+    <!-- 필드 레벨 vs View 레벨 Annotation -->
+    <h3 class="subsection-title">View 레벨 vs. 필드 레벨 Annotation</h3>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-lang">ABAP CDS</span>
+        <span class="code-title">Annotation 적용 위치 구분</span>
+      </div>
+      <div class="code-body"><pre><span class="cm">// ── View 레벨 Annotation: View 전체에 적용 ──</span>
+<span class="fn">@Analytics.dataCategory</span>: <span class="str">#CUBE</span>
+<span class="fn">@VDM.viewType</span>: <span class="str">#CONSUMPTION</span>
+<span class="fn">@AccessControl.authorizationCheck</span>: <span class="str">#CHECK</span>
+
+<span class="kw">define view entity</span> <span class="fd">ZASPN_C_FinancialCube</span>
+  <span class="kw">as select from</span> <span class="fd">I_JournalEntryItem</span> <span class="kw">as</span> <span class="fd">je</span>
+{
+  <span class="cm">// ── 필드 레벨 Annotation: 해당 필드에만 적용 ──</span>
+  <span class="kw">key</span> je.<span class="fd">CompanyCode</span>,
+  <span class="kw">key</span> je.<span class="fd">FiscalYear</span>,
+
+  <span class="cm">// 금액 필드: 통화 코드 필드와 연결</span>
+  <span class="fn">@Semantics.amount.currencyCode</span>: <span class="str">'CompanyCodeCurrency'</span>
+  <span class="fn">@DefaultAggregation</span>: <span class="str">#SUM</span>
+  <span class="fn">@EndUserText.label</span>: <span class="str">'Amount (CC Currency)'</span>
+      je.<span class="fd">AmountInCompanyCodeCurrency</span>,
+
+  <span class="cm">// 통화 코드 필드: Semantics 지정</span>
+  <span class="fn">@Semantics.currencyCode</span>: <span class="kw">true</span>
+      je.<span class="fd">CompanyCodeCurrency</span>
+}</pre></div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       SECTION 3. Association vs. JOIN
+  ════════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">3. Association vs. JOIN — 지연 평가(Lazy Evaluation)</h2>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+      CDS에서 가장 중요한 개념 중 하나입니다.
+      Association은 JOIN 조건을 <strong>선언</strong>하지만 즉시 실행하지 않습니다.
+      소비자(상위 CDS View 또는 OData)가 Association 필드를 실제로 참조할 때만 JOIN이 실행됩니다.
+    </p>
+
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th style="width:20%">구분</th>
+          <th>JOIN (SQL / CDS 인라인 JOIN)</th>
+          <th class="hl">Association (CDS 권장)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>실행 시점</strong></td>
+          <td>SELECT 실행 시 즉시 JOIN 수행</td>
+          <td class="hl">소비자가 Association 필드 참조 시에만 실행 (지연 평가)</td>
+        </tr>
+        <tr>
+          <td><strong>성능</strong></td>
+          <td>항상 JOIN 비용 발생</td>
+          <td class="hl">불필요한 JOIN 제거 → 성능 유리</td>
+        </tr>
+        <tr>
+          <td><strong>재사용성</strong></td>
+          <td>하드코딩된 JOIN — 재사용 불가</td>
+          <td class="hl">Association을 노출하면 상위 View에서 선택적으로 사용</td>
+        </tr>
+        <tr>
+          <td><strong>Cardinality</strong></td>
+          <td>없음</td>
+          <td class="hl"><code>[0..1]</code>, <code>[1..1]</code>, <code>[0..*]</code> 명시 → 데이터 모델 명확화</td>
+        </tr>
+        <tr>
+          <td><strong>사용 시나리오</strong></td>
+          <td>항상 필요한 필드, 집계 기준 테이블</td>
+          <td class="hl">텍스트 조회, 마스터 데이터 참조, Dimension View 연결</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3 class="subsection-title">Association 선언 및 소비 패턴</h3>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-lang">ABAP CDS</span>
+        <span class="code-title">Association 선언 → 노출 → 상위 View에서 소비</span>
+      </div>
+      <div class="code-body"><pre><span class="cm">// ① 하위 View — Association 선언 및 노출</span>
+<span class="kw">define view entity</span> <span class="fd">ZASPN_I_JournalItem</span>
+  <span class="kw">as select from</span> <span class="fd">I_JournalEntryItem</span> <span class="kw">as</span> <span class="fd">je</span>
+
+  <span class="cm">// Cardinality [0..1]: CompanyCode 1개에 CompanyCode 마스터 0~1개</span>
+  <span class="kw">association [0..1] to</span> <span class="fd">I_CompanyCode</span>     <span class="kw">as</span> <span class="fd">_CompanyCode</span>
+    <span class="kw">on</span>  <span class="fd">$projection</span>.<span class="fd">CompanyCode</span> = <span class="fd">_CompanyCode</span>.<span class="fd">CompanyCode</span>
+
+  <span class="kw">association [0..1] to</span> <span class="fd">I_GLAccountInChartOfAccounts</span> <span class="kw">as</span> <span class="fd">_GLAccount</span>
+    <span class="kw">on</span>  <span class="fd">$projection</span>.<span class="fd">ChartOfAccounts</span> = <span class="fd">_GLAccount</span>.<span class="fd">ChartOfAccounts</span>
+    <span class="kw">and</span> <span class="fd">$projection</span>.<span class="fd">GLAccount</span>       = <span class="fd">_GLAccount</span>.<span class="fd">GLAccount</span>
+{
+  <span class="kw">key</span> je.<span class="fd">CompanyCode</span>,
+  <span class="kw">key</span> je.<span class="fd">FiscalYear</span>,
+      je.<span class="fd">GLAccount</span>,
+      je.<span class="fd">ChartOfAccounts</span>,
+      <span class="cm">// Association을 필드로 노출 — 이 시점에서는 JOIN 미발생</span>
+      <span class="fd">_CompanyCode</span>,
+      <span class="fd">_GLAccount</span>
+}
+
+<span class="cm">// ② 상위 View — Association 소비 (이 시점에 JOIN 실행)</span>
+<span class="kw">define view entity</span> <span class="fd">ZASPN_C_FinancialQuery</span>
+  <span class="kw">as select from</span> <span class="fd">ZASPN_I_JournalItem</span> <span class="kw">as</span> <span class="fd">Item</span>
+{
+  <span class="kw">key</span> <span class="fd">Item</span>.<span class="fd">CompanyCode</span>,
+      <span class="cm">// _CompanyCode Association을 통해 회사명 참조 → 이 때 JOIN 발생</span>
+      <span class="fd">Item</span>.<span class="fd">_CompanyCode</span>.<span class="fd">CompanyCodeName</span>,
+      <span class="fd">Item</span>.<span class="fd">GLAccount</span>
+      <span class="cm">// _GLAccount를 참조하지 않으면 GLAccount 테이블 JOIN 없음</span>
+}</pre></div>
+    </div>
+
+    <div class="callout">
+      <div class="callout-label">$projection 키워드</div>
+      <p><code>$projection</code>은 현재 View의 SELECT 필드 목록을 가리킵니다.
+      Association ON 조건에서 자기 자신 필드를 참조할 때 사용합니다.
+      테이블 별칭(alias)과 혼동하지 않도록 주의합니다.
+      <code>$projection.CompanyCode</code>는 이 View가 노출하는 <code>CompanyCode</code> 필드를 의미합니다.</p>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       SECTION 4. CDS 고유 문법 요소
+  ════════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">4. CDS 고유 문법 요소</h2>
+
+    <!-- PARAMETERS -->
+    <h3 class="subsection-title">파라미터 ($parameters)</h3>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-lang">ABAP CDS</span>
+        <span class="code-title">파라미터 선언 및 참조 — ASPN 회계연도 필터</span>
+      </div>
+      <div class="code-body"><pre><span class="fn">@EndUserText.label</span>: <span class="str">'ASPN Financial Query by Year'</span>
+<span class="fn">@Analytics.query</span>: <span class="kw">true</span>
+
+<span class="kw">define view entity</span> <span class="fd">ZASPN_C_FinancialQuery</span>
+  <span class="kw">with parameters</span>
+    <span class="fn">@Consumption.filter.selectionType</span>: <span class="str">#SINGLE</span>
+    <span class="fn">@Consumption.filter.mandatory</span>: <span class="kw">true</span>
+    <span class="fd">P_FiscalYear</span>  : <span class="tp">fiscalyear</span>,     <span class="cm">// ABAP 데이터 타입 사용</span>
+
+    <span class="fn">@Consumption.filter.selectionType</span>: <span class="str">#SINGLE</span>
+    <span class="fd">P_CompanyCode</span> : <span class="tp">bukrs</span>            <span class="cm">// 회사 코드 타입</span>
+
+  <span class="kw">as select from</span> <span class="fd">ZASPN_I_JournalItem</span>( <span class="cm">// 하위 View에 파라미터 전달</span>
+      <span class="fd">P_FiscalYear</span>  = <span class="fd">$parameters</span>.<span class="fd">P_FiscalYear</span>,
+      <span class="fd">P_CompanyCode</span> = <span class="fd">$parameters</span>.<span class="fd">P_CompanyCode</span>
+  ) <span class="kw">as</span> <span class="fd">Item</span>
+{
+  <span class="kw">key</span> <span class="fd">Item</span>.<span class="fd">CompanyCode</span>,
+  <span class="kw">key</span> <span class="fd">Item</span>.<span class="fd">FiscalYear</span>,
+      <span class="fd">Item</span>.<span class="fd">GLAccount</span>,
+      <span class="fd">Item</span>.<span class="fd">AmountInCompanyCodeCurrency</span>
+
+  <span class="cm">// WHERE 절에서 파라미터 사용</span>
+} <span class="kw">where</span>
+    <span class="fd">FiscalYear</span>  = <span class="fd">$parameters</span>.<span class="fd">P_FiscalYear</span>
+<span class="kw">and</span> <span class="fd">CompanyCode</span> = <span class="fd">$parameters</span>.<span class="fd">P_CompanyCode</span></pre></div>
+    </div>
+
+    <!-- CASE / CAST -->
+    <h3 class="subsection-title">CASE 표현식 및 CAST</h3>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-lang">ABAP CDS</span>
+        <span class="code-title">CASE · CAST 활용 — ASPN 법인 분류</span>
+      </div>
+      <div class="code-body"><pre>{
+  <span class="kw">key</span> <span class="fd">CompanyCode</span>,
+
+  <span class="cm">// CASE: 조건부 값 반환 (SQL CASE와 동일 구조)</span>
+  <span class="fn">@EndUserText.label</span>: <span class="str">'Entity Type'</span>
+  <span class="kw">case</span>
+    <span class="kw">when</span> <span class="fd">CompanyCode</span> = <span class="str">'1000'</span> <span class="kw">then</span> <span class="str">'Holdings'</span>
+    <span class="kw">when</span> <span class="fd">CompanyCode</span> = <span class="str">'2000'</span> <span class="kw">then</span> <span class="str">'Korea'</span>
+    <span class="kw">when</span> <span class="fd">CompanyCode</span> = <span class="str">'3000'</span> <span class="kw">then</span> <span class="str">'Europe'</span>
+    <span class="kw">else</span>                           <span class="str">'Associate'</span>
+  <span class="kw">end</span>                <span class="kw">as</span> <span class="fd">EntityType</span>,
+
+  <span class="cm">// CAST: 데이터 타입 변환 — 타입 명시 필수</span>
+  <span class="kw">cast</span>(<span class="fd">AmountInCompanyCodeCurrency</span> <span class="kw">as</span> <span class="tp">abap.dec</span>(<span class="nb">23</span>,<span class="nb">2</span>))
+                     <span class="kw">as</span> <span class="fd">AmountDecimal</span>,
+
+  <span class="cm">// 산술 표현식</span>
+  <span class="fd">AmountInGlobalCurrency</span> * <span class="nb">-1</span>  <span class="kw">as</span> <span class="fd">AmountNegated</span>
+}</pre></div>
+    </div>
+
+    <!-- NULL 처리 및 COALESCE -->
+    <h3 class="subsection-title">NULL 처리 — COALESCE · NULLIF</h3>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-lang">ABAP CDS</span>
+        <span class="code-title">NULL 처리 Built-in Function</span>
+      </div>
+      <div class="code-body"><pre>{
+  <span class="cm">// COALESCE: 첫 번째 NOT NULL 값 반환 (SQL과 동일)</span>
+  <span class="fn">coalesce</span>(<span class="fd">ProfitCenter</span>, <span class="str">'DEFAULT'</span>)  <span class="kw">as</span> <span class="fd">ProfitCenterSafe</span>,
+
+  <span class="cm">// NULLIF: 두 값이 같으면 NULL 반환</span>
+  <span class="fn">nullif</span>(<span class="fd">CostCenter</span>, <span class="str">'DUMMY'</span>)         <span class="kw">as</span> <span class="fd">CostCenterClean</span>,
+
+  <span class="cm">// CASE로 NULL 대체 (명시적)</span>
+  <span class="kw">case</span> <span class="kw">when</span> <span class="fd">SegmentForSAP</span> <span class="kw">is null</span>
+    <span class="kw">then</span> <span class="str">'UNASSIGNED'</span>
+    <span class="kw">else</span> <span class="fd">SegmentForSAP</span>
+  <span class="kw">end</span>                                  <span class="kw">as</span> <span class="fd">SegmentSafe</span>
+}</pre></div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       SECTION 5. 주요 Built-in Function
+  ════════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">5. 주요 Built-in Function</h2>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+      CDS View는 HANA SQL Function의 서브셋을 Built-in Function으로 제공합니다.
+      ABAP Open SQL과 동일한 함수도 있지만 CDS 전용 함수도 존재합니다.
+      아래 함수 외 HANA Native Function은 CDS에서 직접 사용 불가합니다 (AMDP로 우회 — Tab 07 참조).
+    </p>
+
+    <div class="fn-grid">
+      <!-- 날짜/시간 -->
+      <div class="fn-card">
+        <div class="fn-card-head">📅 날짜 / 시간</div>
+        <div class="fn-card-body">
+          <div class="fn-row"><span class="fn-name">dats_days_between</span><span class="fn-desc">두 날짜 간 일수 차이 반환</span></div>
+          <div class="fn-row"><span class="fn-name">dats_add_days</span><span class="fn-desc">날짜에 일수 더하기</span></div>
+          <div class="fn-row"><span class="fn-name">dats_add_months</span><span class="fn-desc">날짜에 월수 더하기</span></div>
+          <div class="fn-row"><span class="fn-name">tstmp_to_dats</span><span class="fn-desc">Timestamp → 날짜 변환</span></div>
+          <div class="fn-row"><span class="fn-name">tstmp_current_utctimestamp</span><span class="fn-desc">현재 UTC Timestamp 반환</span></div>
+          <div class="fn-row"><span class="fn-name">extract_year_from</span><span class="fn-desc">날짜에서 연도 추출</span></div>
+          <div class="fn-row"><span class="fn-name">extract_month_from</span><span class="fn-desc">날짜에서 월 추출</span></div>
+        </div>
+      </div>
+
+      <!-- 문자열 -->
+      <div class="fn-card">
+        <div class="fn-card-head">🔤 문자열</div>
+        <div class="fn-card-body">
+          <div class="fn-row"><span class="fn-name">concat</span><span class="fn-desc">두 문자열 연결. concat_with_space도 사용 가능</span></div>
+          <div class="fn-row"><span class="fn-name">substring</span><span class="fn-desc">부분 문자열 추출 (start, length)</span></div>
+          <div class="fn-row"><span class="fn-name">left / right</span><span class="fn-desc">왼쪽/오른쪽에서 N자 추출</span></div>
+          <div class="fn-row"><span class="fn-name">length</span><span class="fn-desc">문자열 길이 반환</span></div>
+          <div class="fn-row"><span class="fn-name">upper / lower</span><span class="fn-desc">대문자/소문자 변환</span></div>
+          <div class="fn-row"><span class="fn-name">ltrim / rtrim</span><span class="fn-desc">좌측/우측 공백 또는 특정 문자 제거</span></div>
+          <div class="fn-row"><span class="fn-name">replace</span><span class="fn-desc">문자열 치환</span></div>
+        </div>
+      </div>
+
+      <!-- 수치/집계 -->
+      <div class="fn-card">
+        <div class="fn-card-head">🔢 수치 / 집계</div>
+        <div class="fn-card-body">
+          <div class="fn-row"><span class="fn-name">abs</span><span class="fn-desc">절댓값 반환</span></div>
+          <div class="fn-row"><span class="fn-name">div / mod</span><span class="fn-desc">정수 나눗셈 / 나머지</span></div>
+          <div class="fn-row"><span class="fn-name">floor / ceil / round</span><span class="fn-desc">내림 / 올림 / 반올림</span></div>
+          <div class="fn-row"><span class="fn-name">sum / avg / min / max</span><span class="fn-desc">집계 함수. 일반 CDS View에서는 group by와 함께 사용. Cube View에서는 @DefaultAggregation Annotation으로 대체</span></div>
+          <div class="fn-row"><span class="fn-name">count / count_distinct</span><span class="fn-desc">행 수 / 중복 제거 행 수</span></div>
+          <div class="fn-row"><span class="fn-name">coalesce / nullif</span><span class="fn-desc">NULL 처리 함수</span></div>
+        </div>
+      </div>
+
+      <!-- 변환/조건 -->
+      <div class="fn-card">
+        <div class="fn-card-head">🔄 변환 / 조건</div>
+        <div class="fn-card-body">
+          <div class="fn-row"><span class="fn-name">cast</span><span class="fn-desc">데이터 타입 명시 변환. ABAP 타입 사용 (abap.char, abap.dec 등)</span></div>
+          <div class="fn-row"><span class="fn-name">case when … end</span><span class="fn-desc">조건부 값 반환. 중첩 CASE 가능</span></div>
+          <div class="fn-row"><span class="fn-name">currency_conversion</span><span class="fn-desc">CDS 내장 통화 변환 함수 — SAP 환율 테이블(TCURR) 참조</span></div>
+          <div class="fn-row"><span class="fn-name">unit_conversion</span><span class="fn-desc">단위 변환 함수</span></div>
+          <div class="fn-row"><span class="fn-name">decimal_shift</span><span class="fn-desc">소수점 자리 이동 (통화 단위 처리)</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- currency_conversion 상세 -->
+    <h3 class="subsection-title">currency_conversion — ASPN Group 통화 변환 예시</h3>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-lang">ABAP CDS</span>
+        <span class="code-title">EUR → KRW 변환 (ASPN Europe 연결 시나리오)</span>
+      </div>
+      <div class="code-body"><pre>{
+  <span class="kw">key</span> <span class="fd">CompanyCode</span>,
+  <span class="kw">key</span> <span class="fd">FiscalYear</span>,
+
+  <span class="cm">// 원본 EUR 금액</span>
+  <span class="fn">@Semantics.amount.currencyCode</span>: <span class="str">'CompanyCodeCurrency'</span>
+  <span class="fn">@DefaultAggregation</span>: <span class="str">#SUM</span>
+      <span class="fd">AmountInCompanyCodeCurrency</span>    <span class="kw">as</span> <span class="fd">AmountLC</span>,
+
+  <span class="cm">// currency_conversion: SAP 환율 테이블 기반 통화 변환</span>
+  <span class="fn">@Semantics.amount.currencyCode</span>: <span class="str">'GroupCurrency'</span>
+  <span class="fn">@DefaultAggregation</span>: <span class="str">#SUM</span>
+      <span class="fn">currency_conversion</span>(
+          amount             => <span class="fd">AmountInCompanyCodeCurrency</span>,
+          source_currency    => <span class="fd">CompanyCodeCurrency</span>,
+          target_currency    => <span class="str">'KRW'</span>,         <span class="cm">// ASPN Holdings 그룹 통화</span>
+          exchange_rate_date => <span class="fd">PostingDate</span>,
+          exchange_rate_type => <span class="str">'M'</span>            <span class="cm">// 환율 유형: M=평균환율</span>
+      )                                        <span class="kw">as</span> <span class="fd">AmountGC</span>,
+
+  <span class="str">'KRW'</span>                                      <span class="kw">as</span> <span class="fd">GroupCurrency</span>,
+      <span class="fd">CompanyCodeCurrency</span>
+}</pre></div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       SECTION 6. 주요 제약사항
+  ════════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">6. SQL 대비 주요 제약사항</h2>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+      CDS View는 SQL의 모든 기능을 지원하지 않습니다.
+      아래 제약사항은 SQL 배경 개발자가 CDS로 전환 시 가장 많이 실수하는 항목입니다.
+      제약을 우회해야 할 경우 AMDP(Tab 07)를 활용합니다.
+    </p>
+
+    <div class="constraint-list">
+
+      <div class="constraint-item">
+        <div class="constraint-icon err">✗</div>
+        <div class="constraint-body">
+          <h4>서브쿼리 (Subquery) 사용 불가</h4>
+          <p>CDS View의 SELECT 필드 목록 및 WHERE 절에서 서브쿼리를 직접 사용할 수 없습니다.
+          복잡한 서브쿼리 로직은 별도 CDS View로 분리하거나 AMDP로 처리해야 합니다.</p>
+        </div>
+      </div>
+
+      <div class="constraint-item">
+        <div class="constraint-icon warn">!</div>
+        <div class="constraint-body">
+          <h4>UNION / UNION ALL 제한적 지원</h4>
+          <p><code>UNION ALL</code>은 지원되지만 제약이 있습니다. 두 SELECT의 필드 수와 타입이 정확히 일치해야 하며,
+          UNION된 View에는 Association을 선언할 수 없습니다.
+          Hierarchy View에서는 UNION ALL이 금지됩니다.</p>
+        </div>
+      </div>
+
+      <div class="constraint-item">
+        <div class="constraint-icon err">✗</div>
+        <div class="constraint-body">
+          <h4>HANA Native Function 직접 호출 불가</h4>
+          <p>HANA SQL의 Native Function(<code>SERIES_GENERATE_DATE</code>, <code>HIERARCHY</code> 등)을
+          CDS DDL에서 직접 호출할 수 없습니다. 이 경우 CDS Table Function + AMDP를 사용합니다 (Tab 07).</p>
+        </div>
+      </div>
+
+      <div class="constraint-item">
+        <div class="constraint-icon err">✗</div>
+        <div class="constraint-body">
+          <h4>DML 구문 사용 불가 (INSERT / UPDATE / DELETE)</h4>
+          <p>CDS View는 읽기 전용 데이터 모델입니다. 데이터 변경은 ABAP RAP(Restful Application Programming Model)을 통해 구현합니다. SAC Planning Write-Back은 ACDOCP 테이블에 직접 기록하는 별도 메커니즘입니다.</p>
+        </div>
+      </div>
+
+      <div class="constraint-item">
+        <div class="constraint-icon warn">!</div>
+        <div class="constraint-body">
+          <h4>GROUP BY — View 유형에 따라 사용 방식이 다름</h4>
+          <p>
+            <strong>일반 CDS View (Dimension, Interface):</strong> SQL과 동일하게 <code>group by</code>를 명시해야 집계 함수(<code>sum</code>, <code>count</code> 등)를 사용할 수 있습니다. <code>group by</code> 없이 집계 함수를 쓰면 활성화 오류가 발생합니다.<br><br>
+            <strong>Analytics Cube View (<code>#CUBE</code>):</strong> <code>group by</code>를 작성하지 않습니다. 대신 <code>@DefaultAggregation</code> Annotation으로 각 Measure의 집계 방식을 선언하면 Analytics Engine이 런타임에 자동 집계합니다. Cube View에 <code>group by</code>를 명시하면 오류가 발생합니다.
+          </p>
+        </div>
+      </div>
+
+      <div class="constraint-item">
+        <div class="constraint-icon warn">!</div>
+        <div class="constraint-body">
+          <h4>HAVING 절 제약</h4>
+          <p><code>HAVING</code>은 CDS View에서 사용 가능하지만 Analytics Query View(<code>@Analytics.query: true</code>)에서는 사용할 수 없습니다. 집계 후 필터링이 필요한 경우 Calculated Measure의 Exception Aggregation을 활용합니다 (Tab 06 참조).</p>
+        </div>
+      </div>
+
+      <div class="constraint-item">
+        <div class="constraint-icon err">✗</div>
+        <div class="constraint-body">
+          <h4>순환 참조 (Circular Reference) 금지</h4>
+          <p>CDS View A가 CDS View B를 참조하고, B가 다시 A를 참조하는 순환 구조는 컴파일 오류를 발생시킵니다. VDM 계층(Raw → Interface → Consumption) 단방향 참조 원칙을 반드시 준수합니다.</p>
+        </div>
+      </div>
+
+      <div class="constraint-item">
+        <div class="constraint-icon warn">!</div>
+        <div class="constraint-body">
+          <h4><code>SELECT *</code> 사용 비권장</h4>
+          <p><code>SELECT *</code>는 기술적으로 가능하지만 사용하지 않습니다.
+          소스 View의 필드 변경이 하위 View에 의도치 않게 전파되어 운영 장애로 이어질 수 있습니다.
+          명시적 필드 나열이 표준입니다.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- DRILL TOGGLE: SQL vs CDS 제약 비교 -->
+    <div style="margin-top:24px;">
+      <div class="drill-toggle">
+        <div class="drill-header" onclick="toggleDrill(this)">
+          <span>📋 SQL 개발자를 위한 CDS 전환 체크리스트</span>
+          <span class="drill-arrow">▼</span>
+        </div>
+        <div class="drill-body">
+          <table class="compare-table" style="margin-top:14px;">
+            <thead><tr><th>SQL 습관</th><th>CDS 전환 방식</th></tr></thead>
+            <tbody>
+              <tr><td>서브쿼리로 집계 후 JOIN</td><td>별도 CDS View로 분리 → 상위 View에서 Association</td></tr>
+              <tr><td><code>GROUP BY</code> + <code>SUM()</code></td><td><code>@DefaultAggregation: #SUM</code> Annotation 선언</td></tr>
+              <tr><td><code>JOIN</code>으로 텍스트 조회</td><td>Association + <code>@ObjectModel.text.association</code></td></tr>
+              <tr><td>HANA Native Function 직접 호출</td><td>CDS Table Function + AMDP (Tab 07)</td></tr>
+              <tr><td>권한 체크 = WHERE 조건 하드코딩</td><td>DCL <code>DEFINE ROLE</code> + PFCG 권한 오브젝트 (Tab 08)</td></tr>
+              <tr><td>뷰에 비즈니스 로직 주석으로 설명</td><td><code>@EndUserText.label</code>로 SAP 표준 라벨 관리</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       QUIZ
+  ════════════════════════════════════════ -->
+  <section class="section">
+    <div class="quiz-section">
+      <h3 class="quiz-title">확인 퀴즈 — Tab 02</h3>
+      <div class="quiz-progress">
+        <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="progressFill" style="width:0%"></div></div>
+        <span class="quiz-score-label" id="scoreLabel">0 / 4 완료</span>
+      </div>
+
+      <!-- Q1 -->
+      <div class="quiz-item">
+        <div class="quiz-q">
+          <span class="q-num">Q1</span>
+          CDS View Entity에서 Association을 필드 목록에 노출했을 때, JOIN이 실제로 실행되는 시점은?
+        </div>
+        <div class="quiz-options" id="q1">
+          <div class="quiz-option" onclick="answer('q1',this,false,'q1-fb','CDS View가 활성화될 때 Association JOIN이 실행되지 않습니다. 활성화는 컴파일 단계입니다.')">
+            <span class="opt-label">A</span> CDS View가 ADT에서 활성화(Activate)될 때
+          </div>
+          <div class="quiz-option" onclick="answer('q1',this,false,'q1-fb','OData 서비스가 등록될 때 JOIN이 실행되지 않습니다.')">
+            <span class="opt-label">B</span> OData 서비스가 등록될 때
+          </div>
+          <div class="quiz-option" onclick="answer('q1',this,true,'q1-fb','정답입니다. Association은 지연 평가(Lazy Evaluation)를 사용합니다. 상위 View 또는 소비자(OData, SAC)가 해당 Association 필드를 실제로 참조할 때만 JOIN이 실행됩니다.')">
+            <span class="opt-label">C</span> 상위 View 또는 소비자가 Association 필드를 실제로 참조할 때
+          </div>
+          <div class="quiz-option" onclick="answer('q1',this,false,'q1-fb','SAC Live Model 연결 시점에 모든 Association이 JOIN되지 않습니다. 지연 평가 원칙은 SAC 연결 후에도 동일하게 적용됩니다.')">
+            <span class="opt-label">D</span> SAC Live Model에 연결될 때
+          </div>
+        </div>
+        <div class="quiz-feedback" id="q1-fb"></div>
+      </div>
+
+      <!-- Q2 -->
+      <div class="quiz-item">
+        <div class="quiz-q">
+          <span class="q-num">Q2</span>
+          ASPN Europe(EUR 통화)의 금액을 KRW 그룹 통화로 변환하려 합니다. CDS View에서 올바른 방법은?
+        </div>
+        <div class="quiz-options" id="q2">
+          <div class="quiz-option" onclick="answer('q2',this,false,'q2-fb','HANA Native 환율 함수는 CDS DDL에서 직접 호출할 수 없습니다. AMDP를 통해 우회해야 합니다.')">
+            <span class="opt-label">A</span> HANA Native 환율 함수를 직접 호출한다
+          </div>
+          <div class="quiz-option" onclick="answer('q2',this,false,'q2-fb','고정 환율(1,350)을 CASE 구문으로 곱하는 방식은 환율 변동을 반영할 수 없으며, SAP 환율 테이블과 단절됩니다. 운영 환경에서 사용 금지입니다.')">
+            <span class="opt-label">B</span> <code>CASE WHEN CompanyCode = '3000' THEN Amount * 1350 END</code>으로 고정 환율 적용
+          </div>
+          <div class="quiz-option" onclick="answer('q2',this,true,'q2-fb','정답입니다. CDS Built-in Function인 currency_conversion()을 사용하면 SAP 환율 테이블(TCURR)을 기반으로 통화 변환이 이루어집니다. source_currency, target_currency, exchange_rate_type을 명시해야 합니다.')">
+            <span class="opt-label">C</span> <code>currency_conversion()</code> Built-in Function을 사용한다
+          </div>
+          <div class="quiz-option" onclick="answer('q2',this,false,'q2-fb','CAST는 데이터 타입 변환 함수입니다. 통화 단위를 변환하는 기능이 없습니다.')">
+            <span class="opt-label">D</span> <code>CAST(Amount AS abap.dec(23,2))</code>로 변환한다
+          </div>
+        </div>
+        <div class="quiz-feedback" id="q2-fb"></div>
+      </div>
+
+      <!-- Q3 -->
+      <div class="quiz-item">
+        <div class="quiz-q">
+          <span class="q-num">Q3</span>
+          CDS View 개발 중 <code>@AccessControl.authorizationCheck: #NOT_REQUIRED</code>를 설정하고 SAC Live Model 배포를 진행했습니다. 발생하는 문제는?
+        </div>
+        <div class="quiz-options" id="q3">
+          <div class="quiz-option" onclick="answer('q3',this,false,'q3-fb','#NOT_REQUIRED는 SAC 연결 자체를 차단하지 않습니다. 오히려 연결은 되지만 보안 문제가 발생합니다.')">
+            <span class="opt-label">A</span> SAC Live Model 연결이 실패한다
+          </div>
+          <div class="quiz-option" onclick="answer('q3',this,false,'q3-fb','데이터가 전혀 표시되지 않는 문제가 아닙니다. 오히려 반대로 너무 많은 데이터가 노출됩니다.')">
+            <span class="opt-label">B</span> SAC에서 데이터가 전혀 표시되지 않는다
+          </div>
+          <div class="quiz-option" onclick="answer('q3',this,true,'q3-fb','정답입니다. #NOT_REQUIRED는 DCL(Access Control)을 완전히 우회합니다. PFCG 권한 없는 사용자를 포함한 모든 SAC 접속자에게 전체 데이터가 노출되는 심각한 보안 취약점이 됩니다.')">
+            <span class="opt-label">C</span> 권한 없는 SAC 사용자에게도 전체 데이터가 노출된다
+          </div>
+          <div class="quiz-option" onclick="answer('q3',this,false,'q3-fb','성능 문제와 직접적인 관련은 없습니다. 보안 문제가 핵심입니다.')">
+            <span class="opt-label">D</span> 쿼리 성능이 저하된다
+          </div>
+        </div>
+        <div class="quiz-feedback" id="q3-fb"></div>
+      </div>
+
+      <!-- Q4 -->
+      <div class="quiz-item">
+        <div class="quiz-q">
+          <span class="q-num">Q4</span>
+          CDS View에서 직접 사용할 수 없어 AMDP(Tab 07)로 우회해야 하는 경우는?
+        </div>
+        <div class="quiz-options" id="q4">
+          <div class="quiz-option" onclick="answer('q4',this,false,'q4-fb','CASE WHEN은 CDS View에서 직접 지원하는 표준 문법입니다.')">
+            <span class="opt-label">A</span> <code>CASE WHEN</code> 조건부 값 반환
+          </div>
+          <div class="quiz-option" onclick="answer('q4',this,false,'q4-fb','coalesce()는 CDS Built-in Function으로 직접 사용 가능합니다.')">
+            <span class="opt-label">B</span> <code>coalesce()</code>로 NULL을 기본값으로 대체
+          </div>
+          <div class="quiz-option" onclick="answer('q4',this,false,'q4-fb','currency_conversion()은 CDS Built-in Function으로 직접 사용 가능합니다.')">
+            <span class="opt-label">C</span> <code>currency_conversion()</code>으로 EUR → KRW 변환
+          </div>
+          <div class="quiz-option" onclick="answer('q4',this,true,'q4-fb','정답입니다. HANA Native Function(SERIES_GENERATE_DATE, HIERARCHY 등)은 CDS DDL에서 직접 호출할 수 없습니다. 이 경우 CDS Table Function을 선언하고 AMDP ABAP 클래스에서 HANA SQL을 직접 실행하는 방식을 사용합니다 (Tab 07).')">
+            <span class="opt-label">D</span> HANA <code>SERIES_GENERATE_DATE</code>로 날짜 시계열 생성
+          </div>
+        </div>
+        <div class="quiz-feedback" id="q4-fb"></div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="module-footer">
+  <span>ASPN BAC EDU Portal · CDS View Analytics Query A to Z</span>
+  <div class="footer-nav">
+    <a href="tab01_overview.html">← Tab 01. 개요 &amp; 로드맵</a>
+    <a href="tab03_dimension.html">다음: Tab 03. Dimension View →</a>
+  </div>
+</footer>
+
+<script>
+  let answered = {};
+  const total = 4;
+
+  function answer(qId, el, isCorrect, fbId, msg) {
+    if (answered[qId]) return;
+    answered[qId] = true;
+
+    const opts = document.getElementById(qId).querySelectorAll('.quiz-option');
+    opts.forEach(o => { o.style.pointerEvents = 'none'; o.style.opacity = '0.7'; });
+    el.style.opacity = '1';
+    el.classList.add(isCorrect ? 'correct-ans' : 'wrong-ans');
+
+    const fb = document.getElementById(fbId);
+    fb.textContent = (isCorrect ? '✓ ' : '✗ ') + msg;
+    fb.className = 'quiz-feedback show ' + (isCorrect ? 'correct-fb' : 'wrong-fb');
+    updateProgress();
+  }
+
+  function updateProgress() {
+    const done = Object.keys(answered).length;
+    document.getElementById('progressFill').style.width = (done / total * 100) + '%';
+    document.getElementById('scoreLabel').textContent = done + ' / ' + total + ' 완료';
+  }
+
+  function toggleDrill(header) {
+    const body = header.nextElementSibling;
+    const arrow = header.querySelector('.drill-arrow');
+    body.classList.toggle('open');
+    arrow.style.transform = body.classList.contains('open') ? 'rotate(180deg)' : '';
+  }
+</script>
+
+</body>
+</html>

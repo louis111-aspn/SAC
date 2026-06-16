@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tab 05. Cube View | CDS View Analytics Query</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #003366;
+    --navy-light: #e8edf4;
+    --navy-mid: #c0cfe0;
+    --bg: #f0f3f8;
+    --white: #ffffff;
+    --border: #d0d8e4;
+    --text: #1a1a2e;
+    --text-muted: #5a6478;
+    --warn-bg: #fff8e6;
+    --warn-border: #e6a817;
+    --correct-bg: #e8f5e9;
+    --correct-border: #2e7d32;
+    --font-body: 'Noto Sans KR', sans-serif;
+    --font-heading: 'DM Serif Display', serif;
+    --font-mono: 'JetBrains Mono', 'Noto Sans KR', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-body); background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.7; }
+
+  .site-header { background: var(--navy); color: var(--white); padding: 0 80px; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 100; }
+  .site-header .logo { font-family: var(--font-heading); font-size: 18px; letter-spacing: 0.04em; }
+  .site-header .module-label { font-size: 13px; color: var(--navy-mid); font-family: var(--font-mono); }
+
+  .tab-nav { background: var(--white); border-bottom: 2px solid var(--border); padding: 0 80px; display: flex; position: sticky; top: 56px; z-index: 99; overflow-x: auto; overflow-y: hidden; }
+  .tab-nav a { display: block; padding: 14px 20px; font-size: 13px; font-weight: 500; color: var(--text-muted); text-decoration: none; white-space: nowrap; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: color 0.2s, border-color 0.2s; }
+  .tab-nav a:hover { color: var(--navy); }
+  .tab-nav a.active { color: var(--navy); border-bottom-color: var(--navy); font-weight: 700; }
+
+  .wrapper { max-width: 1280px; margin: 0 auto; padding: 48px 80px 80px; }
+
+  .hero { background: var(--navy); border-radius: 4px; padding: 48px 56px; margin-bottom: 40px; color: var(--white); }
+  .hero .eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.12em; color: var(--navy-mid); margin-bottom: 16px; text-transform: uppercase; }
+  .hero h1 { font-family: var(--font-heading); font-size: 36px; line-height: 1.25; margin-bottom: 16px; }
+  .hero p { font-size: 15px; color: rgba(255,255,255,0.75); max-width: 680px; line-height: 1.8; }
+  .hero .meta-row { display: flex; gap: 32px; margin-top: 28px; flex-wrap: wrap; }
+  .hero .meta-item { display: flex; flex-direction: column; gap: 4px; }
+  .hero .meta-label { font-size: 11px; color: var(--navy-mid); text-transform: uppercase; letter-spacing: 0.1em; font-family: var(--font-mono); }
+  .hero .meta-value { font-size: 14px; font-weight: 600; color: var(--white); }
+
+  .section { margin-bottom: 52px; }
+  .section-title { font-family: var(--font-heading); font-size: 26px; color: var(--navy); margin-bottom: 24px; padding-bottom: 10px; border-bottom: 2px solid var(--navy); }
+  .subsection-title { font-size: 18px; font-weight: 700; color: var(--navy); margin: 32px 0 16px; padding-left: 12px; border-left: 3px solid var(--navy); }
+
+  .callout { border-left: 4px solid var(--navy); background: var(--navy-light); padding: 16px 20px; border-radius: 0 4px 4px 0; margin-bottom: 16px; }
+  .callout.warn { border-left-color: var(--warn-border); background: var(--warn-bg); }
+  .callout.correct { border-left-color: var(--correct-border); background: var(--correct-bg); }
+  .callout .callout-label { font-family: var(--font-mono); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; color: var(--navy); }
+  .callout.warn .callout-label { color: var(--warn-border); }
+  .callout.correct .callout-label { color: var(--correct-border); }
+  .callout p { font-size: 14px; line-height: 1.7; }
+  .callout code { font-family: var(--font-mono); font-size: 13px; background: rgba(0,0,0,0.06); padding: 1px 5px; border-radius: 2px; }
+
+  .compare-table { width: 100%; border-collapse: collapse; font-size: 14px; background: var(--white); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 16px; }
+  .compare-table th { background: var(--navy); color: var(--white); padding: 12px 16px; text-align: left; font-weight: 600; font-size: 13px; }
+  .compare-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: top; line-height: 1.6; }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:nth-child(even) td { background: var(--bg); }
+  .compare-table .hl { font-weight: 700; color: var(--navy); }
+  .compare-table code { font-family: var(--font-mono); font-size: 12px; background: var(--bg); padding: 1px 5px; border-radius: 2px; border: 1px solid var(--border); }
+  .compare-table th code { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); color: var(--white); }
+
+  .code-wrap { background: #0f1923; border-radius: 4px; overflow: hidden; margin-bottom: 16px; }
+  .code-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; background: #1a2738; border-bottom: 1px solid #2a3d52; }
+  .code-lang { font-size: 11px; color: var(--navy-mid); text-transform: uppercase; letter-spacing: 0.1em; }
+  .code-title { font-size: 12px; color: #8ba3bc; }
+  .code-body { padding: 20px 24px; overflow-x: auto; font-size: 13px; line-height: 1.75; color: #cdd6e0; font-family: var(--font-mono); }
+  .code-body pre { white-space: pre; }
+  .code-body .kw  { color: #79b8ff; }
+  .code-body .fn  { color: #b392f0; }
+  .code-body .str { color: #9ecbff; }
+  .code-body .cm  { color: #6a737d; font-style: italic; }
+  .code-body .fd  { color: #ffab70; }
+  .code-body .tp  { color: #85e89d; }
+  .code-body .nb  { color: #f97583; }
+
+  /* ANATOMY */
+  .anatomy-box { background: var(--white); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 16px; }
+  .anatomy-header { background: var(--navy); color: var(--white); padding: 12px 24px; font-family: var(--font-mono); font-size: 13px; display: flex; align-items: center; gap: 12px; }
+  .anatomy-row { display: flex; border-bottom: 1px solid var(--border); }
+  .anatomy-row:last-child { border-bottom: none; }
+  .anatomy-num { width: 52px; flex-shrink: 0; background: var(--bg); color: var(--text-muted); font-family: var(--font-mono); font-size: 11px; display: flex; align-items: flex-start; justify-content: center; padding-top: 14px; border-right: 1px solid var(--border); }
+  .anatomy-code { flex: 1; padding: 12px 20px; font-family: var(--font-mono); font-size: 13px; color: #cdd6e0; background: #0f1923; line-height: 1.75; overflow-x: auto; }
+  .anatomy-desc { width: 300px; flex-shrink: 0; padding: 12px 16px; background: var(--white); border-left: 1px solid var(--border); font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+  .anatomy-desc strong { color: var(--navy); }
+  .anatomy-desc code { font-family: var(--font-mono); font-size: 11px; background: var(--bg); padding: 1px 4px; border-radius: 2px; border: 1px solid var(--border); }
+
+  /* MEASURE GRID */
+  .measure-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .measure-card { background: var(--white); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+  .measure-card-head { padding: 12px 18px; background: var(--navy-light); border-bottom: 1px solid var(--border); }
+  .measure-card-head .mc-tag { font-family: var(--font-mono); font-size: 10px; color: var(--navy); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .measure-card-head .mc-title { font-size: 14px; font-weight: 700; color: var(--navy); }
+  .measure-card-head .mc-ann { font-family: var(--font-mono); font-size: 11px; color: #b392f0; margin-top: 3px; }
+  .measure-card-body { padding: 14px 18px; font-size: 13px; color: var(--text-muted); line-height: 1.65; }
+  .measure-card-body code { font-family: var(--font-mono); font-size: 12px; background: var(--bg); padding: 1px 5px; border-radius: 2px; border: 1px solid var(--border); }
+
+  /* FK DIAGRAM */
+  .fk-diagram { background: var(--white); border: 1px solid var(--border); border-radius: 4px; padding: 28px 32px; margin-bottom: 16px; }
+  .fk-row { display: flex; align-items: stretch; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+  .fk-cube { background: var(--navy); color: var(--white); border-radius: 4px; padding: 14px 18px; min-width: 200px; }
+  .fk-cube .fc-label { font-family: var(--font-mono); font-size: 10px; color: var(--navy-mid); margin-bottom: 4px; }
+  .fk-cube .fc-name { font-size: 14px; font-weight: 700; }
+  .fk-cube .fc-field { font-family: var(--font-mono); font-size: 11px; color: var(--navy-mid); margin-top: 6px; }
+  .fk-arrow { display: flex; align-items: center; color: var(--navy); font-weight: 700; font-size: 18px; padding: 0 4px; flex-shrink: 0; }
+  .fk-dim { background: var(--navy-light); border: 1px solid var(--navy-mid); border-radius: 4px; padding: 14px 18px; flex: 1; min-width: 160px; }
+  .fk-dim .fd-label { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); margin-bottom: 4px; }
+  .fk-dim .fd-name { font-size: 13px; font-weight: 700; color: var(--navy); }
+  .fk-dim .fd-ann { font-family: var(--font-mono); font-size: 11px; color: #b392f0; margin-top: 3px; }
+
+  /* STEP */
+  .step-flow { display: flex; flex-direction: column; }
+  .step-item { display: flex; gap: 20px; background: var(--white); border: 1px solid var(--border); padding: 20px 24px; }
+  .step-item:not(:last-child) { border-bottom: none; }
+  .step-item:first-child { border-radius: 4px 4px 0 0; }
+  .step-item:last-child { border-radius: 0 0 4px 4px; }
+  .step-num { width: 32px; height: 32px; border-radius: 50%; background: var(--navy); color: var(--white); font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+  .step-content h4 { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+  .step-content p { font-size: 13px; color: var(--text-muted); line-height: 1.65; }
+  .step-content code { font-family: var(--font-mono); font-size: 12px; background: var(--bg); padding: 1px 5px; border-radius: 2px; border: 1px solid var(--border); }
+
+  /* DRILL */
+  .drill-toggle { background: var(--white); border: 1px solid var(--border); border-radius: 4px; margin-bottom: 10px; overflow: hidden; }
+  .drill-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; cursor: pointer; user-select: none; font-size: 14px; font-weight: 600; color: var(--navy); transition: background 0.15s; }
+  .drill-header:hover { background: var(--navy-light); }
+  .drill-arrow { font-size: 12px; color: var(--text-muted); transition: transform 0.2s; }
+  .drill-body { display: none; padding: 0 20px 20px; border-top: 1px solid var(--border); }
+  .drill-body.open { display: block; }
+  .drill-body p { font-size: 14px; color: var(--text-muted); line-height: 1.7; margin-top: 14px; }
+  .drill-body code { font-family: var(--font-mono); font-size: 12px; background: var(--bg); padding: 1px 5px; border-radius: 2px; border: 1px solid var(--border); }
+
+  /* QUIZ */
+  .quiz-section { background: var(--white); border: 1px solid var(--border); border-radius: 4px; padding: 32px; }
+  .quiz-title { font-family: var(--font-heading); font-size: 20px; color: var(--navy); margin-bottom: 24px; }
+  .quiz-item { margin-bottom: 28px; padding-bottom: 28px; border-bottom: 1px solid var(--border); }
+  .quiz-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .quiz-q { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 14px; line-height: 1.6; }
+  .quiz-q .q-num { display: inline-block; background: var(--navy); color: var(--white); font-family: var(--font-mono); font-size: 11px; padding: 2px 8px; border-radius: 2px; margin-right: 10px; vertical-align: middle; }
+  .quiz-q code { font-family: var(--font-mono); font-size: 13px; background: var(--bg); padding: 1px 6px; border-radius: 2px; border: 1px solid var(--border); }
+  .quiz-options { display: flex; flex-direction: column; gap: 8px; }
+  .quiz-option { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; background: var(--bg); transition: border-color 0.15s, background 0.15s; font-size: 14px; line-height: 1.5; }
+  .quiz-option:hover { border-color: var(--navy); background: var(--navy-light); }
+  .quiz-option.correct-ans { border-color: var(--correct-border) !important; background: var(--correct-bg) !important; }
+  .quiz-option.wrong-ans   { border-color: #c0392b !important; background: #fdecea !important; }
+  .quiz-option .opt-label  { font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--navy); flex-shrink: 0; margin-top: 1px; }
+  .quiz-feedback { margin-top: 12px; padding: 12px 16px; border-radius: 4px; font-size: 13px; display: none; line-height: 1.6; }
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback.correct-fb { background: var(--correct-bg); color: #2e7d32; border-left: 3px solid var(--correct-border); }
+  .quiz-feedback.wrong-fb   { background: #fdecea; color: #c0392b; border-left: 3px solid #c0392b; }
+  .quiz-progress { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+  .quiz-progress-bar { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .quiz-progress-fill { height: 100%; background: var(--navy); border-radius: 3px; transition: width 0.4s; }
+  .quiz-score-label { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+
+  .module-footer { background: var(--white); border-top: 1px solid var(--border); padding: 24px 80px; display: flex; justify-content: space-between; align-items: center; margin-top: 60px; font-size: 13px; color: var(--text-muted); }
+  .footer-nav { display: flex; gap: 24px; }
+  .footer-nav a { color: var(--navy); text-decoration: none; font-weight: 500; }
+  .footer-nav a:hover { text-decoration: underline; }
+
+  @media (max-width: 900px) {
+    .site-header, .tab-nav, .wrapper, .module-footer { padding-left: 20px; padding-right: 20px; }
+    .hero { padding: 32px 24px; }
+    .measure-grid { grid-template-columns: 1fr; }
+    .anatomy-desc { width: 180px; font-size: 12px; }
+    .fk-row { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <span class="logo">ASPN BAC · EDU Portal</span>
+  <span class="module-label">CDS View Analytics Query — A to Z</span>
+</header>
+
+<nav class="tab-nav">
+  <a href="tab01_overview.html">01. 개요 &amp; 로드맵</a>
+  <a href="tab02_syntax.html">02. CDS 기초 문법</a>
+  <a href="tab03_dimension.html">03. Dimension View</a>
+  <a href="tab04_hierarchy.html">04. Hierarchy View</a>
+  <a href="tab05_cube.html" class="active">05. Cube View</a>
+  <a href="tab06_query.html">06. Analytics Query View</a>
+  <a href="tab07_table_function.html">07. Table Function &amp; AMDP</a>
+  <a href="tab08_authorization.html">08. 권한 제어</a>
+  <a href="tab09_sac_live.html">09. SAC Live Model 연결</a>
+</nav>
+
+<main class="wrapper">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="eyebrow">Module 05 / Cube View Design</div>
+    <h1>Cube View는 Measure와 Dimension을<br>연결하는 Analytics의 핵심 집계 계층이다</h1>
+    <p>
+      <code style="color:var(--navy-mid); font-family:var(--font-mono);">@Analytics.dataCategory: #CUBE</code> 선언,
+      Measure 집계 방식, Dimension Foreign Key Association, Unit/Currency Semantics까지
+      ASPN Group ACDOCA 기반 재무 Cube View를 완성합니다.
+    </p>
+    <div class="meta-row">
+      <div class="meta-item"><span class="meta-label">선수 지식</span><span class="meta-value">Tab 03 · 04 완료</span></div>
+      <div class="meta-item"><span class="meta-label">예상 학습 시간</span><span class="meta-value">45분</span></div>
+      <div class="meta-item"><span class="meta-label">핵심 Annotation</span><span class="meta-value">#CUBE · @DefaultAggregation · @Semantics</span></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       SECTION 1. Cube View 역할
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">1. Cube View의 역할과 설계 원칙</h2>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+      Cube View는 트랜잭션 데이터(금액·수량·건수)를 집계하고, Tab 03·04에서 만든 Dimension View와
+      Foreign Key Association으로 연결하는 <strong>중간 집계 계층</strong>입니다.
+      Query View(Tab 06)가 이 Cube를 소스로 참조하여 SAC에 노출합니다.
+      Cube View 자체는 SAC Live Model에 직접 노출되지 않습니다.
+    </p>
+
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th style="width:20%">항목</th>
+          <th>Cube View (<code>#CUBE</code>)</th>
+          <th>Query View (<code>@Analytics.query: true</code>)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>역할</strong></td>
+          <td>Measure 집계 + Dimension FK 연결</td>
+          <td class="hl">SAC Live Model의 직접 노출 대상</td>
+        </tr>
+        <tr>
+          <td><strong>Measure 정의</strong></td>
+          <td class="hl"><code>@DefaultAggregation</code>으로 집계 방식 선언</td>
+          <td>Restricted/Calculated Measure 추가 정의</td>
+        </tr>
+        <tr>
+          <td><strong>Variable/Parameter</strong></td>
+          <td>파라미터 선언 가능 (선택)</td>
+          <td class="hl">Variable 선언 및 SAC 필터 연동</td>
+        </tr>
+        <tr>
+          <td><strong>Dimension 참조</strong></td>
+          <td class="hl"><code>@ObjectModel.foreignKey.association</code>으로 연결</td>
+          <td>Cube의 Dimension을 그대로 상속</td>
+        </tr>
+        <tr>
+          <td><strong>SAC 노출</strong></td>
+          <td>직접 노출 안 됨</td>
+          <td class="hl">직접 노출 — OData 서비스 등록 대상</td>
+        </tr>
+        <tr>
+          <td><strong>ASPN 예시</strong></td>
+          <td>ZASPN_C_FinancialCube</td>
+          <td>ZASPN_C_FinancialQuery (Tab 06)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <div class="callout-label">설계 철학 — Cube와 Query의 분리</div>
+      <p>Cube View에는 <strong>재사용 가능한 Measure와 Dimension 참조</strong>만 담습니다.
+      사용자 목적에 따라 다른 Query View(P&amp;L Query, B/S Query, Cost Query 등)가
+      하나의 Cube를 공유하여 소비합니다.
+      Cube를 Query와 분리하면 Measure 변경 시 모든 Query에 자동 반영되어 유지보수성이 높아집니다.</p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 2. Measure 선언
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">2. Measure 선언 — @DefaultAggregation</h2>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+      Cube View에서 숫자 필드를 Measure로 만들려면 <code>@DefaultAggregation</code> Annotation을 선언합니다.
+      이 Annotation이 없으면 Analytics Engine은 해당 필드를 Dimension으로 간주합니다.
+    </p>
+
+    <div class="measure-grid">
+      <div class="measure-card">
+        <div class="measure-card-head">
+          <div class="mc-tag">가장 많이 사용</div>
+          <div class="mc-title">#SUM</div>
+          <div class="mc-ann">@DefaultAggregation: #SUM</div>
+        </div>
+        <div class="measure-card-body">
+          합계 집계. 금액(<code>Amount</code>), 수량(<code>Quantity</code>) 등 대부분의 재무·원가 Measure에 사용합니다.
+          ASPN Group의 <code>AmountInCompanyCodeCurrency</code>, <code>AmountInGlobalCurrency</code> 모두 #SUM.
+        </div>
+      </div>
+      <div class="measure-card">
+        <div class="measure-card-head">
+          <div class="mc-tag">건수 집계</div>
+          <div class="mc-title">#COUNT_DISTINCT_NULLS / #COUNT</div>
+          <div class="mc-ann">@DefaultAggregation: #COUNT_DISTINCT_NULLS</div>
+        </div>
+        <div class="measure-card-body">
+          전표 건수, 계정 수 등 중복 제거 건수 집계에 사용합니다.
+          <code>#COUNT</code>는 NULL 포함 전체 행 수, <code>#COUNT_DISTINCT_NULLS</code>는 NULL을 하나로 처리합니다.
+        </div>
+      </div>
+      <div class="measure-card">
+        <div class="measure-card-head">
+          <div class="mc-tag">잔액·재고</div>
+          <div class="mc-title">#MIN / #MAX</div>
+          <div class="mc-ann">@DefaultAggregation: #MIN</div>
+        </div>
+        <div class="measure-card-body">
+          시작 잔액, 최저가, 최고가 등에 사용합니다.
+          재무상태표 잔액처럼 합산이 아닌 특정 시점 값이 필요한 경우 Query View의
+          Exception Aggregation(Tab 06)과 함께 활용합니다.
+        </div>
+      </div>
+      <div class="measure-card">
+        <div class="measure-card-head">
+          <div class="mc-tag">집계 불가 Measure</div>
+          <div class="mc-title">#FORMULA / #NOP</div>
+          <div class="mc-ann">@DefaultAggregation: #NOP</div>
+        </div>
+        <div class="measure-card-body">
+          <code>#NOP</code>(No Operation): 집계를 Analytics Engine에 위임합니다.
+          Cube에서 집계 방식을 고정하지 않고 Query View의 Calculated Measure에서 결정하고 싶을 때 사용합니다.
+          남용 시 SAC에서 집계 결과가 예상과 다를 수 있으므로 주의합니다.
+        </div>
+      </div>
+    </div>
+
+    <h3 class="subsection-title">@Aggregation.default vs. @DefaultAggregation</h3>
+
+    <div class="callout warn">
+      <div class="callout-label">주의 — 두 Annotation의 차이</div>
+      <p>
+        <code>@DefaultAggregation: #SUM</code>은 <strong>필드 레벨</strong>에 선언하며, 이 필드의 기본 집계 방식을 지정합니다.<br>
+        <code>@Aggregation.default: #SUM</code>은 구형 구문으로 동일한 역할을 하지만,
+        신규 개발에서는 <strong><code>@DefaultAggregation</code> 사용을 권장</strong>합니다.<br>
+        두 Annotation이 동일 필드에 함께 선언되면 <code>@DefaultAggregation</code>이 우선합니다.
+      </p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 3. Unit/Currency Semantics
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">3. Unit/Currency Semantics — @Semantics 선언</h2>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+      SAC에서 금액·수량 Measure를 올바르게 표시하려면 해당 필드가 어떤 통화 코드·단위 필드와
+      연결되는지 <code>@Semantics</code> Annotation으로 명시해야 합니다.
+      이 선언이 없으면 SAC에서 통화 변환·단위 표시가 불가능합니다.
+    </p>
+
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th style="width:38%">Annotation</th>
+          <th style="width:30%">적용 대상</th>
+          <th>설명</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>@Semantics.amount.currencyCode: 'Currency'</code></td>
+          <td>금액 필드</td>
+          <td>이 금액 필드의 통화 코드를 보관하는 필드명을 지정. SAC가 통화 Dimension과 자동 연결</td>
+        </tr>
+        <tr>
+          <td><code>@Semantics.currencyCode: true</code></td>
+          <td>통화 코드 필드</td>
+          <td>이 필드가 통화 코드임을 선언. <code>@Semantics.amount</code>가 참조하는 필드</td>
+        </tr>
+        <tr>
+          <td><code>@Semantics.quantity.unitOfMeasure: 'Unit'</code></td>
+          <td>수량 필드</td>
+          <td>이 수량 필드의 단위 코드를 보관하는 필드명을 지정</td>
+        </tr>
+        <tr>
+          <td><code>@Semantics.unitOfMeasure: true</code></td>
+          <td>단위 코드 필드</td>
+          <td>이 필드가 단위 코드(EA, KG, M 등)임을 선언</td>
+        </tr>
+        <tr>
+          <td><code>@Semantics.fiscal.year: true</code></td>
+          <td>회계연도 필드</td>
+          <td>회계연도 Dimension 인식. SAC 시간 필터와 연동</td>
+        </tr>
+        <tr>
+          <td><code>@Semantics.fiscal.period: true</code></td>
+          <td>회계기간 필드</td>
+          <td>회계기간(월) Dimension 인식</td>
+        </tr>
+        <tr>
+          <td><code>@Semantics.fiscal.yearPeriod: true</code></td>
+          <td>연기간 결합 필드</td>
+          <td>회계연도+기간 결합 필드. SAC 시계열 분석의 기준 필드</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout correct">
+      <div class="callout-label">ASPN Group — 다중 통화 Semantics 설계</div>
+      <p>ASPN Group은 ASPN Korea(KRW)와 ASPN Europe(EUR)이 혼재합니다.
+      Cube View에서는 <strong>회사 코드 통화(LC)</strong>와 <strong>그룹 통화(GC: KRW)</strong>를 각각 선언합니다.
+      <code>AmountInCompanyCodeCurrency</code>는 <code>CompanyCodeCurrency</code> 필드를,
+      <code>AmountInGlobalCurrency</code>는 고정값 <code>'KRW'</code>를 통화 코드로 연결합니다.</p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 4. Dimension FK Association
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">4. Dimension Foreign Key Association 연결</h2>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+      Cube View의 키 필드와 Tab 03에서 만든 Dimension View를
+      <code>@ObjectModel.foreignKey.association</code>으로 연결합니다.
+      이 Annotation이 선언되어야 SAC가 해당 키 필드를 Dimension으로 자동 인식합니다.
+    </p>
+
+    <!-- FK 연결 다이어그램 -->
+    <div class="fk-diagram">
+      <p style="font-family:var(--font-mono); font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:20px;">ZASPN_C_FinancialCube — Dimension FK 연결 구조</p>
+
+      <div class="fk-row">
+        <div class="fk-cube">
+          <div class="fc-label">CUBE VIEW</div>
+          <div class="fc-name">ZASPN_C_FinancialCube</div>
+          <div class="fc-field">key CompanyCode</div>
+        </div>
+        <div class="fk-arrow">→</div>
+        <div class="fk-dim">
+          <div class="fd-label">DIMENSION VIEW</div>
+          <div class="fd-name">ZASPN_I_CompanyCode</div>
+          <div class="fd-ann">@ObjectModel.foreignKey.association: '_CompanyCode'</div>
+        </div>
+      </div>
+
+      <div class="fk-row">
+        <div class="fk-cube">
+          <div class="fc-label">CUBE VIEW</div>
+          <div class="fc-name">ZASPN_C_FinancialCube</div>
+          <div class="fc-field">key GLAccount</div>
+        </div>
+        <div class="fk-arrow">→</div>
+        <div class="fk-dim">
+          <div class="fd-label">DIMENSION VIEW</div>
+          <div class="fd-name">ZASPN_I_GLAccount</div>
+          <div class="fd-ann">@ObjectModel.foreignKey.association: '_GLAccount'</div>
+        </div>
+      </div>
+
+      <div class="fk-row">
+        <div class="fk-cube">
+          <div class="fc-label">CUBE VIEW</div>
+          <div class="fc-name">ZASPN_C_FinancialCube</div>
+          <div class="fc-field">key ProfitCenter</div>
+        </div>
+        <div class="fk-arrow">→</div>
+        <div class="fk-dim">
+          <div class="fd-label">DIMENSION VIEW</div>
+          <div class="fd-name">ZASPN_I_ProfitCenter</div>
+          <div class="fd-ann">@ObjectModel.foreignKey.association: '_ProfitCenter'</div>
+        </div>
+      </div>
+
+      <div class="fk-row">
+        <div class="fk-cube">
+          <div class="fc-label">CUBE VIEW</div>
+          <div class="fc-name">ZASPN_C_FinancialCube</div>
+          <div class="fc-field">CompanyCodeCurrency (통화 코드)</div>
+        </div>
+        <div class="fk-arrow">→</div>
+        <div class="fk-dim">
+          <div class="fd-label">DIMENSION VIEW (Measure Dimension)</div>
+          <div class="fd-name">I_Currency</div>
+          <div class="fd-ann">@Analytics.dimensionType: #MEASURE_DIMENSION</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <div class="callout-label">Measure Dimension — 통화·단위 Dimension</div>
+      <p>통화 코드(<code>CompanyCodeCurrency</code>)와 단위(<code>BaseUnit</code>) 필드도 Dimension입니다.
+      SAP 표준 <code>I_Currency</code>, <code>I_UnitOfMeasure</code>를 <code>@Analytics.dimensionType: #MEASURE_DIMENSION</code>으로
+      참조하면 SAC가 통화·단위를 기준으로 데이터를 분리 표시합니다.
+      ASPN Europe의 EUR 금액과 ASPN Korea의 KRW 금액이 통화 Dimension으로 구분됩니다.</p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 5. 완성 예시 — ZASPN_C_FinancialCube
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">5. 완성 예시 — ZASPN_C_FinancialCube</h2>
+
+    <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+      ASPN Group 연결재무제표 분석을 위한 Cube View 전체 코드입니다.
+      ACDOCA(Universal Journal) 기반 소스, 다중 통화 Measure, Dimension FK 연결,
+      Unit/Currency Semantics를 모두 포함합니다.
+    </p>
+
+    <div class="anatomy-box">
+      <div class="anatomy-header">
+        <span style="font-size:11px; color:var(--navy-mid);">ABAP CDS · DDL</span>
+        <span style="font-size:12px; color:#8ba3bc;">ZASPN_C_FinancialCube — Cube View 전체 해부</span>
+      </div>
+
+      <div class="anatomy-row">
+        <div class="anatomy-num">1–8</div>
+        <div class="anatomy-code"><span style="color:#b392f0;">@Analytics.dataCategory</span>: <span style="color:#9ecbff;">#CUBE</span>
+<span style="color:#b392f0;">@VDM.viewType</span>: <span style="color:#9ecbff;">#CONSUMPTION</span>
+<span style="color:#b392f0;">@EndUserText.label</span>: <span style="color:#9ecbff;">'ASPN Financial Cube'</span>
+<span style="color:#b392f0;">@AccessControl.authorizationCheck</span>: <span style="color:#9ecbff;">#CHECK</span>
+<span style="color:#b392f0;">@ObjectModel.usageType</span>: {
+    serviceQuality: <span style="color:#9ecbff;">#A</span>,
+    sizeCategory:   <span style="color:#9ecbff;">#XXL</span>,
+    dataClass:      <span style="color:#9ecbff;">#MIXED</span>
+}</div>
+        <div class="anatomy-desc"><strong>View 레벨 필수 Annotation.</strong> <code>#CUBE</code>: Analytics Cube 선언. <code>@ObjectModel.usageType</code>: 서비스 품질·데이터 규모 힌트. ACDOCA 기반 Cube는 <code>#XXL</code>(대용량). SAP 표준 가이드라인 준수.</div>
+      </div>
+
+      <div class="anatomy-row">
+        <div class="anatomy-num">9–13</div>
+        <div class="anatomy-code"><span style="color:#79b8ff;">define view entity</span> <span style="color:#ffab70;">ZASPN_C_FinancialCube</span>
+  <span style="color:#79b8ff;">as select from</span> <span style="color:#ffab70;">I_JournalEntryItem</span> <span style="color:#79b8ff;">as</span> <span style="color:#ffab70;">JE</span>
+
+  <span style="color:#6a737d; font-style:italic;">// ── Dimension FK Associations ──</span>
+  <span style="color:#79b8ff;">association [0..1] to</span> <span style="color:#ffab70;">ZASPN_I_CompanyCode</span>  <span style="color:#79b8ff;">as</span> <span style="color:#ffab70;">_CompanyCode</span>
+    <span style="color:#79b8ff;">on</span> <span style="color:#ffab70;">$projection</span>.<span style="color:#ffab70;">CompanyCode</span> = <span style="color:#ffab70;">_CompanyCode</span>.<span style="color:#ffab70;">CompanyCode</span></div>
+        <div class="anatomy-desc"><strong>소스 및 Association 선언.</strong> 소스는 SAP 표준 Interface View <code>I_JournalEntryItem</code>. ACDOCA를 직접 참조하지 않고 표준 Interface View를 통해 안정성을 확보합니다.</div>
+      </div>
+
+      <div class="anatomy-row">
+        <div class="anatomy-num">14–24</div>
+        <div class="anatomy-code">  <span style="color:#79b8ff;">association [0..1] to</span> <span style="color:#ffab70;">ZASPN_I_GLAccount</span>    <span style="color:#79b8ff;">as</span> <span style="color:#ffab70;">_GLAccount</span>
+    <span style="color:#79b8ff;">on</span>  <span style="color:#ffab70;">$projection</span>.<span style="color:#ffab70;">ChartOfAccounts</span> = <span style="color:#ffab70;">_GLAccount</span>.<span style="color:#ffab70;">ChartOfAccounts</span>
+    <span style="color:#79b8ff;">and</span> <span style="color:#ffab70;">$projection</span>.<span style="color:#ffab70;">GLAccount</span>       = <span style="color:#ffab70;">_GLAccount</span>.<span style="color:#ffab70;">GLAccount</span>
+
+  <span style="color:#79b8ff;">association [0..1] to</span> <span style="color:#ffab70;">ZASPN_I_ProfitCenter</span> <span style="color:#79b8ff;">as</span> <span style="color:#ffab70;">_ProfitCenter</span>
+    <span style="color:#79b8ff;">on</span>  <span style="color:#ffab70;">$projection</span>.<span style="color:#ffab70;">ControllingArea</span> = <span style="color:#ffab70;">_ProfitCenter</span>.<span style="color:#ffab70;">ControllingArea</span>
+    <span style="color:#79b8ff;">and</span> <span style="color:#ffab70;">$projection</span>.<span style="color:#ffab70;">ProfitCenter</span>    = <span style="color:#ffab70;">_ProfitCenter</span>.<span style="color:#ffab70;">ProfitCenter</span>
+
+  <span style="color:#79b8ff;">association [0..1] to</span> <span style="color:#ffab70;">I_Currency</span>          <span style="color:#79b8ff;">as</span> <span style="color:#ffab70;">_Currency</span>
+    <span style="color:#79b8ff;">on</span>  <span style="color:#ffab70;">$projection</span>.<span style="color:#ffab70;">CompanyCodeCurrency</span> = <span style="color:#ffab70;">_Currency</span>.<span style="color:#ffab70;">Currency</span></div>
+        <div class="anatomy-desc"><strong>복합 키 Association.</strong> GL 계정은 <code>ChartOfAccounts + GLAccount</code> 복합 키. 이익센터는 <code>ControllingArea + ProfitCenter</code>. 복합 키 Association은 ON 조건에 <code>and</code>로 모든 키를 명시해야 합니다.</div>
+      </div>
+
+      <div class="anatomy-row">
+        <div class="anatomy-num">25–40</div>
+        <div class="anatomy-code">{
+  <span style="color:#6a737d; font-style:italic;">// ── 키 필드 + FK Association 연결 ──</span>
+  <span style="color:#b392f0;">@ObjectModel.foreignKey.association</span>: <span style="color:#9ecbff;">'_CompanyCode'</span>
+  <span style="color:#79b8ff;">key</span> <span style="color:#ffab70;">JE</span>.<span style="color:#ffab70;">CompanyCode</span>,
+
+  <span style="color:#b392f0;">@ObjectModel.foreignKey.association</span>: <span style="color:#9ecbff;">'_GLAccount'</span>
+  <span style="color:#79b8ff;">key</span> <span style="color:#ffab70;">JE</span>.<span style="color:#ffab70;">ChartOfAccounts</span>,
+  <span style="color:#b392f0;">@ObjectModel.foreignKey.association</span>: <span style="color:#9ecbff;">'_GLAccount'</span>
+  <span style="color:#79b8ff;">key</span> <span style="color:#ffab70;">JE</span>.<span style="color:#ffab70;">GLAccount</span>,
+
+  <span style="color:#b392f0;">@ObjectModel.foreignKey.association</span>: <span style="color:#9ecbff;">'_ProfitCenter'</span>
+  <span style="color:#79b8ff;">key</span> <span style="color:#ffab70;">JE</span>.<span style="color:#ffab70;">ControllingArea</span>,
+  <span style="color:#b392f0;">@ObjectModel.foreignKey.association</span>: <span style="color:#9ecbff;">'_ProfitCenter'</span>
+  <span style="color:#79b8ff;">key</span> <span style="color:#ffab70;">JE</span>.<span style="color:#ffab70;">ProfitCenter</span>,
+
+  <span style="color:#79b8ff;">key</span> <span style="color:#ffab70;">JE</span>.<span style="color:#ffab70;">FiscalYear</span>,
+  <span style="color:#79b8ff;">key</span> <span style="color:#ffab70;">JE</span>.<span style="color:#ffab70;">FiscalPeriod</span>,
+  <span style="color:#79b8ff;">key</span> <span style="color:#ffab70;">JE</span>.<span style="color:#ffab70;">AccountingDocument</span>,
+  <span style="color:#79b8ff;">key</span> <span style="color:#ffab70;">JE</span>.<span style="color:#ffab70;">AccountingDocumentItem</span></div>
+        <div class="anatomy-desc"><strong>FK Association 선언 위치.</strong> <code>@ObjectModel.foreignKey.association</code>은 해당 키 필드 <em>바로 위</em>에 선언합니다. 복합 키는 각 키 필드 위에 동일한 Association 이름을 반복 선언합니다.</div>
+      </div>
+
+      <div class="anatomy-row">
+        <div class="anatomy-num">41–60</div>
+        <div class="anatomy-code">  <span style="color:#6a737d; font-style:italic;">// ── Measure 필드 ──</span>
+
+  <span style="color:#6a737d; font-style:italic;">// 회사 코드 통화 금액 (LC)</span>
+  <span style="color:#b392f0;">@Semantics.amount.currencyCode</span>: <span style="color:#9ecbff;">'CompanyCodeCurrency'</span>
+  <span style="color:#b392f0;">@DefaultAggregation</span>: <span style="color:#9ecbff;">#SUM</span>
+  <span style="color:#b392f0;">@EndUserText.label</span>: <span style="color:#9ecbff;">'Amount (Local Currency)'</span>
+      <span style="color:#ffab70;">JE</span>.<span style="color:#ffab70;">AmountInCompanyCodeCurrency</span>  <span style="color:#79b8ff;">as</span> <span style="color:#ffab70;">AmountLC</span>,
+
+  <span style="color:#6a737d; font-style:italic;">// 그룹 통화 금액 (GC: KRW) — currency_conversion</span>
+  <span style="color:#b392f0;">@Semantics.amount.currencyCode</span>: <span style="color:#9ecbff;">'GroupCurrency'</span>
+  <span style="color:#b392f0;">@DefaultAggregation</span>: <span style="color:#9ecbff;">#SUM</span>
+  <span style="color:#b392f0;">@EndUserText.label</span>: <span style="color:#9ecbff;">'Amount (Group Currency KRW)'</span>
+      <span style="color:#ffab70;">currency_conversion</span>(
+          amount          =&gt; <span style="color:#ffab70;">JE</span>.<span style="color:#ffab70;">AmountInCompanyCodeCurrency</span>,
+          source_currency =&gt; <span style="color:#ffab70;">JE</span>.<span style="color:#ffab70;">CompanyCodeCurrency</span>,
+          target_currency =&gt; <span style="color:#9ecbff;">'KRW'</span>,
+          exchange_rate_date =&gt; <span style="color:#ffab70;">JE</span>.<span style="color:#ffab70;">PostingDate</span>,
+          exchange_rate_type =&gt; <span style="color:#9ecbff;">'M'</span>
+      )                                        <span style="color:#79b8ff;">as</span> <span style="color:#ffab70;">AmountGC</span>,
+
+  <span style="color:#6a737d; font-style:italic;">// 수량 Measure</span>
+  <span style="color:#b392f0;">@Semantics.quantity.unitOfMeasure</span>: <span style="color:#9ecbff;">'BaseUnit'</span>
+  <span style="color:#b392f0;">@DefaultAggregation</span>: <span style="color:#9ecbff;">#SUM</span>
+      <span style="color:#ffab70;">JE</span>.<span style="color:#ffab70;">Quantity</span>                         <span style="color:#79b8ff;">as</span> <span style="color:#ffab70;">Quantity</span>,</div>
+        <div class="anatomy-desc"><strong>Measure 3종 선언 패턴.</strong> ① LC 금액: 통화 코드 필드 참조. ② GC 금액: <code>currency_conversion()</code>으로 KRW 환산. ③ 수량: 단위 코드 필드 참조. 각 Measure마다 <code>@Semantics</code> + <code>@DefaultAggregation</code> 쌍이 필수입니다.</div>
+      </div>
+
+      <div class="anatomy-row">
+        <div class="anatomy-num">61–80</div>
+        <div class="anatomy-code">  <span style="color:#6a737d; font-style:italic;">// ── 통화·단위 코드 필드 (Semantics 선언) ──</span>
+  <span style="color:#b392f0;">@Semantics.currencyCode</span>: <span style="color:#79b8ff;">true</span>
+  <span style="color:#b392f0;">@ObjectModel.foreignKey.association</span>: <span style="color:#9ecbff;">'_Currency'</span>
+      <span style="color:#ffab70;">JE</span>.<span style="color:#ffab70;">CompanyCodeCurrency</span>,
+
+  <span style="color:#b392f0;">@Semantics.currencyCode</span>: <span style="color:#79b8ff;">true</span>
+  <span style="color:#9ecbff;">'KRW'</span>                                    <span style="color:#79b8ff;">as</span> <span style="color:#ffab70;">GroupCurrency</span>,
+
+  <span style="color:#b392f0;">@Semantics.unitOfMeasure</span>: <span style="color:#79b8ff;">true</span>
+      <span style="color:#ffab70;">JE</span>.<span style="color:#ffab70;">BaseUnit</span>,
+
+  <span style="color:#6a737d; font-style:italic;">// ── 회계 시간 Dimension ──</span>
+  <span style="color:#b392f0;">@Semantics.fiscal.year</span>: <span style="color:#79b8ff;">true</span>
+      <span style="color:#ffab70;">JE</span>.<span style="color:#ffab70;">FiscalYear</span>,
+  <span style="color:#b392f0;">@Semantics.fiscal.period</span>: <span style="color:#79b8ff;">true</span>
+      <span style="color:#ffab70;">JE</span>.<span style="color:#ffab70;">FiscalPeriod</span>,
+  <span style="color:#b392f0;">@Semantics.fiscal.yearPeriod</span>: <span style="color:#79b8ff;">true</span>
+      <span style="color:#ffab70;">JE</span>.<span style="color:#ffab70;">FiscalYearPeriod</span>,
+
+  <span style="color:#6a737d; font-style:italic;">// ── Association 노출 ──</span>
+      <span style="color:#ffab70;">_CompanyCode</span>, <span style="color:#ffab70;">_GLAccount</span>,
+      <span style="color:#ffab70;">_ProfitCenter</span>, <span style="color:#ffab70;">_Currency</span>
+}</div>
+        <div class="anatomy-desc"><strong>통화·단위·시간 Semantics.</strong> 그룹 통화 <code>GroupCurrency</code>는 리터럴 <code>'KRW'</code>로 고정 선언. 회계 시간 필드는 <code>@Semantics.fiscal.*</code>으로 SAC 시계열 분석과 연동. 모든 Association을 필드 목록 마지막에 노출합니다.</div>
+      </div>
+
+    </div>
+
+    <div class="callout correct">
+      <div class="callout-label">ACDOCA 직접 참조 vs. I_JournalEntryItem 참조</div>
+      <p>ACDOCA 테이블을 직접 참조하는 것보다 SAP 표준 Interface View <code>I_JournalEntryItem</code>을
+      소스로 사용하는 것을 권장합니다.
+      표준 View는 SAP 업그레이드 시 하위 호환성이 보장되며,
+      이미 최적화된 필드 매핑과 Annotation이 적용되어 있습니다.
+      ASPN Group 커스텀 필드(Z-필드)가 필요한 경우에만 ACDOCA Extension View를 소스에 추가합니다.</p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 6. 허용·불가 패턴
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <h2 class="section-title">6. Cube View 허용 / 불가 패턴</h2>
+
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th style="width:5%"></th>
+          <th style="width:35%">패턴</th>
+          <th>설명 및 대안</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="text-align:center; font-size:18px;">✓</td>
+          <td class="hl"><code>@DefaultAggregation: #SUM</code> Measure 선언</td>
+          <td>Cube View의 핵심 패턴. 숫자 필드마다 집계 방식을 Annotation으로 선언합니다.</td>
+        </tr>
+        <tr>
+          <td style="text-align:center; font-size:18px;">✓</td>
+          <td class="hl"><code>@ObjectModel.foreignKey.association</code></td>
+          <td>키 필드와 Dimension View를 연결하는 핵심 Annotation. SAC Dimension 자동 인식에 필수.</td>
+        </tr>
+        <tr>
+          <td style="text-align:center; font-size:18px;">✓</td>
+          <td class="hl"><code>currency_conversion()</code> 인라인 통화 변환</td>
+          <td>Cube 내에서 그룹 통화 Measure를 직접 계산. SAP 환율 테이블(TCURR) 기반으로 동작.</td>
+        </tr>
+        <tr>
+          <td style="text-align:center; font-size:18px;">✓</td>
+          <td class="hl">파라미터(<code>with parameters</code>) 선언</td>
+          <td>Cube에 파라미터 선언 가능. Query View에서 파라미터를 전달받아 사용.</td>
+        </tr>
+        <tr>
+          <td style="text-align:center; color:#c0392b; font-size:18px;">✗</td>
+          <td><code>@Analytics.query: true</code> 동시 선언</td>
+          <td>Cube View는 Query View가 아닙니다. 두 Annotation을 동시에 선언하면 오류. Cube에서는 <code>#CUBE</code>만 선언합니다.</td>
+        </tr>
+        <tr>
+          <td style="text-align:center; color:#c0392b; font-size:18px;">✗</td>
+          <td>Restricted Measure / Calculated Measure 선언</td>
+          <td>Restricted/Calculated Measure는 Query View에서 선언합니다. Cube에서의 선언은 지원되지 않습니다.</td>
+        </tr>
+        <tr>
+          <td style="text-align:center; color:#c0392b; font-size:18px;">✗</td>
+          <td>Variable(<code>@AnalyticsDetails.query.variable</code>) 선언</td>
+          <td>Variable은 Query View 전용입니다. Cube의 파라미터(<code>with parameters</code>)와 다릅니다.</td>
+        </tr>
+        <tr>
+          <td style="text-align:center; color:var(--warn-border); font-size:18px;">!</td>
+          <td><code>GROUP BY</code> 명시적 사용</td>
+          <td>Analytics Engine이 Annotation 기반으로 자동 집계합니다. 명시적 GROUP BY는 일반 CDS View 패턴이며 Cube에서는 Annotation 방식을 사용합니다.</td>
+        </tr>
+        <tr>
+          <td style="text-align:center; color:var(--warn-border); font-size:18px;">!</td>
+          <td>ACDOCA 직접 참조</td>
+          <td>기술적으로 가능하지만 SAP 표준 Interface View(<code>I_JournalEntryItem</code>) 사용을 권장합니다. 업그레이드 호환성 문제 발생 가능.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- 설계 체크리스트 -->
+    <div class="drill-toggle" style="margin-top:8px;">
+      <div class="drill-header" onclick="toggleDrill(this)">
+        <span>✅ Cube View 배포 전 품질 체크리스트</span>
+        <span class="drill-arrow">▼</span>
+      </div>
+      <div class="drill-body">
+        <table class="compare-table" style="margin-top:14px;">
+          <thead><tr><th>확인 항목</th><th>확인 방법</th><th>미비 시 증상</th></tr></thead>
+          <tbody>
+            <tr><td><code>@Analytics.dataCategory: #CUBE</code> 선언</td><td>View 레벨 Annotation</td><td>SAC에서 Cube로 인식 안 됨</td></tr>
+            <tr><td>모든 숫자 필드에 <code>@DefaultAggregation</code></td><td>필드별 Annotation 확인</td><td>SAC에서 해당 필드가 Dimension으로 오인식</td></tr>
+            <tr><td>금액 필드에 <code>@Semantics.amount.currencyCode</code></td><td>필드별 Annotation 확인</td><td>SAC 통화 변환 불가</td></tr>
+            <tr><td>통화 코드 필드에 <code>@Semantics.currencyCode: true</code></td><td>필드별 Annotation 확인</td><td>SAC 통화 Dimension 미인식</td></tr>
+            <tr><td>키 필드마다 <code>@ObjectModel.foreignKey.association</code></td><td>필드별 Annotation 확인</td><td>SAC에서 해당 키가 Dimension으로 미인식</td></tr>
+            <tr><td>복합 키 Association의 ON 조건 완전성</td><td>ADT 활성화 오류 확인</td><td>활성화 오류 또는 잘못된 JOIN 결과</td></tr>
+            <tr><td><code>@AccessControl.authorizationCheck: #CHECK</code></td><td>View 레벨 Annotation</td><td>권한 없는 데이터 노출</td></tr>
+            <tr><td>DCL(DEFINE ROLE) 작성 완료</td><td>DCL 오브젝트 존재 확인</td><td>SAC에서 데이터 공백</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       QUIZ
+  ═══════════════════════════════════════ -->
+  <section class="section">
+    <div class="quiz-section">
+      <h3 class="quiz-title">확인 퀴즈 — Tab 05</h3>
+      <div class="quiz-progress">
+        <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="progressFill" style="width:0%"></div></div>
+        <span class="quiz-score-label" id="scoreLabel">0 / 4 완료</span>
+      </div>
+
+      <!-- Q1 -->
+      <div class="quiz-item">
+        <div class="quiz-q">
+          <span class="q-num">Q1</span>
+          ZASPN_C_FinancialCube에서 <code>AmountInCompanyCodeCurrency</code> 필드에
+          <code>@DefaultAggregation</code>을 선언하지 않았습니다. SAC에서 어떤 현상이 발생합니까?
+        </div>
+        <div class="quiz-options" id="q1">
+          <div class="quiz-option" onclick="answer('q1',this,false,'q1-fb','SAC Live Model 연결이 실패하지는 않습니다. Annotation 누락은 연결 실패가 아닌 잘못된 필드 분류로 나타납니다.')">
+            <span class="opt-label">A</span> SAC Live Model 연결이 실패한다
+          </div>
+          <div class="quiz-option" onclick="answer('q1',this,true,'q1-fb','정답입니다. @DefaultAggregation이 없으면 Analytics Engine은 해당 숫자 필드를 Measure가 아닌 Dimension으로 간주합니다. SAC에서 금액 필드가 필터/행/열 항목(Dimension)으로 표시되고 집계 Measure로 사용할 수 없게 됩니다.')">
+            <span class="opt-label">B</span> SAC에서 해당 금액 필드가 Measure가 아닌 Dimension으로 분류된다
+          </div>
+          <div class="quiz-option" onclick="answer('q1',this,false,'q1-fb','집계 오류가 아닌 필드 분류 문제입니다. Dimension으로 오인식되어 집계 자체가 불가해집니다.')">
+            <span class="opt-label">C</span> SAC에서 금액이 두 배로 집계된다
+          </div>
+          <div class="quiz-option" onclick="answer('q1',this,false,'q1-fb','통화 변환 문제는 @Semantics.amount.currencyCode 누락 시 발생합니다. @DefaultAggregation 누락은 Dimension 오인식 문제입니다.')">
+            <span class="opt-label">D</span> SAC에서 통화 변환이 불가능해진다
+          </div>
+        </div>
+        <div class="quiz-feedback" id="q1-fb"></div>
+      </div>
+
+      <!-- Q2 -->
+      <div class="quiz-item">
+        <div class="quiz-q">
+          <span class="q-num">Q2</span>
+          ASPN Europe(EUR)의 금액을 그룹 통화(KRW)로 Cube View에서 변환할 때
+          <code>GroupCurrency</code> 필드를 리터럴 <code>'KRW'</code>로 고정 선언했습니다.
+          이 필드에 반드시 선언해야 하는 Annotation은?
+        </div>
+        <div class="quiz-options" id="q2">
+          <div class="quiz-option" onclick="answer('q2',this,false,'q2-fb','@DefaultAggregation은 Measure 숫자 필드에 선언합니다. GroupCurrency는 통화 코드 필드이므로 다른 Annotation이 필요합니다.')">
+            <span class="opt-label">A</span> <code>@DefaultAggregation: #SUM</code>
+          </div>
+          <div class="quiz-option" onclick="answer('q2',this,false,'q2-fb','@Semantics.amount.currencyCode는 금액 필드에 선언합니다. GroupCurrency는 통화 코드 필드입니다.')">
+            <span class="opt-label">B</span> <code>@Semantics.amount.currencyCode: 'GroupCurrency'</code>
+          </div>
+          <div class="quiz-option" onclick="answer('q2',this,true,'q2-fb','정답입니다. GroupCurrency 필드는 통화 코드임을 선언하는 @Semantics.currencyCode: true가 필요합니다. 이 Annotation이 없으면 SAC가 이 필드를 통화 코드로 인식하지 못하고, AmountGC 금액 필드의 통화 변환 기능이 동작하지 않습니다.')">
+            <span class="opt-label">C</span> <code>@Semantics.currencyCode: true</code>
+          </div>
+          <div class="quiz-option" onclick="answer('q2',this,false,'q2-fb','@ObjectModel.foreignKey.association은 Dimension View 참조에 사용합니다. 통화 코드 Semantics와는 별개입니다.')">
+            <span class="opt-label">D</span> <code>@ObjectModel.foreignKey.association: '_Currency'</code>
+          </div>
+        </div>
+        <div class="quiz-feedback" id="q2-fb"></div>
+      </div>
+
+      <!-- Q3 -->
+      <div class="quiz-item">
+        <div class="quiz-q">
+          <span class="q-num">Q3</span>
+          Cube View에서 GL 계정 키 필드(<code>ChartOfAccounts</code>, <code>GLAccount</code>)와
+          <code>ZASPN_I_GLAccount</code> Dimension View를 연결하는 올바른 방법은?
+        </div>
+        <div class="quiz-options" id="q3">
+          <div class="quiz-option" onclick="answer('q3',this,false,'q3-fb','@Analytics.dataCategory: #DIMENSION은 Dimension View 자체에 선언합니다. Cube View에서 Dimension을 참조하는 Annotation이 아닙니다.')">
+            <span class="opt-label">A</span> 키 필드 위에 <code>@Analytics.dataCategory: #DIMENSION</code> 선언
+          </div>
+          <div class="quiz-option" onclick="answer('q3',this,true,'q3-fb','정답입니다. 복합 키의 경우 각 키 필드 위에 동일한 Association 이름으로 @ObjectModel.foreignKey.association을 반복 선언합니다. ChartOfAccounts 위와 GLAccount 위 모두에 @ObjectModel.foreignKey.association: \'_GLAccount\'를 선언해야 SAC가 두 필드를 하나의 GL 계정 Dimension으로 인식합니다.')">
+            <span class="opt-label">B</span> <code>ChartOfAccounts</code>와 <code>GLAccount</code> 각각 위에 <code>@ObjectModel.foreignKey.association: '_GLAccount'</code>를 반복 선언
+          </div>
+          <div class="quiz-option" onclick="answer('q3',this,false,'q3-fb','View 레벨 Annotation 블록에 foreignKey.association을 선언하는 방식은 없습니다. 반드시 필드 레벨에 선언해야 합니다.')">
+            <span class="opt-label">C</span> View 레벨 Annotation 블록에 <code>@ObjectModel.foreignKey.association</code> 일괄 선언
+          </div>
+          <div class="quiz-option" onclick="answer('q3',this,false,'q3-fb','Association ON 조건에 Annotation을 선언하지 않습니다. foreignKey.association은 필드 목록의 키 필드 위에 선언합니다.')">
+            <span class="opt-label">D</span> Association의 ON 조건에 <code>@ObjectModel.foreignKey.association</code> 선언
+          </div>
+        </div>
+        <div class="quiz-feedback" id="q3-fb"></div>
+      </div>
+
+      <!-- Q4 -->
+      <div class="quiz-item">
+        <div class="quiz-q">
+          <span class="q-num">Q4</span>
+          Cube View에 <code>@Analytics.query: true</code>를 추가로 선언하면 어떻게 됩니까?
+        </div>
+        <div class="quiz-options" id="q4">
+          <div class="quiz-option" onclick="answer('q4',this,false,'q4-fb','동시 선언이 가능한 것이 아닙니다. 이 두 Annotation은 서로 다른 계층의 오브젝트에 사용됩니다.')">
+            <span class="opt-label">A</span> Cube이면서 동시에 Query View로 동작하여 SAC에 직접 노출된다
+          </div>
+          <div class="quiz-option" onclick="answer('q4',this,false,'q4-fb','성능 향상과는 관련이 없습니다.')">
+            <span class="opt-label">B</span> 집계 성능이 향상된다</div>
+          <div class="quiz-option" onclick="answer('q4',this,true,'q4-fb','정답입니다. @Analytics.dataCategory: #CUBE와 @Analytics.query: true는 동시에 선언할 수 없습니다. Cube View는 #CUBE, Query View는 query: true를 각각 독립적으로 선언합니다. 두 Annotation을 함께 선언하면 활성화 오류가 발생합니다.')">
+            <span class="opt-label">C</span> 활성화(Activate) 오류가 발생한다
+          </div>
+          <div class="quiz-option" onclick="answer('q4',this,false,'q4-fb','Restricted/Calculated Measure 선언 가능 여부는 이 Annotation 조합과 무관합니다. Restricted Measure는 Query View 전용입니다.')">
+            <span class="opt-label">D</span> Restricted Measure를 Cube에서 직접 선언할 수 있게 된다
+          </div>
+        </div>
+        <div class="quiz-feedback" id="q4-fb"></div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer class="module-footer">
+  <span>ASPN BAC EDU Portal · CDS View Analytics Query A to Z</span>
+  <div class="footer-nav">
+    <a href="tab04_hierarchy.html">← Tab 04. Hierarchy View</a>
+    <a href="tab06_query.html">다음: Tab 06. Analytics Query View →</a>
+  </div>
+</footer>
+
+<script>
+  let answered = {};
+  const total = 4;
+
+  function answer(qId, el, isCorrect, fbId, msg) {
+    if (answered[qId]) return;
+    answered[qId] = true;
+    const opts = document.getElementById(qId).querySelectorAll('.quiz-option');
+    opts.forEach(o => { o.style.pointerEvents = 'none'; o.style.opacity = '0.7'; });
+    el.style.opacity = '1';
+    el.classList.add(isCorrect ? 'correct-ans' : 'wrong-ans');
+    const fb = document.getElementById(fbId);
+    fb.textContent = (isCorrect ? '✓ ' : '✗ ') + msg;
+    fb.className = 'quiz-feedback show ' + (isCorrect ? 'correct-fb' : 'wrong-fb');
+    updateProgress();
+  }
+
+  function updateProgress() {
+    const done = Object.keys(answered).length;
+    document.getElementById('progressFill').style.width = (done / total * 100) + '%';
+    document.getElementById('scoreLabel').textContent = done + ' / ' + total + ' 완료';
+  }
+
+  function toggleDrill(header) {
+    const body = header.nextElementSibling;
+    const arrow = header.querySelector('.drill-arrow');
+    body.classList.toggle('open');
+    arrow.style.transform = body.classList.contains('open') ? 'rotate(180deg)' : '';
+  }
+</script>
+
+</body>
+</html>
