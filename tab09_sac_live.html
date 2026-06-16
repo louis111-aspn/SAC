@@ -248,17 +248,18 @@
   <!-- HERO -->
   <div class="hero">
     <div class="eyebrow">Module 09 / SAC Live Model Connection &amp; Operations</div>
-    <h1>OData 노출부터 Live Model Import,<br>운영 이슈 대응까지 — 최종 연결을 완성한다</h1>
+    <h1>SAP_COM_0065 설정부터 Live Model 연결,<br>운영 이슈 대응까지 — 최종 연결을 완성한다</h1>
     <p>
       Tab 03~08에서 완성한 CDS View 스택을 SAC Live Model로 실제 연결합니다.
+      SAC Live Connection은 OData가 아닌 <strong>InA(Information Access) 프로토콜</strong>로 동작합니다.
       <code style="color:var(--navy-mid); font-family:var(--font-mono);">SAP_COM_0065</code> Communication Arrangement 설정,
-      OData 서비스 등록, Live Model Import, Dimension·Measure 매핑 검증,
+      SAC Live Connection 생성, Dimension·Measure 매핑 검증,
       그리고 현장에서 자주 발생하는 운영 이슈 패턴과 해결책을 다룹니다.
     </p>
     <div class="meta-row">
       <div class="meta-item"><span class="meta-label">선수 지식</span><span class="meta-value">Tab 01~08 완료</span></div>
       <div class="meta-item"><span class="meta-label">예상 학습 시간</span><span class="meta-value">45분</span></div>
-      <div class="meta-item"><span class="meta-label">핵심 설정</span><span class="meta-value">SAP_COM_0065 · OData · Live Connection</span></div>
+      <div class="meta-item"><span class="meta-label">핵심 설정</span><span class="meta-value">SAP_COM_0065 · InA 프로토콜 · Live Connection</span></div>
     </div>
   </div>
 
@@ -327,10 +328,15 @@
     </div>
 
     <div class="callout">
-      <div class="callout-label">SAP_COM_0065 vs. Datasphere</div>
+      <div class="callout-label">SAC Live Connection의 실제 통신 방식</div>
       <p>
-        <strong>SAP_COM_0065</strong>: S/4HANA Public Cloud에서 SAC를 HANA Live Connection으로 직접 연결하는 Communication Scenario. Datasphere 없이 CDS View를 SAC에 직접 노출합니다. 동일 SAP BTP 테넌트 내에서 동작합니다.<br><br>
-        <strong>Datasphere</strong>: SAP 외 이기종 데이터(AWS RDS, Snowflake 등)를 통합하거나 복잡한 데이터 변환이 필요한 경우에만 추가로 도입합니다. 순수 S/4HANA CDS View 기반 Analytics에는 필요하지 않습니다.
+        SAC Live Connection은 OData(<code>/sap/opu/odata/…</code>)를 사용하지 않습니다.
+        내부적으로 <strong>SAP InA(Information Access) 프로토콜</strong>(<code>/sap/bw/ina/…</code>)을 사용하여
+        S/4HANA Analytics Engine에 직접 쿼리합니다.<br><br>
+        <strong>SAP_COM_0065</strong>: S/4HANA Public Cloud ↔ SAC Live Connection을 위한 Communication Scenario.
+        OAuth 2.0 SAML Bearer Assertion 인증 기반으로 InA 서비스를 노출합니다.<br><br>
+        <strong>Datasphere</strong>: SAP 외 이기종 데이터(AWS RDS, Snowflake 등)를 통합할 때만 도입합니다.
+        순수 S/4HANA CDS View 기반 Live Connection에는 필요하지 않습니다.
       </p>
     </div>
   </section>
@@ -342,41 +348,45 @@
     <h2 class="section-title">2. SAC Live Model 연결 방식 — OData vs. Live Connection</h2>
 
     <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
-      SAC에서 S/4HANA CDS View를 소비하는 방법은 목적에 따라 다릅니다.
-      <strong>SAC Live Model(Live Connection)</strong>은 <code>@Analytics.query: true</code>가 선언된
-      Analytics Query CDS View를 <strong>직접</strong> 소비합니다.
-      <code>@OData.publish: true</code>는 Fiori 앱이나 외부 시스템을 위한 OData 서비스 노출 목적이며,
-      SAC Live Model 연결에는 필요하지 않습니다.
+      SAC에서 S/4HANA 데이터를 소비하는 방식은 크게 세 가지입니다.
+      이 교육 과정에서 다루는 것은 <strong>SAC Live Model(Live Connection)</strong>이며,
+      <code>@Analytics.query: true</code>가 선언된 Analytics Query CDS View를 OData 없이 직접 소비합니다.
+      <code>@OData.publish: true</code>는 SAC Import 모델이나 Fiori 앱처럼 OData 서비스를 경유하는 경우에 필요합니다.
     </p>
 
     <table class="compare-table">
       <thead>
         <tr>
           <th style="width:22%">구분</th>
-          <th class="hl">SAC Live Model (Live Connection)</th>
-          <th>OData 서비스 노출</th>
+          <th class="hl">SAC Live Model<br>(Live Connection)</th>
+          <th>SAC Import 모델</th>
+          <th>Fiori / 외부 OData</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td><strong>목적</strong></td>
-          <td class="hl">SAC Analytics — 실시간 분석, Story, Dashboard</td>
-          <td>Fiori 앱, 외부 시스템, API 연동</td>
+          <td><strong>데이터 조회</strong></td>
+          <td class="hl">실시간 — InA 프로토콜(<code>/sap/bw/ina/</code>)로 S/4HANA Analytics Engine 직접 쿼리</td>
+          <td>OData로 데이터를 SAC 내부에 적재 후 조회</td>
+          <td>OData 서비스(<code>/sap/opu/odata/</code>) 경유 조회</td>
         </tr>
         <tr>
           <td><strong>필요 Annotation</strong></td>
           <td class="hl"><code>@Analytics.query: true</code> 만으로 충분</td>
-          <td><code>@OData.publish: true</code> 또는 수동 서비스 등록</td>
+          <td><code>@OData.publish: true</code> 필요</td>
+          <td><code>@OData.publish: true</code> 필요</td>
         </tr>
         <tr>
           <td><strong>연결 설정</strong></td>
-          <td class="hl">SAP_COM_0065 Communication Arrangement → SAC Live Connection</td>
-          <td>/IWFND/MAINT_SERVICE (On-Premise) 또는 Fiori 앱 (Public Cloud)</td>
+          <td class="hl">SAP_COM_0065 (Public Cloud) 또는 CORS/Tunnel (On-Premise) → SAC Live Connection</td>
+          <td><code>@OData.publish: true</code> + OData 서비스 등록 → SAC 데이터 연결</td>
+          <td>/IWFND/ 또는 Fiori 앱에서 OData 서비스 관리</td>
         </tr>
         <tr>
-          <td><strong>ASPN 시나리오</strong></td>
-          <td class="hl">ZASPN_C_PLQuery → SAC P&amp;L 분석 Dashboard</td>
-          <td>Fiori 재무 분석 타일에 동일 Query 노출 시 추가 선언</td>
+          <td><strong>ASPN 활용</strong></td>
+          <td class="hl">P&amp;L / B&amp;S 실시간 분석 Dashboard</td>
+          <td>대용량 오프라인 리포트, 예측 분석</td>
+          <td>Fiori 재무 분석 타일</td>
         </tr>
       </tbody>
     </table>
@@ -434,10 +444,11 @@
       <div class="step-item">
         <div class="step-num">4</div>
         <div class="step-content">
-          <h4>서비스 URL 확인</h4>
-          <p>Communication Arrangement 생성 완료 후 <strong>Inbound Service URL</strong>을 복사합니다.
-          형식: <code>https://[테넌트].s4hana.ondemand.com/sap/opu/odata/sap/[서비스명]</code>
-          이 URL을 SAC Live Connection 설정에 사용합니다.</p>
+          <h4>Additional Properties — Tenant ID 입력</h4>
+          <p>Communication Arrangement 생성 후 <strong>Additional Properties</strong> 섹션에서
+          SAC 테넌트 ID를 입력합니다.
+          SAC URL에서 확인 가능합니다. 예: <code>https://xxx.sapanalytics.cloud/sap/fpa/ui/tenants/<strong>[tenant ID]</strong>/app.html</code><br>
+          System Alias 필드는 비워 둡니다. Outbound Services는 모두 Inactive로 설정합니다.</p>
         </div>
       </div>
     </div>
@@ -458,10 +469,10 @@
         <div class="step-num">6</div>
         <div class="step-content">
           <h4>Connection 정보 입력</h4>
-          <p>Host: S/4HANA 테넌트 URL 입력.<br>
-          Authentication Method: <strong>User Name and Password</strong> 또는 <strong>OAuth</strong> 선택.<br>
-          User: <code>ZASPN_SAC_COMM</code> (Communication User).<br>
-          Password: Communication User 비밀번호.</p>
+          <p><strong>Host</strong>: S/4HANA 테넌트 호스트명 입력 (예: <code>my12345.s4hana.ondemand.com</code>). OData URL이 아닌 호스트명만 입력합니다.<br>
+          <strong>Authentication Method</strong>: <strong>OAuth 2.0</strong> 선택 (SAP_COM_0065는 OAuth 2.0 SAML Bearer Assertion 기반).<br>
+          <strong>Token Service User / Password</strong>: SAP_COM_0065 Inbound Communication User 자격증명.<br>
+          <strong>OAuth Scope</strong>: <code>SAP_BW_INA_GETCATALOG_HTTP SAP_BW_INA_GETRESPONSE_HTTP SAP_BW_INA_BATCHPROCESSING_HTTP</code> 등 InA 서비스 Scope 입력.</p>
         </div>
       </div>
       <div class="step-item">
@@ -476,10 +487,10 @@
     </div>
 
     <div class="callout correct">
-      <div class="callout-label">On-Premise vs. Public Cloud 차이</div>
+      <div class="callout-label">On-Premise vs. Public Cloud 연결 방식 차이</div>
       <p>
-        <strong>S/4HANA Public Cloud</strong>: SAP_COM_0065 Communication Arrangement 사용. Fiori Launchpad에서 설정.<br>
-        <strong>S/4HANA On-Premise</strong>: SAP Gateway(/IWFND/MAINT_SERVICE)에서 OData 서비스 활성화 후 SAC에서 직접 URL 입력. Communication Arrangement 불필요. SSL 인증서 관리가 추가로 필요할 수 있음.
+        <strong>S/4HANA Public Cloud</strong>: SAP_COM_0065 Communication Arrangement + OAuth 2.0. Fiori Launchpad에서 설정. InA 서비스 Scope를 SAC OAuth 설정에 입력.<br><br>
+        <strong>S/4HANA On-Premise</strong>: Communication Arrangement 불필요. SAC에서 Direct(CORS) 또는 Tunnel(Cloud Connector) 방식으로 Live Connection 생성. ABAP AS에서 InA 패키지(<code>/sap/bw/ina/</code>) 활성화 및 CORS 설정이 필요합니다. OData 서비스 등록과는 무관합니다.
       </p>
     </div>
   </section>
@@ -510,8 +521,9 @@
         <div class="step-num">2</div>
         <div class="step-content">
           <h4>Query View 검색 및 선택</h4>
-          <p>OData 서비스 목록에서 <code>ZASPN_C_PLQUERY_SRV</code>를 검색합니다.
-          Query View 이름 또는 <code>@EndUserText.label</code>로 검색 가능합니다.
+          <p>Live Connection을 통해 조회 가능한 Analytics Query 목록에서
+          <code>@Analytics.query: true</code>가 선언된 Query View를 검색합니다.
+          View 이름 또는 <code>@EndUserText.label</code>로 검색 가능합니다.
           <strong>'ASPN P&amp;L / B&amp;S Integrated Query'</strong>를 선택합니다.</p>
         </div>
       </div>
@@ -801,14 +813,14 @@
       <div class="quiz-item">
         <div class="quiz-q">
           <span class="q-num">Q1</span>
-          SAC Live Model에서 S/4HANA CDS Query View를 Import하려 합니다.
-          Query View가 SAC Live Model 목록에 표시되려면 반드시 선언해야 하는 Annotation은?
+          SAC Live Model(Live Connection)에서 S/4HANA CDS Query View를 연결하려 합니다.
+          SAC가 해당 View를 Live Model의 Analytics Query로 인식하려면 반드시 선언해야 하는 Annotation은?
         </div>
         <div class="quiz-options" id="q1">
-          <div class="quiz-option" onclick="answer('q1',this,false,'q1-fb','@OData.publish: true는 Fiori 앱 등 OData 클라이언트를 위한 OData 서비스 노출 목적입니다. SAC Live Model은 OData 서비스가 아닌 Analytics Engine을 통해 직접 Query View를 소비하므로 이 Annotation은 SAC Live Connection에 필요하지 않습니다.')">
+          <div class="quiz-option" onclick="answer('q1',this,false,'q1-fb','@OData.publish: true는 SAC Import 모델이나 Fiori 앱처럼 OData 서비스를 통해 데이터를 가져올 때 필요한 Annotation입니다. SAC Live Model(Live Connection)은 OData를 경유하지 않고 Analytics Engine으로 직접 Query View를 조회하므로 이 Annotation은 불필요합니다.')">
             <span class="opt-label">A</span> <code>@OData.publish: true</code>
           </div>
-          <div class="quiz-option" onclick="answer('q1',this,true,'q1-fb','정답입니다. @Analytics.query: true가 선언된 CDS View만 SAC Live Model에서 Analytics Query로 인식됩니다. 이 Annotation 하나로 SAC가 해당 View를 Dimension·Measure·Variable을 가진 Query로 Import할 수 있습니다. @OData.publish: true는 SAC Live Connection에 불필요합니다.')">
+          <div class="quiz-option" onclick="answer('q1',this,true,'q1-fb','정답입니다. @Analytics.query: true가 선언된 CDS View만 SAC Live Model(Live Connection)에서 Analytics Query로 인식됩니다. SAC Live Model은 OData를 경유하지 않으므로 @OData.publish: true는 필요 없습니다. @Analytics.query: true 하나로 SAC가 해당 View의 Dimension·Measure·Variable을 직접 소비할 수 있습니다.')">
             <span class="opt-label">B</span> <code>@Analytics.query: true</code>
           </div>
           <div class="quiz-option" onclick="answer('q1',this,false,'q1-fb','@VDM.viewType: #CONSUMPTION은 VDM 계층 분류 Annotation으로, SAC Live Model 인식의 필수 조건이 아닙니다.')">
@@ -856,8 +868,8 @@
           <div class="quiz-option" onclick="answer('q3',this,false,'q3-fb','DCL 권한 오류는 데이터 공백을 유발하지 텍스트 미표시와는 다른 문제입니다.')">
             <span class="opt-label">A</span> DCL 권한 설정 오류 → Communication User 권한 미설정 순으로 확인한다
           </div>
-          <div class="quiz-option" onclick="answer('q3',this,false,'q3-fb','OData 서비스 상태는 Query View 목록 미표시 문제입니다. 텍스트 미표시와는 다릅니다.')">
-            <span class="opt-label">B</span> OData 서비스 상태 → Variable 설정 순으로 확인한다
+          <div class="quiz-option" onclick="answer('q3',this,false,'q3-fb','SAC Live Connection에서 Query View 미표시는 @Analytics.query: true 미선언이 주원인입니다. 텍스트 미표시 문제와는 다릅니다.')">
+            <span class="opt-label">B</span> <code>@Analytics.query: true</code> 미선언 → SAC Live Connection 설정 오류 순으로 확인한다
           </div>
           <div class="quiz-option" onclick="answer('q3',this,true,'q3-fb','정답입니다. 텍스트 미표시의 3가지 원인을 순서대로 확인합니다. ① Dimension View(ZASPN_I_CompanyCode)에 @ObjectModel.text.association: \'_Text\'가 선언되었는지, ② Text View(ZASPN_I_CompanyCodeText)의 텍스트 필드에 @Semantics.text: true가 선언되었는지, ③ Text Association Cardinality가 [0..*]인지(다국어 환경)를 순서대로 확인합니다.')">
             <span class="opt-label">C</span> <code>@ObjectModel.text.association</code> 누락 → <code>@Semantics.text: true</code> 누락 → Text Association Cardinality 순으로 확인한다
