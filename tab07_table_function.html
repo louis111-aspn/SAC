@@ -352,7 +352,7 @@
         <tr>
           <td><strong>HANA Native Function</strong></td>
           <td>불가</td>
-          <td class="hl">SERIES_GENERATE_DATE, 윈도우 함수 등 직접 사용</td>
+          <td class="hl">복잡한 윈도우 함수·HANA Native Function 활용 가능. ABAP Platform 버전에 따라 CDS DDL의 윈도우 함수 지원 범위가 확대되고 있으나, 복잡한 누적 계산에는 AMDP가 여전히 자주 사용됨</td>
         </tr>
         <tr>
           <td><strong>Association 선언</strong></td>
@@ -394,7 +394,7 @@
           재무상태표 계정의 기간별 누적 잔액은 전기이월 잔액 + 당기 발생액의 누적 합산입니다.
           이 계산에는 <strong>기간 순서에 따른 누적 합산(Running Total)</strong>이 필요하며,
           HANA 윈도우 함수 <code>SUM() OVER (PARTITION BY … ORDER BY …)</code>로 구현합니다.
-          CDS View DDL로는 윈도우 함수를 직접 사용할 수 없습니다.
+          복잡한 윈도우 함수 활용에는 ABAP Platform 버전에 따라 CDS DDL 지원 범위에 차이가 있으며, AMDP가 자주 활용됩니다.
         </div>
       </div>
       <div class="scenario-card">

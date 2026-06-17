@@ -330,7 +330,7 @@
     <div class="callout">
       <div class="callout-label">SAC Live Connection의 실제 통신 방식</div>
       <p>
-        SAC Live Connection은 OData(<code>/sap/opu/odata/…</code>)를 사용하지 않습니다.
+        SAC Live Connection은 실제 분석 데이터 조회에 OData(<code>/sap/opu/odata/…</code>)를 사용하지 않습니다.
         내부적으로 <strong>SAP InA(Information Access) 프로토콜</strong>(<code>/sap/bw/ina/…</code>)을 사용하여
         S/4HANA Analytics Engine에 직접 쿼리합니다.<br><br>
         <strong>SAP_COM_0065</strong>: S/4HANA Public Cloud ↔ SAC Live Connection을 위한 Communication Scenario.
@@ -350,7 +350,8 @@
     <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
       SAC에서 S/4HANA 데이터를 소비하는 방식은 크게 세 가지입니다.
       이 교육 과정에서 다루는 것은 <strong>SAC Live Model(Live Connection)</strong>이며,
-      <code>@Analytics.query: true</code>가 선언된 Analytics Query CDS View를 OData 없이 직접 소비합니다.
+      <code>@Analytics.query: true</code>가 선언된 Analytics Query CDS View를
+      실제 분석 데이터 조회 시 InA 프로토콜로 직접 소비합니다.
       <code>@OData.publish: true</code>는 SAC Import 모델이나 Fiori 앱처럼 OData 서비스를 경유하는 경우에 필요합니다.
     </p>
 
@@ -817,10 +818,10 @@
           SAC가 해당 View를 Live Model의 Analytics Query로 인식하려면 반드시 선언해야 하는 Annotation은?
         </div>
         <div class="quiz-options" id="q1">
-          <div class="quiz-option" onclick="answer('q1',this,false,'q1-fb','@OData.publish: true는 SAC Import 모델이나 Fiori 앱처럼 OData 서비스를 통해 데이터를 가져올 때 필요한 Annotation입니다. SAC Live Model(Live Connection)은 OData를 경유하지 않고 Analytics Engine으로 직접 Query View를 조회하므로 이 Annotation은 불필요합니다.')">
+          <div class="quiz-option" onclick="answer('q1',this,false,'q1-fb','@OData.publish: true는 SAC Import 모델이나 Fiori 앱처럼 OData 서비스를 통해 데이터를 가져올 때 필요한 Annotation입니다. SAC Live Model(Live Connection)은 실제 분석 데이터 조회에 InA 프로토콜을 사용하므로 이 Annotation은 불필요합니다.')">
             <span class="opt-label">A</span> <code>@OData.publish: true</code>
           </div>
-          <div class="quiz-option" onclick="answer('q1',this,true,'q1-fb','정답입니다. @Analytics.query: true가 선언된 CDS View만 SAC Live Model(Live Connection)에서 Analytics Query로 인식됩니다. SAC Live Model은 OData를 경유하지 않으므로 @OData.publish: true는 필요 없습니다. @Analytics.query: true 하나로 SAC가 해당 View의 Dimension·Measure·Variable을 직접 소비할 수 있습니다.')">
+          <div class="quiz-option" onclick="answer('q1',this,true,'q1-fb','정답입니다. @Analytics.query: true가 선언된 CDS View만 SAC Live Model(Live Connection)에서 Analytics Query로 인식됩니다. SAC Live Model은 실제 분석 데이터 조회에 InA 프로토콜을 사용하므로 @OData.publish: true는 불필요합니다. @Analytics.query: true 하나로 SAC가 해당 View의 Dimension·Measure·Variable을 직접 소비할 수 있습니다.')">
             <span class="opt-label">B</span> <code>@Analytics.query: true</code>
           </div>
           <div class="quiz-option" onclick="answer('q1',this,false,'q1-fb','@VDM.viewType: #CONSUMPTION은 VDM 계층 분류 Annotation으로, SAC Live Model 인식의 필수 조건이 아닙니다.')">

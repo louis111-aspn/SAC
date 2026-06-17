@@ -403,8 +403,9 @@
       </div>
       <div class="callout" style="margin-bottom:0; margin-top:8px;">
         <div class="callout-label">설계 원칙</div>
-        <p>Cube View의 <strong>키 필드 하나당 Dimension View 하나</strong>가 대응됩니다.
-        Cube에서 <code>@ObjectModel.foreignKey.association</code>으로 Dimension View를 참조하면,
+        <p>대부분의 분석 키 필드는 대응되는 Dimension View를 갖지만,
+        통화 코드·단위·복합 키처럼 별도 Dimension View가 필요하지 않은 경우도 있습니다.
+        <code>@ObjectModel.foreignKey.association</code>으로 Dimension View를 참조한 키 필드는
         SAC가 자동으로 Dimension으로 인식합니다 (Tab 05에서 상세 설명).</p>
       </div>
     </div>
@@ -488,7 +489,7 @@
       <span style="color:#ffab70;">_Text</span>,
       <span style="color:#ffab70;">_Hierarchy</span>
 }</div>
-          <div class="anatomy-desc"><strong>필드 목록.</strong> <code>@ObjectModel.text.association</code>은 텍스트를 어느 Association에서 가져올지 지정합니다. <code>@ObjectModel.hierarchyAssociation</code>은 SAC가 Hierarchy를 인식하는 핵심 Annotation입니다.</div>
+          <div class="anatomy-desc"><strong>필드 목록.</strong> <code>@ObjectModel.text.association</code>은 텍스트를 어느 Association에서 가져올지 지정합니다. <code>@ObjectModel.hierarchyAssociation</code>은 SAC가 Hierarchy 연결 여부를 인식하도록 돕는 Annotation입니다. 단, SAC에서 계층이 실제로 표시되는 방식은 S/4HANA 버전 및 환경(Public Cloud/On-Premise)에 따라 차이가 있을 수 있으며, 이 Annotation이 모든 환경에서 자동 인식을 보장하지는 않습니다. 대표적인 구현 패턴으로 이해합니다.</div>
         </div>
 
       </div>
@@ -795,7 +796,8 @@
         <div class="step-content">
           <h4>분석 축(Dimension) 목록 확정</h4>
           <p>Cube View에서 사용할 키 필드 목록을 먼저 정의합니다.
-          각 키 필드가 하나의 Dimension으로 대응됩니다.
+          분석 목적의 키 필드 대부분은 대응되는 Dimension View를 가지지만,
+          통화 코드·단위·Degenerate Dimension처럼 별도 Dimension View 없이 처리되는 경우도 있습니다.
           ASPN Group 예시: <code>CompanyCode</code>, <code>FiscalYear</code>, <code>FiscalPeriod</code>,
           <code>GLAccount</code>, <code>ProfitCenter</code>, <code>CostCenter</code>, <code>Currency</code> 등.</p>
         </div>
@@ -991,7 +993,7 @@
           <div class="quiz-option" onclick="answer('q4',this,false,'q4-fb','Value Help와 Hierarchy는 별개입니다. Value Help는 @Consumption.valueHelpDefinition으로 선언합니다.')">
             <span class="opt-label">B</span> GL 계정의 Value Help 목록에 계층 구조를 표시하기 위해
           </div>
-          <div class="quiz-option" onclick="answer('q4',this,true,'q4-fb','정답입니다. @ObjectModel.hierarchyAssociation은 SAC가 이 Dimension에 Hierarchy가 연결되어 있음을 인식하게 합니다. SAC Live Model에서 해당 Dimension을 계층적으로 드릴다운(예: 계정 그룹 → 계정)하려면 이 Annotation이 반드시 선언되어야 합니다. 실제 Hierarchy View는 Tab 04에서 생성합니다.')">
+          <div class="quiz-option" onclick="answer('q4',this,true,'q4-fb','정답입니다. @ObjectModel.hierarchyAssociation은 SAC가 이 Dimension에 Hierarchy가 연결되어 있음을 인식하도록 돕습니다. 실제 계층 표시 동작은 S/4HANA 버전 및 환경에 따라 차이가 있을 수 있으나, 이것이 대표적인 구현 패턴입니다. 실제 Hierarchy View는 Tab 04에서 생성합니다.')">
             <span class="opt-label">C</span> SAC가 이 Dimension에 Hierarchy가 연결되어 있음을 인식하게 하기 위해
           </div>
           <div class="quiz-option" onclick="answer('q4',this,false,'q4-fb','DCL 권한 체크와 hierarchyAssociation은 관련이 없습니다.')">

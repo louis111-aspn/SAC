@@ -265,7 +265,7 @@
         <tr>
           <td><strong>소스</strong></td>
           <td>트랜잭션 테이블 / Interface View</td>
-          <td class="hl">반드시 Cube View (<code>#CUBE</code>)를 소스로</td>
+          <td class="hl">권장 소스는 Cube View (<code>#CUBE</code>). Analytics 기능 안정성을 위해 Cube 기반 설계가 표준 패턴</td>
         </tr>
         <tr>
           <td><strong>Variable</strong></td>
@@ -296,11 +296,12 @@
     </table>
 
     <div class="callout warn">
-      <div class="callout-label">설계 실수 — Query View를 Cube 소스 외에서 참조</div>
-      <p>Query View의 소스(<code>as select from</code>)는 반드시 <code>@Analytics.dataCategory: #CUBE</code>가
-      선언된 Cube View여야 합니다.
-      Interface View나 일반 CDS View를 직접 소스로 삼으면 Variable·Restricted Measure 등
-      Query 전용 기능이 정상 동작하지 않거나 활성화 오류가 발생합니다.</p>
+      <div class="callout-label">Query View 소스 설계 — 권장 패턴</div>
+      <p>Query View의 소스(<code>as select from</code>)는 <code>@Analytics.dataCategory: #CUBE</code>가
+      선언된 Cube View를 사용하는 것이 표준 권장 패턴입니다.
+      Variable·Restricted Measure 등 Analytics 기능의 안정적 동작이 보장됩니다.
+      SAP 표준 사례에서 Composite Provider 성격의 CDS View가 소스가 되는 경우도 있으나,
+      신규 개발에서는 Cube → Query 계층 분리를 원칙으로 삼습니다.</p>
     </div>
   </section>
 
@@ -796,7 +797,7 @@
   <span style="color:#79b8ff;">as select from</span> <span style="color:#ffab70;">ZASPN_C_FinancialCube</span>(
       <span style="color:#ffab70;">P_FiscalYear</span> = <span style="color:#ffab70;">$parameters</span>.<span style="color:#ffab70;">P_FiscalYear</span>
   ) <span style="color:#79b8ff;">as</span> <span style="color:#ffab70;">Cube</span></div>
-        <div class="anatomy-desc"><strong>소스는 반드시 Cube View.</strong> 파라미터를 Cube에 전달합니다. <code>P_CompanyCode</code>와 기간 파라미터는 WHERE 절에서 필터링.</div>
+        <div class="anatomy-desc"><strong>소스는 Cube View 권장.</strong> 파라미터를 Cube에 전달합니다. Cube 기반 설계가 Analytics 기능 안정성을 보장하는 표준 패턴입니다. <code>P_CompanyCode</code>와 기간 파라미터는 WHERE 절에서 필터링.</div>
       </div>
 
       <div class="anatomy-row">
