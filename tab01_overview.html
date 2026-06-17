@@ -308,22 +308,18 @@
 
   /* ── FLOW DIAGRAM (SAC 연결 흐름) ── */
   .flow-row {
-    display: flex;
-    align-items: center;
-    gap: 0;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-  overflow-y: hidden;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 8px;
     background: var(--white);
     border: 1px solid var(--border);
     border-radius: 4px;
-    padding: 28px 32px;
+    padding: 24px 28px;
+    overflow: visible;
   }
   .flow-box {
-    flex: 1;
-    min-width: 120px;
     text-align: center;
-    padding: 16px 12px;
+    padding: 14px 10px;
     background: var(--bg);
     border: 1px solid var(--border);
     border-radius: 4px;
@@ -343,24 +339,20 @@
   }
   .flow-box.navy-box .flow-label { color: var(--navy-mid); }
   .flow-box .flow-title {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
     color: var(--navy);
     line-height: 1.4;
   }
   .flow-box.navy-box .flow-title { color: var(--white); }
   .flow-box .flow-sub {
-    font-size: 11px;
+    font-size: 10px;
     color: var(--text-muted);
     margin-top: 4px;
   }
   .flow-box.navy-box .flow-sub { color: rgba(255,255,255,0.6); }
   .flow-arrow {
-    color: var(--navy);
-    font-size: 20px;
-    padding: 0 8px;
-    flex-shrink: 0;
-    font-weight: 700;
+    display: none; /* 그리드 레이아웃에서 화살표 제거 */
   }
 
   /* ── ROADMAP GRID ── */
@@ -818,43 +810,37 @@
 
     <div class="flow-row">
       <div class="flow-box">
-        <div class="flow-label">Source</div>
+        <div class="flow-label">① Source</div>
         <div class="flow-title">DB Tables</div>
         <div class="flow-sub">ACDOCA, T-Tables</div>
       </div>
-      <div class="flow-arrow">→</div>
       <div class="flow-box">
-        <div class="flow-label">Tab 03</div>
+        <div class="flow-label">② Tab 03</div>
         <div class="flow-title">Dimension View</div>
         <div class="flow-sub">#DIMENSION + Text Assoc</div>
       </div>
-      <div class="flow-arrow">→</div>
       <div class="flow-box">
-        <div class="flow-label">Tab 04</div>
+        <div class="flow-label">③ Tab 04</div>
         <div class="flow-title">Hierarchy View</div>
         <div class="flow-sub">DEFINE HIERARCHY</div>
       </div>
-      <div class="flow-arrow">→</div>
       <div class="flow-box">
-        <div class="flow-label">Tab 05</div>
+        <div class="flow-label">④ Tab 05</div>
         <div class="flow-title">Cube View</div>
         <div class="flow-sub">#CUBE + Measures</div>
       </div>
-      <div class="flow-arrow">→</div>
       <div class="flow-box">
-        <div class="flow-label">Tab 06</div>
+        <div class="flow-label">⑤ Tab 06</div>
         <div class="flow-title">Query View</div>
         <div class="flow-sub">@Analytics.query: true</div>
       </div>
-      <div class="flow-arrow">→</div>
       <div class="flow-box">
-        <div class="flow-label">Tab 08~09</div>
-        <div class="flow-title">Auth + OData</div>
+        <div class="flow-label">⑥ Tab 08~09</div>
+        <div class="flow-title">Auth + Live 연결</div>
         <div class="flow-sub">DCL / SAP_COM_0065</div>
       </div>
-      <div class="flow-arrow">→</div>
       <div class="flow-box navy-box">
-        <div class="flow-label">Target</div>
+        <div class="flow-label">⑦ Target</div>
         <div class="flow-title">SAC Live Model</div>
         <div class="flow-sub">Dimension · Measure 자동 매핑</div>
       </div>
@@ -955,11 +941,11 @@
       <a href="tab09_sac_live.html" class="roadmap-card">
         <div class="tab-num">Tab 09</div>
         <h4>SAC Live Model 연결 및 운영</h4>
-        <p>OData 노출, SAP_COM_0065, Live Connection, Dimension·Measure 매핑 검증, 운영 이슈</p>
+        <p>SAP_COM_0065, Live Connection, Dimension·Measure 매핑 검증, 운영 이슈 패턴</p>
         <div class="tag-row">
           <span class="tag">SAP_COM_0065</span>
           <span class="tag">Live Model</span>
-          <span class="tag">OData</span>
+          <span class="tag">Live Connection</span>
         </div>
       </a>
     </div>
