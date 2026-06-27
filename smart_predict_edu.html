@@ -243,56 +243,141 @@ code{font-family:'JetBrains Mono','Noto Sans KR',monospace;background:#f0f3f8;pa
   </div>
 
   <div class="section">
-    <h2 class="section-title">1-3. 생성형AI 시대, ML 예측의 효용성</h2>
-    <p class="section-sub">ChatGPT 같은 생성형AI가 확산되면서 "굳이 ML 모델을 만들 필요가 있나"라는 질문이 나옵니다. 결론부터: Smart Predict는 생성형AI의 경쟁자가 아닙니다.</p>
+    <h2 class="section-title">1-3. 생성형AI 시대, SAC ML의 진짜 포지션</h2>
+    <p class="section-sub">C레벨의 "GenAI 쓰면 되지 않냐"라는 챌린지에 논리적으로 대응할 수 있어야 합니다.</p>
+
+    <!-- 챌린지 도입 -->
     <div class="callout callout-warn">
-      <div class="callout-title">흔한 오해</div>
-      "ChatGPT에게 '다음 분기 매출 예측해줘'라고 물으면 되지 않나?" — 이 질문의 핵심 문제는 ChatGPT가 <strong>우리 회사의 내부 데이터를 모른다</strong>는 점입니다. 생성형AI는 공개 데이터로 학습된 언어 모델이지, 자사 트랜잭션 데이터를 분석하는 도구가 아닙니다.
+      <div class="callout-title">현장에서 반드시 마주치는 C레벨 챌린지 3가지</div>
+      "ChatGPT Enterprise면 데이터 보안 문제없고 더 싸지 않냐?" &nbsp;·&nbsp;
+      "GenAI가 훨씬 자유롭게 분석하지 않냐?" &nbsp;·&nbsp;
+      "복잡한 ML 공부할 필요 없이 자연어로 물어보면 되지 않냐?"
     </div>
-    <div class="genai-grid">
-      <div class="genai-col">
-        <div class="genai-col-header llm">생성형AI (LLM)</div>
-        <div class="genai-col-body">
-          <div class="genai-item"><span class="genai-icon">⚠️</span><span>공개 데이터 기반 학습 — 자사 내부 데이터 미반영</span></div>
-          <div class="genai-item"><span class="genai-icon">⚠️</span><span>동일 질문에 매번 다른 답 가능 (재현성 없음)</span></div>
-          <div class="genai-item"><span class="genai-icon">⚠️</span><span>Hallucination 위험 — 그럴듯한 허구의 수치 생성 가능</span></div>
-          <div class="genai-item"><span class="genai-icon">⚠️</span><span>예측 근거 추적 어려움 — 감사(Audit) 대응 불가</span></div>
-          <div class="genai-item"><span class="genai-icon">⚠️</span><span>SAP Planning 직접 연계 불가</span></div>
-        </div>
+
+    <!-- 전제: 인정할 것은 인정 -->
+    <div class="subsection-title">먼저 인정할 것 — GenAI의 실제 강점</div>
+    <div class="card-grid card-grid-3">
+      <div class="card">
+        <div class="subsection-title" style="font-size:14px">✅ 보안 문제 없음</div>
+        <p style="font-size:13px;color:var(--text-sub)">ChatGPT Enterprise, Copilot, Gemini Enterprise 모두 고객 데이터를 학습에 사용하지 않는 조항이 표준입니다. 보안을 SAC 유지 근거로 쓰는 것은 설득력이 약합니다.</p>
       </div>
-      <div class="genai-col">
-        <div class="genai-col-header sac">SAC Smart Predict</div>
-        <div class="genai-col-body">
-          <div class="genai-item"><span class="genai-icon">✅</span><span>자사 내부 데이터로 직접 학습 — 회사 고유 패턴 반영</span></div>
-          <div class="genai-item"><span class="genai-icon">✅</span><span>동일 입력 → 동일 출력 보장 (재현성)</span></div>
-          <div class="genai-item"><span class="genai-icon">✅</span><span>R², MAPE, AUC 등 검증 지표로 정확도 수치화</span></div>
-          <div class="genai-item"><span class="genai-icon">✅</span><span>Influence Factor로 예측 근거 설명 가능</span></div>
-          <div class="genai-item"><span class="genai-icon">✅</span><span>SAC Planning에 예측값 직접 Write-back</span></div>
-        </div>
+      <div class="card">
+        <div class="subsection-title" style="font-size:14px">✅ 분석 자유도 높음</div>
+        <p style="font-size:13px;color:var(--text-sub)">비선형 모델, 앙상블, 클러스터링 등 SAC의 세 가지 시나리오가 제공하지 않는 분석을 자연어 질문 몇 번으로 수행할 수 있습니다.</p>
+      </div>
+      <div class="card">
+        <div class="subsection-title" style="font-size:14px">✅ 진입 장벽 낮음</div>
+        <p style="font-size:13px;color:var(--text-sub)">"이탈 예측해줘"라고 자연어로 요청하면 됩니다. SAC처럼 변수 설계, 시나리오 설정, 정확도 해석을 배울 필요가 없습니다.</p>
       </div>
     </div>
-    <div class="subsection-title">오히려 강화되는 가치 — GenAI 시대에 ML의 역할</div>
+
+    <!-- 챌린지 1: 비용 -->
+    <div class="subsection-title" style="margin-top:28px">챌린지 1 — "GenAI가 더 싸다"</div>
     <div class="card-grid card-grid-2">
-      <div class="card"><div style="font-weight:700;font-size:14px;color:var(--navy);margin-bottom:8px">🔢 신뢰할 수 있는 수치의 공급자</div><p style="font-size:13px;color:var(--text-sub)">생성형AI는 인사이트를 언어로 생성하지만, 그 수치 근거는 검증된 ML 모델이 공급해야 합니다. "MAPE 8.3%의 모델이 +12% 성장을 예측한다"는 말의 신뢰도는 다릅니다.</p></div>
-      <div class="card"><div style="font-weight:700;font-size:14px;color:var(--navy);margin-bottom:8px">📋 설명 가능성 (Explainability)</div><p style="font-size:13px;color:var(--text-sub)">금융·제조·공공 분야의 규제 환경에서 "왜 이 예측이 나왔는가"를 설명할 수 있어야 합니다. Smart Predict의 Influence Factor는 이 요건을 충족합니다.</p></div>
-      <div class="card"><div style="font-weight:700;font-size:14px;color:var(--navy);margin-bottom:8px">⚙️ 자동화 파이프라인의 핵심 부품</div><p style="font-size:13px;color:var(--text-sub)">SAP Joule 등 GenAI 레이어가 확장될수록 예측 숫자를 생성하는 ML 계층은 더 중요해집니다. GenAI가 "내달 발주량을 제안"하려면 그 근거 숫자는 어딘가에서 와야 합니다.</p></div>
-      <div class="card"><div style="font-weight:700;font-size:14px;color:var(--navy);margin-bottom:8px">🎯 컨설턴트 가치의 재정의</div><p style="font-size:13px;color:var(--text-sub)">GenAI가 분석 보조를 대체할수록, 컨설턴트의 가치는 "모델 설계 판단력"과 "결과 해석 역량"으로 이동합니다. Smart Predict를 다룰 줄 안다는 것은 이 역량의 기반입니다.</p></div>
+      <div class="card">
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:6px">표면적 비교</div>
+        <p style="font-size:13px;color:var(--text-sub)">ChatGPT Enterprise 월 구독료 vs. SAC 라이선스만 보면 GenAI가 저렴해 보입니다.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:8px">대응 ① — 반복 사용의 숨겨진 비용 (TCO)</div>
+        <p style="font-size:13px;color:var(--text-sub)">경영 예측은 일회성 분석이 아닙니다. 매월 수백 행 데이터를 컨텍스트에 올리고 전처리 지시 → 모델 선택 → 결과 해석 → 재질문을 반복하면 <strong>토큰 비용이 회차마다 누적</strong>됩니다. 전사 10개 부서에서 월 50회 반복하면 구독료만으로는 TCO를 계산할 수 없습니다. SAC Smart Predict는 학습된 모델을 저장하고 재실행 비용이 없습니다.</p>
+        <div style="font-size:13px;font-weight:700;color:var(--navy);margin-top:12px;margin-bottom:6px">대응 ② — 이미 지불한 라이선스</div>
+        <p style="font-size:13px;color:var(--text-sub)">SAC를 도입한 기업은 Smart Predict가 추가 비용 없이 포함된 경우가 대부분입니다. 비교 대상은 "SAC vs. GenAI"가 아니라 <strong>"이미 계약한 기능 활성화 비용 vs. GenAI 신규 도입 비용"</strong>입니다.</p>
+      </div>
     </div>
-    <div class="subsection-title" style="margin-top:28px">협업 구조 — Smart Predict와 GenAI는 경쟁이 아닌 계층</div>
-    <div class="collab-flow">
-      <div class="collab-box data"><div class="collab-box-title">자사 내부 데이터</div><div class="collab-box-desc">SAP 트랜잭션, ERP 마스터, 외부 시장 데이터</div></div>
-      <div class="collab-arrow">↓</div>
-      <div class="collab-box ml"><div class="collab-box-title">SAC Smart Predict (ML 계층)</div><div class="collab-box-desc">검증된 예측 수치 + 영향 변수 + 정확도 지표 생성</div></div>
-      <div class="collab-arrow">↓</div>
-      <div class="collab-box gen"><div class="collab-box-title">GenAI / SAP Joule (언어 계층)</div><div class="collab-box-desc">수치를 자연어 인사이트로 변환, 의사결정 옵션 제안</div></div>
-      <div class="collab-arrow">↓</div>
-      <div class="collab-box exec"><div class="collab-box-title">경영진 의사결정 · 액션</div><div class="collab-box-desc">근거 있는 숫자 + 언어 해석을 토대로 실행</div></div>
+
+    <!-- 챌린지 2: 자유도 -->
+    <div class="subsection-title" style="margin-top:28px">챌린지 2 — "GenAI가 더 자유롭게 분석한다"</div>
+    <div class="card-grid card-grid-2">
+      <div class="card">
+        <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:8px">대응 ① — 블랙박스의 대가</div>
+        <p style="font-size:13px;color:var(--text-sub)">GenAI는 결과를 줍니다. 그런데 그 결과가 왜 나왔는지 — 어떤 변수가 얼마나 기여했는지, 어떤 알고리즘이 선택됐는지, 내일 다시 넣으면 같은 결과가 나오는지 — 를 <strong>설명할 수 없습니다.</strong></p>
+        <p style="font-size:13px;color:var(--text-sub);margin-top:8px">CFO가 "이 원가 예측의 근거가 무엇이냐"고 물었을 때 "AI가 그렇게 말했습니다"는 답이 될 수 없습니다. <strong>자유도와 설명 가능성은 트레이드오프입니다.</strong></p>
+      </div>
+      <div class="card">
+        <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:8px">대응 ② — 탐색 vs. 운영의 분리</div>
+        <p style="font-size:13px;color:var(--text-sub)">GenAI의 자유도는 <strong>탐색적 분석(EDA)</strong>에서 빛납니다. 가설을 빠르게 검증하고 패턴을 발견하는 데 탁월합니다.</p>
+        <p style="font-size:13px;color:var(--text-sub);margin-top:8px">그러나 경영 의사결정에 쓰이는 <strong>정기 운영 예측</strong>은 자유도가 아닌 <strong>일관성</strong>이 핵심입니다. 매월 GenAI에 "원가 예측해줘"를 반복하면 매번 다른 모델이, 다른 가정으로 분석합니다. 경영계획의 기준값으로 사용할 수 없습니다.</p>
+      </div>
     </div>
+
+    <!-- 핵심 논리: 테스트베드 -->
+    <div class="subsection-title" style="margin-top:28px">가장 강력한 대응 — SAC ML은 GenAI의 테스트베드</div>
     <div class="insight-box">
-      <div class="insight-quote">"GenAI는 질문에 답하는 도구이고,<br>Smart Predict는 그 답이 틀리지 않도록 수치를 검증하는 도구입니다."</div>
-      <p>두 가지가 함께 있을 때 의사결정의 신뢰도가 완성됩니다. 컨설턴트는 이 두 계층을 모두 이해하고 고객에게 설명할 수 있어야 합니다.</p>
+      <div class="insight-quote">"GenAI로 회사 데이터를 분석하려면 결국 데이터가 깨끗해야 합니다."</div>
+      <p>날짜 형식 혼재, 단위 불일치, 이상값, 결측치, Data Leakage — 이것들이 GenAI에 들어가도 GenAI는 잘못된 결과를 냅니다. 그리고 GenAI는 그 사실을 알아서 경고하지 않습니다.</p>
+      <p style="margin-top:12px">SAC Smart Predict를 운영하면서 이 품질 이슈를 발견하고 수정하는 과정이, 정확히 <strong>향후 GenAI 도입을 위한 데이터 정제 파이프라인 구축</strong>입니다. SAC ML은 GenAI의 경쟁자가 아니라 준비 인프라입니다. <strong>둘은 경쟁이 아닌 순서의 관계입니다.</strong></p>
     </div>
+
+    <!-- 챌린지 3: 단순화 -->
+    <div class="subsection-title" style="margin-top:28px">챌린지 3 — "자연어로 물어보면 되는데 ML을 왜 배우냐"</div>
+    <div class="card-grid card-grid-2">
+      <div class="card">
+        <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:8px">대응 ① — 질문의 품질이 결과를 결정한다</div>
+        <p style="font-size:13px;color:var(--text-sub)">GenAI에 "원가 예측해줘"라고 물으면 답은 나옵니다. 그러나 그 답이 올바른지 판단하는 것은 여전히 사람의 역량입니다.</p>
+        <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px">
+          <div style="background:var(--wrong-bg);border-left:3px solid var(--wrong-border);padding:8px 12px;border-radius:0 4px 4px 0;font-size:13px">다중공선성 변수를 함께 넣어도 GenAI는 경고하지 않습니다</div>
+          <div style="background:var(--wrong-bg);border-left:3px solid var(--wrong-border);padding:8px 12px;border-radius:0 4px 4px 0;font-size:13px">이상값이 추세를 왜곡해도 GenAI는 그대로 분석합니다</div>
+          <div style="background:var(--wrong-bg);border-left:3px solid var(--wrong-border);padding:8px 12px;border-radius:0 4px 4px 0;font-size:13px">Data Leakage 변수가 있어도 높은 정확도를 그대로 보고합니다</div>
+        </div>
+        <p style="font-size:13px;color:var(--text-sub);margin-top:10px"><strong>ML을 배우는 이유는 모델을 직접 만들기 위해서가 아니라, GenAI가 틀렸을 때 틀렸다는 것을 알기 위해서입니다.</strong></p>
+      </div>
+      <div class="card">
+        <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:8px">대응 ② — SAC ML이 GenAI 활용 역량을 높인다</div>
+        <p style="font-size:13px;color:var(--text-sub)">SAC Smart Predict에서 분류·회귀·시계열의 원리를 직접 실습하고 트랩을 경험한 컨설턴트는, GenAI에게 더 정확한 질문을 하고 더 날카롭게 결과를 검증할 수 있습니다.</p>
+        <p style="font-size:13px;color:var(--text-sub);margin-top:8px">ML 기초 없이 GenAI를 쓰는 것은 운전 원리 모르고 자율주행차에 탑승하는 것과 같습니다. 작은 도로에서는 괜찮지만 사고가 났을 때 대응할 수 없습니다.</p>
+        <div style="background:var(--correct-bg);border-left:3px solid var(--correct-border);padding:10px 14px;border-radius:0 4px 4px 0;margin-top:10px;font-size:13px">
+          <strong style="color:var(--correct-border)">결론:</strong> SAC ML 실습 → GenAI 질문 품질 향상 → 더 신뢰할 수 있는 분석 결과
+        </div>
+      </div>
+    </div>
+
+    <!-- 포지셔닝 정리 -->
+    <div class="subsection-title" style="margin-top:28px">최종 포지셔닝 — 협업 구조로 설명</div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>분석 유형</th><th>GenAI 적합</th><th>SAC Smart Predict 적합</th></tr>
+        <tr><td>탐색적 분석 · 가설 검증</td><td style="color:var(--correct-border);font-weight:700">✅ 압도적 우위</td><td style="color:var(--text-muted)">제한적</td></tr>
+        <tr><td>정기 운영 예측 (매월 반복)</td><td style="color:var(--text-muted)">일관성 보장 어려움</td><td style="color:var(--correct-border);font-weight:700">✅ 핵심 강점</td></tr>
+        <tr><td>SAP Planning 자동 Write-back</td><td style="color:var(--wrong-border);font-weight:700">❌ 불가</td><td style="color:var(--correct-border);font-weight:700">✅ Native 지원</td></tr>
+        <tr><td>Influence Factor 감사 대응</td><td style="color:var(--wrong-border);font-weight:700">❌ 블랙박스</td><td style="color:var(--correct-border);font-weight:700">✅ 완전 추적</td></tr>
+        <tr><td>데이터 품질 파이프라인 구축</td><td style="color:var(--text-muted)">문제 인지 어려움</td><td style="color:var(--correct-border);font-weight:700">✅ 트랩 발견 → 정제</td></tr>
+        <tr><td>반복 사용 TCO</td><td style="color:var(--wrong-border)">토큰 비용 누적</td><td style="color:var(--correct-border);font-weight:700">✅ 재실행 비용 없음</td></tr>
+      </table>
+    </div>
+
+    <!-- 협업 구조 다이어그램 -->
+    <div class="subsection-title">실무 협업 구조 — GenAI와 SAC ML은 순서의 관계</div>
+    <div class="collab-flow">
+      <div class="collab-box data">
+        <div class="collab-box-title">자사 내부 데이터 (Raw)</div>
+        <div class="collab-box-desc">ERP 트랜잭션 · 마스터 데이터 · 외부 시장 데이터</div>
+      </div>
+      <div class="collab-arrow">↓</div>
+      <div class="collab-box ml">
+        <div class="collab-box-title">SAC Smart Predict (ML 계층)</div>
+        <div class="collab-box-desc">데이터 품질 검증 · 트랩 발견 · 정제 파이프라인 확립<br>→ 검증된 예측 수치 + Influence Factor + 정확도 지표 생성</div>
+      </div>
+      <div class="collab-arrow">↓</div>
+      <div class="collab-box gen">
+        <div class="collab-box-title">GenAI / SAP Joule (언어 계층)</div>
+        <div class="collab-box-desc">깨끗한 데이터 + 검증된 수치를 기반으로 자유로운 탐색 분석<br>→ 자연어 인사이트 · 시나리오 스토리텔링 · 의사결정 옵션 제안</div>
+      </div>
+      <div class="collab-arrow">↓</div>
+      <div class="collab-box exec">
+        <div class="collab-box-title">경영진 의사결정 · 액션</div>
+        <div class="collab-box-desc">설명 가능한 수치 + 자유로운 언어 해석 → 신뢰할 수 있는 실행</div>
+      </div>
+    </div>
+
+    <!-- 현장 멘트 -->
+    <div class="callout callout-navy" style="margin-top:20px">
+      <div class="callout-title">고객이 "ChatGPT 쓰면 되지 않냐"고 물을 때 — 현장 대응 멘트</div>
+      "GenAI로 더 자유롭고 빠르게 분석할 수 있는 건 맞습니다. 두 가지만 확인하고 싶습니다. 첫째, 이 분석 결과가 다음 날 SAP Planning에 자동으로 반영되어야 합니까? 둘째, 이 예측이 CFO 보고나 외부 감사에서 근거를 설명해야 하는 수치입니까? 그렇다면 Smart Predict가 필요합니다. 그리고 Smart Predict를 운영하면서 쌓이는 데이터 정제 경험이 귀사의 GenAI 본격 도입을 위한 가장 빠른 준비가 됩니다."
+    </div>
+
   </div>
+
 
   <div class="section">
     <h2 class="section-title">1-4. 3대 시나리오 한눈에 비교</h2>
@@ -601,9 +686,21 @@ code{font-family:'JetBrains Mono','Noto Sans KR',monospace;background:#f0f3f8;pa
       <div class="card"><div style="font-size:13px;color:var(--text-muted);margin-bottom:6px">✅ 효과적인 설명</div><p style="font-size:13px;color:var(--text-sub)">"지금 담당자 경험에 의존하는 예측을 데이터 기반으로 전환하면, 담당자가 바뀌어도 예측의 일관성을 유지할 수 있습니다."</p><div style="font-size:12px;color:#2e7d32;margin-top:8px">→ 고객의 문제를 중심으로 가치를 설명합니다.</div></div>
     </div>
     <div class="subsection-title" style="margin-top:24px">GenAI 도입 논의 시 Smart Predict 포지셔닝</div>
-    <div class="insight-box">
-      <div class="insight-quote">"GenAI는 우리 회사 데이터를 모릅니다.<br>Smart Predict는 우리 데이터로 만든 우리만의 예측 엔진입니다."</div>
-      <p>고객이 "ChatGPT 쓰면 되지 않나요?"라고 물을 때 사용하세요. GenAI와 ML의 역할이 다름을 명확히 하는 한 문장입니다.</p>
+    <div class="callout callout-navy">
+      <div class="callout-title">C레벨 챌린지 유형별 핵심 대응 요약</div>
+      <div class="table-wrap" style="margin-top:10px;margin-bottom:0">
+        <table style="font-size:13px">
+          <tr><th style="width:200px">챌린지</th><th>핵심 대응 논리</th></tr>
+          <tr><td>"GenAI가 더 싸다"</td><td>반복 사용 토큰 비용 누적 (TCO) + 이미 포함된 SAC 라이선스 → 신규 도입 비용 비교 오류</td></tr>
+          <tr><td>"GenAI가 더 자유롭다"</td><td>자유도 ↑ = 설명 가능성 ↓. 탐색 분석(GenAI) vs. 정기 운영 예측(SAC)은 용도가 다름</td></tr>
+          <tr><td>"자연어로 물어보면 된다"</td><td>GenAI가 틀렸을 때 틀렸다는 것을 아는 것이 컨설턴트 역량. ML 학습이 GenAI 활용 품질을 높임</td></tr>
+          <tr><td>"데이터 보안 문제없다"</td><td>인정. 대신 블랙박스·Write-back 불가·감사 추적 불가가 실질적 한계</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="insight-box" style="margin-top:16px">
+      <div class="insight-quote">"SAC ML은 GenAI의 경쟁자가 아닙니다.<br>GenAI 도입을 위한 데이터 정제 파이프라인의 테스트베드입니다."</div>
+      <p>고객이 "ChatGPT 쓰면 되지 않나요?"라고 물을 때: "두 가지만 확인하고 싶습니다. 이 결과가 SAP Planning에 자동 반영되어야 합니까? 그리고 CFO 보고에서 예측 근거를 설명해야 합니까? 그렇다면 Smart Predict가 필요합니다. 그리고 지금 Smart Predict로 쌓는 데이터 정제 경험이, 귀사의 GenAI 본격 도입을 위한 가장 빠른 준비입니다."</p>
     </div>
     <div class="subsection-title" style="margin-top:24px">모델 정확도가 낮을 때 고객에게 설명하는 법</div>
     <div class="callout callout-warn">
